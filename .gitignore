@@ -1,0 +1,17 @@
+# Decrypted secrets never get committed
+*.dec
+*.env.plain
+.env
+
+# age private keys
+keys.txt
+*.age.key
+
+# runtime data / volumes
+**/data/
+**/*_data/
+**/letsencrypt/
+**/dawarich_*/
+
+# OS noise
+.DS_Store
