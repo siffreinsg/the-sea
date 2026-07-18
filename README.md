@@ -11,7 +11,7 @@ Infrastructure-as-code for a self-hosted homelab across four nodes.
 
 ## Stack
 
-- **Networking:** Tailscale mesh (userspace mode on no-root/OpenVZ nodes)
+- **Networking:** Headscale mesh (Tailscale clients, userspace on no-root/OpenVZ nodes)
 - **Ingress:** Caddy on Thriller Bark, Let's Encrypt via Cloudflare DNS-01 (CF = DNS only)
 - **Secrets:** SOPS + age (encrypted in-repo)
 - **Deploy:** Komodo GitOps from this repo
@@ -22,4 +22,4 @@ Infrastructure-as-code for a self-hosted homelab across four nodes.
 
 Top-level dirs are per-ship (map onto Komodo server targets). Cross-cutting concerns live at root: `komodo/`, `scripts/`, `docs/`, `.sops.yaml`.
 
-See [`docs/superpowers/specs/2026-07-18-infra-foundation-design.md`](docs/superpowers/specs/2026-07-18-infra-foundation-design.md) for the full foundation design.
+See [`docs/specs/foundation-design.md`](docs/specs/foundation-design.md) for the full foundation design and [`docs/specs/future.md`](docs/specs/future.md) for deferred items.
