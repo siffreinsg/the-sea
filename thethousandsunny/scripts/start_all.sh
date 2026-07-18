@@ -1,0 +1,16 @@
+app-bazarr start
+app-filebrowser start
+app-overseerr start
+app-seerr start
+app-prowlarr start
+app-qbittorrent start
+app-qui start
+app-radarr start
+app-radarr2 start
+app-sonarr start
+app-sonarr2 start
+app-syncthing start
+app-tautulli start
+app-plex start
+app-uptimekuma start
+app-nginx start

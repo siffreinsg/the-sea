@@ -1,0 +1,173 @@
+---
+# full list of environment variables with descriptions:
+# https://dawarich.app/docs/self-hosting/environment-variables/
+services:
+  dawarich_redis:
+    image: redis:7.4-alpine
+    container_name: dawarich_redis
+    command: >
+      redis-server
+      --save 900 1
+      --save 300 10
+      --appendonly no
+    volumes:
+      - ./dawarich_shared:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  dawarich_db:
+    image: postgis/postgis:17-3.5-alpine
+    shm_size: 1G
+    container_name: dawarich_db
+    # command: postgres -c config_file=/etc/postgresql/postgresql.conf # Use custom config, uncomment if you want to use a custom config
+    volumes:
+      - ./dawarich_db_data:/var/lib/postgresql/data
+      - ./dawarich_shared:/var/shared
+    env_file: .env
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?database password not set}
+      POSTGRES_DB: dawarich_development
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d dawarich_development" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  dawarich_app:
+    image: freikin/dawarich:latest
+    container_name: dawarich_app
+    volumes:
+      - ./dawarich_public:/var/app/public
+      - ./dawarich_watched:/var/app/tmp/imports/watched
+      - ./dawarich_storage:/var/app/storage
+      - ./dawarich_db_data:/dawarich_db_data
+    networks:
+      - default
+      - revproxy
+    stdin_open: true
+    tty: true
+    entrypoint: web-entrypoint.sh
+    command: ['bin/rails', 'server', '-p', '3000', '-b', '::']
+    restart: on-failure
+    hostname: dawarich
+    env_file: .env
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-production}
+      ### To run under a non-root user, set PUID/PGID here (do NOT use `user:`).
+      # PUID: ${PUID:-1000}
+      # PGID: ${PGID:-1000}
+      REDIS_URL: redis://dawarich_redis:6379
+      DATABASE_HOST: dawarich_db
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_NAME: dawarich_development
+      MIN_MINUTES_SPENT_IN_CITY: 60
+      TIME_ZONE: Europe/Paris
+      APPLICATION_PROTOCOL: http
+      SELF_HOSTED: "true"
+      STORE_GEODATA: "true"
+      RAILS_LOG_TO_STDOUT: ${RAILS_LOG_TO_STDOUT:-true}
+      PROMETHEUS_EXPORTER_ENABLED: ${PROMETHEUS_EXPORTER_ENABLED:-false}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
+      # One preloaded Puma worker is plenty for a household instance and
+      # halves idle memory. Raise for busier instances.
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+      ### OTP encryption keys are required if you want to use 2FA
+      # OTP_ENCRYPTION_PRIMARY_KEY: ${OTP_ENCRYPTION_PRIMARY_KEY:-}
+      # OTP_ENCRYPTION_DETERMINISTIC_KEY: ${OTP_ENCRYPTION_DETERMINISTIC_KEY:-}
+      # OTP_ENCRYPTION_KEY_DERIVATION_SALT: ${OTP_ENCRYPTION_KEY_DERIVATION_SALT:-}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO - http://127.0.0.1:3000/api/v1/health | grep -q '\"status\"\\s*:\\s*\"ok\"'" ]
+      interval: 10s
+      retries: 30
+      start_period: 30s
+      timeout: 10s
+    depends_on:
+      dawarich_db:
+        condition: service_healthy
+        restart: true
+      dawarich_redis:
+        condition: service_healthy
+        restart: true
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: '8G'
+
+  dawarich_sidekiq:
+    image: freikin/dawarich:latest
+    container_name: dawarich_sidekiq
+    volumes:
+      - ./dawarich_public:/var/app/public
+      - ./dawarich_watched:/var/app/tmp/imports/watched
+      - ./dawarich_storage:/var/app/storage
+    stdin_open: true
+    tty: true
+    entrypoint: sidekiq-entrypoint.sh
+    command: ['sidekiq']
+    restart: on-failure
+    env_file: .env
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-production}
+      ### To run under a non-root user, set PUID/PGID here (do NOT use `user:`).
+      # PUID: ${PUID:-1000}
+      # PGID: ${PGID:-1000}
+      REDIS_URL: redis://dawarich_redis:6379
+      DATABASE_HOST: dawarich_db
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_NAME: dawarich_development
+      BACKGROUND_PROCESSING_CONCURRENCY: 25
+      APPLICATION_PROTOCOL: http
+      SELF_HOSTED: "true"
+      STORE_GEODATA: "true"
+      RAILS_LOG_TO_STDOUT: ${RAILS_LOG_TO_STDOUT:-true}
+      PROMETHEUS_EXPORTER_ENABLED: ${PROMETHEUS_EXPORTER_ENABLED:-false}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
+      ### OTP encryption keys are required if you want to use 2FA
+      # OTP_ENCRYPTION_PRIMARY_KEY: ${OTP_ENCRYPTION_PRIMARY_KEY:-}
+      # OTP_ENCRYPTION_DETERMINISTIC_KEY: ${OTP_ENCRYPTION_DETERMINISTIC_KEY:-}
+      # OTP_ENCRYPTION_KEY_DERIVATION_SALT: ${OTP_ENCRYPTION_KEY_DERIVATION_SALT:-}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    healthcheck:
+      test: [ "CMD-SHELL", "pgrep -f sidekiq" ]
+      interval: 10s
+      retries: 30
+      start_period: 30s
+      timeout: 10s
+    depends_on:
+      dawarich_db:
+        condition: service_healthy
+        restart: true
+      dawarich_redis:
+        condition: service_healthy
+        restart: true
+      dawarich_app:
+        condition: service_healthy
+        restart: true
+
+networks:
+  default:
+    name: dawarich
+  revproxy:
+    external: true

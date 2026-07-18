@@ -1,0 +1,15 @@
+app-bazarr upgrade
+app-filebrowser upgrade
+app-maintainerr upgrade
+app-overseerr upgrade
+app-seerr upgrade
+app-prowlarr upgrade
+app-qui upgrade
+app-radarr upgrade
+app-radarr2 upgrade
+app-sonarr upgrade
+app-sonarr2 upgrade
+app-syncthing upgrade
+app-tautulli upgrade
+app-uptimekuma upgrade
+app-plex upgrade

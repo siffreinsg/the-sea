@@ -1,0 +1,16 @@
+app-bazarr stop
+app-filebrowser stop
+app-overseerr stop
+app-seerr stop
+app-prowlarr stop
+app-qbittorrent stop
+app-qui stop
+app-radarr stop
+app-radarr2 stop
+app-sonarr stop
+app-sonarr2 stop
+app-syncthing stop
+app-tautulli stop
+app-plex stop
+app-uptimekuma stop
+app-nginx stop
