@@ -7,20 +7,20 @@
 > replace unit tests. Steps that require credentials or console access are marked
 > **[OPERATOR]** — a human must run them; they can't be automated from this repo.
 
-**Goal:** Stand up the cross-cutting foundation — Tailscale mesh, SOPS secrets, Komodo GitOps, Caddy edge, Backrest backups, and the observability stack — proven end-to-end by migrating one pilot service (dawarich) from the old repo.
+**Goal:** Stand up the cross-cutting foundation — WireGuard overlay, SOPS secrets, Komodo GitOps, Caddy edge, Backrest backups, and the observability stack — proven end-to-end by migrating one pilot service (dawarich) from the old repo.
 
-**Architecture:** Four nodes on a Tailscale tailnet. Thriller Bark (Oracle) is the control plane running Komodo Core, Caddy, Backrest, and Grafana/VictoriaMetrics/Loki. Docker stacks deploy from this Git repo via Komodo Resource Sync. Secrets are SOPS+age encrypted in-repo. Backups go restic→rclone→Proton (all) + Mega (critical subset).
+**Architecture:** Foundation nodes linked by a WireGuard hub-and-spoke overlay (hub = Thriller Bark). Thriller Bark (Oracle) is the control plane running Komodo Core, Caddy, Backrest, and Grafana/VictoriaMetrics/Loki. Docker stacks deploy from this Git repo via Komodo Resource Sync. Secrets are SOPS+age encrypted in-repo. Backups go restic→rclone→Proton (all) + Mega (critical subset).
 
-**Tech Stack:** Docker + Docker Compose, Tailscale, Komodo, Caddy (with Cloudflare DNS plugin), SOPS + age, restic + rclone + Backrest, Grafana + VictoriaMetrics + Loki + Grafana Alloy.
+**Tech Stack:** Docker + Docker Compose, WireGuard, Komodo, Caddy (with Cloudflare DNS plugin), SOPS + age, restic + rclone + Backrest, Grafana + VictoriaMetrics + Loki + Grafana Alloy.
 
 ## Global Constraints
 
 - **No HA / no Kubernetes.** Compose only. Do not introduce an orchestrator.
 - **Cloudflare is DNS-only** (grey cloud). Never enable the orange-cloud proxy for these records.
 - **No plaintext secrets committed.** Every `*.env` / `secrets.*` file must be SOPS-encrypted before `git add`. Verify with `git diff --cached` showing ciphertext.
-- **Public ports (80/443) open only on Thriller Bark.** All other node-to-node traffic rides the tailnet.
-- **The Thousand Sunny (Ultra.cc) and Den Den Mushi (Pi) are out of scope** for this foundation except joining the tailnet — no Docker/Komodo there.
-- **Userspace Tailscale** (`--tun=userspace-networking`) on Going Merry and Sunny (no root / no `/dev/net/tun`).
+- **Public ports (80/443) open only on Thriller Bark.** All other node-to-node traffic rides the WireGuard overlay.
+- **The Thousand Sunny (Ultra.cc) and Den Den Mushi (Pi) are out of scope** for this foundation and out of the foundation overlay (WireGuard doesn't work on Ultra.cc) — no Docker/Komodo there.
+- **Userspace WireGuard** (`wireguard-go`) on Going Merry (tun present, no kernel module).
 - **Timezone `Europe/Paris`**, domain root `<DOMAIN>` (e.g. `siffreinsigy.me`).
 
 ---
@@ -98,92 +98,97 @@ git commit -m "chore: repo scaffolding, gitignore, sops config"
 
 ---
 
-## Task 2: Tailscale mesh across all four nodes
+## Task 2: WireGuard hub-and-spoke overlay (Thriller Bark ↔ Going Merry)
 
 **Files:**
-- Create: `scripts/bootstrap-tailscale.sh`
+- Create: `scripts/bootstrap-wireguard.sh` (already written)
 - Create: `docs/runbooks/add-a-node.md`
+- Create: `going-merry/hosts.snippet`, `thriller-bark/hosts.snippet` (ship-name → overlay IP)
 
 **Interfaces:**
-- Produces: all four nodes on one tailnet, MagicDNS names reachable. Node names: `thriller-bark`, `going-merry`, `thethousandsunny`, `dendenmushi`.
+- Produces: overlay `10.10.0.0/24`; hub `thriller-bark`=`10.10.0.1`, spoke `going-merry`=`10.10.0.2`; both reachable by overlay IP and `/etc/hosts` name.
+- Sunny (`10.10.0.3`) and Pi (`10.10.0.4`) are reserved but joined later (WireGuard is confirmed NOT working on Ultra.cc — see spec §4.1 note).
 
-- [ ] **Step 1: Create tailnet + auth key [OPERATOR]**
-
-In the Tailscale admin console: enable **MagicDNS**, create a reusable **auth key** (`<TS_AUTHKEY>`), tag it `tag:server`.
-
-- [ ] **Step 2: Write `scripts/bootstrap-tailscale.sh`**
+- [ ] **Step 1: Install WireGuard tooling [OPERATOR]**
 
 ```bash
-#!/usr/bin/env bash
-# Usage: bootstrap-tailscale.sh <hostname> [--userspace]
-# Installs tailscale and joins the tailnet. --userspace for no-root / OpenVZ / Ultra.cc.
-set -euo pipefail
-HOSTNAME="${1:?need hostname}"; MODE="${2:-}"
-: "${TS_AUTHKEY:?export TS_AUTHKEY first}"
-
-if [[ "$MODE" == "--userspace" ]]; then
-  # No root: download static binary into ~/.local, run tailscaled in userspace.
-  mkdir -p "$HOME/.local/bin" "$HOME/.local/tailscale"
-  curl -fsSL https://pkgs.tailscale.com/stable/tailscale_latest_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tgz \
-    | tar -xz --strip-components=1 -C "$HOME/.local/tailscale"
-  ln -sf "$HOME/.local/tailscale/tailscale" "$HOME/.local/bin/tailscale"
-  "$HOME/.local/tailscale/tailscaled" --tun=userspace-networking \
-    --statedir="$HOME/.local/tailscale/state" --socket="$HOME/.local/tailscale/ts.sock" &
-  sleep 3
-  "$HOME/.local/bin/tailscale" --socket="$HOME/.local/tailscale/ts.sock" \
-    up --authkey="$TS_AUTHKEY" --hostname="$HOSTNAME" --ssh
-else
-  curl -fsSL https://tailscale.com/install.sh | sh
-  sudo tailscale up --authkey="$TS_AUTHKEY" --hostname="$HOSTNAME" --ssh
-fi
+# Thriller Bark (Oracle, kernel WG):
+sudo apt-get update && sudo apt-get install -y wireguard-tools
+# Going Merry (OpenVZ, no kernel module -> userspace):
+sudo apt-get install -y wireguard-tools wireguard-go   # or: go install golang.zx2c4.com/wireguard@latest
 ```
 
-- [ ] **Step 3: Join Thriller Bark (root) [OPERATOR]**
+- [ ] **Step 2: Open UDP 51820 on the hub only [OPERATOR]**
 
 ```bash
-# On Thriller Bark. Oracle images also need the host firewall opened later (Task 6).
-TS_AUTHKEY=<TS_AUTHKEY> bash scripts/bootstrap-tailscale.sh thriller-bark
+# On Thriller Bark. Oracle: also add an ingress rule UDP 51820 in the VCN Security List.
+sudo iptables -I INPUT -p udp --dport 51820 -j ACCEPT
+sudo netfilter-persistent save
 ```
 
-- [ ] **Step 4: Join Going Merry (userspace) [OPERATOR]**
+- [ ] **Step 3: Configure the hub (Thriller Bark) [OPERATOR]**
 
 ```bash
-# On Going Merry (OpenVZ). Userspace avoids the /dev/net/tun requirement.
-TS_AUTHKEY=<TS_AUTHKEY> bash scripts/bootstrap-tailscale.sh going-merry --userspace
+sudo WG_USERSPACE=0 ./scripts/bootstrap-wireguard.sh hub 10.10.0.1 51820
+sudo wg-quick up wg0 && sudo systemctl enable wg-quick@wg0
+sudo cat /etc/wireguard/publickey   # copy -> this is <HUB_PUBKEY>
 ```
 
-- [ ] **Step 5: Join The Thousand Sunny (userspace) [OPERATOR]**
+- [ ] **Step 4: Configure the spoke (Going Merry) [OPERATOR]**
 
 ```bash
-# On Ultra.cc via SSH, no sudo.
-TS_AUTHKEY=<TS_AUTHKEY> bash scripts/bootstrap-tailscale.sh thethousandsunny --userspace
+# Userspace WireGuard: tun exists, no kernel module.
+sudo ./scripts/bootstrap-wireguard.sh spoke 10.10.0.2 <HUB_PUBKEY> <THRILLER_BARK_PUBLIC_IP>:51820
+sudo WG_QUICK_USERSPACE_IMPLEMENTATION=wireguard-go wg-quick up wg0
+sudo cat /etc/wireguard/publickey   # copy -> this is <MERRY_PUBKEY>
 ```
 
-- [ ] **Step 6: Join Den Den Mushi [OPERATOR]**
-
-In Home Assistant: install the **Tailscale add-on**, set hostname `dendenmushi`, start it, authenticate with `<TS_AUTHKEY>`.
-
-- [ ] **Step 7: Verify the mesh**
+- [ ] **Step 5: Register the spoke on the hub [OPERATOR]**
 
 ```bash
+# Back on Thriller Bark:
+sudo wg set wg0 peer <MERRY_PUBKEY> allowed-ips 10.10.0.2/32
+sudo wg-quick save wg0
+```
+
+- [ ] **Step 6: Add name resolution**
+
+Create `thriller-bark/hosts.snippet` and `going-merry/hosts.snippet` (same content), and append to each host's `/etc/hosts`:
+
+```text
+10.10.0.1 thriller-bark
+10.10.0.2 going-merry
+10.10.0.3 thethousandsunny
+10.10.0.4 dendenmushi
+```
+
+```bash
+# On each host, once:
+sudo sh -c 'cat hosts.snippet >> /etc/hosts'
+```
+
+- [ ] **Step 7: Verify the tunnel**
+
+```bash
+# From Going Merry:
+sudo wg show                       # expect a recent "latest handshake" with the hub
+ping -c2 10.10.0.1                  # expect replies
+ping -c2 thriller-bark             # name resolves via /etc/hosts
 # From Thriller Bark:
-tailscale status                         # expect all 4 nodes listed, state "active"/"idle"
-tailscale ping going-merry               # expect a reply (direct or via DERP)
-ping -c1 thethousandsunny                # MagicDNS name resolves
+ping -c2 going-merry               # expect replies
 ```
 
-Expected: all four hostnames appear; pings succeed.
+Expected: a handshake within the last ~2 minutes and successful pings both ways over `10.10.0.x`.
 
-- [ ] **Step 8: Document + commit**
+- [ ] **Step 8: Document + commit** (public keys only — no private material)
 
-Write `docs/runbooks/add-a-node.md` (copy the steps above as a reusable procedure), then:
+Write `docs/runbooks/add-a-node.md` (the steps above, parameterised), then:
 
 ```bash
-git add scripts/bootstrap-tailscale.sh docs/runbooks/add-a-node.md
-git commit -m "feat: tailscale mesh bootstrap + add-a-node runbook"
+git add scripts/bootstrap-wireguard.sh docs/runbooks/add-a-node.md \
+        thriller-bark/hosts.snippet going-merry/hosts.snippet
+git commit -m "feat: wireguard hub-and-spoke overlay + add-a-node runbook"
 ```
-
----
 
 ## Task 3: Docker + Komodo Core on Thriller Bark
 
@@ -192,8 +197,8 @@ git commit -m "feat: tailscale mesh bootstrap + add-a-node runbook"
 - Create: `thriller-bark/komodo/secrets.env` (SOPS-encrypted)
 
 **Interfaces:**
-- Consumes: tailnet (Task 2).
-- Produces: Komodo Core web UI on `http://thriller-bark:9120` (tailnet-only); a `KOMODO_PASSKEY` shared with agents in Task 4.
+- Consumes: WireGuard overlay (Task 2).
+- Produces: Komodo Core web UI on `http://thriller-bark:9120` (overlay-only); a `KOMODO_PASSKEY` shared with agents in Task 4.
 
 - [ ] **Step 1: Ensure Docker present on Thriller Bark [OPERATOR]**
 
@@ -206,7 +211,7 @@ docker run --rm hello-world       # expect "Hello from Docker!"
 
 - [ ] **Step 2: Write `thriller-bark/komodo/compose.yaml`**
 
-Based on the official Komodo Postgres+FerretDB compose. Bind the UI to the tailnet interface only.
+Based on the official Komodo Postgres+FerretDB compose. Bind the UI to loopback/overlay only.
 
 ```yaml
 services:
@@ -216,7 +221,7 @@ services:
     restart: unless-stopped
     depends_on: [komodo-db]
     ports:
-      - "127.0.0.1:9120:9120"   # reach via tailnet through Caddy/SSH; not public
+      - "127.0.0.1:9120:9120"   # reach via overlay through Caddy/SSH; not public
     env_file: secrets.env
     environment:
       KOMODO_HOST: https://komodo.<DOMAIN>
@@ -274,13 +279,13 @@ docker compose up -d
 
 ```bash
 curl -fsS http://localhost:9120/ | grep -qi komodo && echo "KOMODO UP"   # expect KOMODO UP
-# From your workstation over the tailnet:
-curl -fsS http://thriller-bark:9120/ >/dev/null && echo "REACHABLE VIA TAILNET"
+# From another node over the WireGuard overlay:
+curl -fsS http://thriller-bark:9120/ >/dev/null && echo "REACHABLE VIA OVERLAY"
 ```
 
 - [ ] **Step 6: Create first admin user [OPERATOR]**
 
-Open `http://thriller-bark:9120` over the tailnet, register the admin account, then disable open registration in Komodo settings.
+Open `http://thriller-bark:9120` over the WireGuard overlay, register the admin account, then disable open registration in Komodo settings.
 
 - [ ] **Step 7: Commit** (ciphertext only)
 
@@ -304,12 +309,12 @@ git commit -m "feat: komodo core stack on thriller-bark"
 
 ```bash
 #!/usr/bin/env bash
-# Installs the Komodo periphery agent as a systemd service, bound to tailnet.
+# Installs the Komodo periphery agent as a systemd service, bound to overlay.
 set -euo pipefail
 : "${KOMODO_PASSKEY:?export KOMODO_PASSKEY}"
 curl -fsSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-periphery.py | python3 - \
   --passkeys "$KOMODO_PASSKEY"
-# Bind periphery to the tailscale IP only (edit /etc/komodo/periphery.config.toml: bind_ip = "<tailscale-ip>")
+# Bind periphery to the overlay IP only (edit /etc/komodo/periphery.config.toml: bind_ip = "10.10.0.x")
 ```
 
 - [ ] **Step 2: Install on Thriller Bark [OPERATOR]**
@@ -328,7 +333,7 @@ KOMODO_PASSKEY=<from-secrets> bash scripts/install-komodo-periphery.sh
 
 - [ ] **Step 4: Register both servers in Komodo UI [OPERATOR]**
 
-In Komodo → Servers → Add: address `http://thriller-bark:8120` and `http://going-merry:8120` (tailnet names), paste the passkey.
+In Komodo → Servers → Add: address `http://thriller-bark:8120` and `http://going-merry:8120` (overlay names), paste the passkey.
 
 - [ ] **Step 5: Verify**
 
@@ -409,7 +414,7 @@ git commit -m "feat: komodo resource sync from repo"
 - Modify: `komodo/resource-sync.toml` (add caddy stack)
 
 **Interfaces:**
-- Consumes: tailnet + a Docker node.
+- Consumes: WireGuard overlay + a Docker node.
 - Produces: public HTTPS edge; wildcard cert for `*.<DOMAIN>`; reverse-proxy entries reachable at `https://<svc>.<DOMAIN>`.
 
 - [ ] **Step 1: Create Cloudflare API token [OPERATOR]**
@@ -446,7 +451,7 @@ services:
       - ./config:/config
 ```
 
-- [ ] **Step 4: Write `thriller-bark/caddy/Caddyfile`** (wildcard cert; proxy to backends over tailnet)
+- [ ] **Step 4: Write `thriller-bark/caddy/Caddyfile`** (wildcard cert; proxy to backends over the WireGuard overlay)
 
 ```caddyfile
 {
@@ -530,7 +535,7 @@ git commit -m "feat: caddy edge with cloudflare dns-01 wildcard certs"
 - Consumes: Caddy (Task 6), Komodo sync (Task 5).
 - Produces: dawarich deployed by Komodo, served at `https://dawarich.<DOMAIN>`, its data ready for Task 8 backup.
 
-- [ ] **Step 1: Copy + adapt the compose** — remove the external `revproxy` network (Caddy replaces it); keep the app on port 3000 for Caddy to reach over the tailnet.
+- [ ] **Step 1: Copy + adapt the compose** — remove the external `revproxy` network (Caddy replaces it); keep the app on port 3000 for Caddy to reach over the WireGuard overlay.
 
 Copy `going-merry/dawarich/compose.yaml` from the old repo, then delete the `revproxy` network block and the `networks: [default, revproxy]` line on `dawarich_app` (leave `default`). Confirm `dawarich_app` still publishes/exposes `3000`.
 
@@ -605,7 +610,7 @@ services:
     container_name: backrest
     restart: unless-stopped
     ports:
-      - "127.0.0.1:9898:9898"   # tailnet/SSH only; front via Caddy if wanted
+      - "127.0.0.1:9898:9898"   # overlay/SSH only; front via Caddy if wanted
     env_file: secrets.env
     volumes:
       - ./data:/data
@@ -762,7 +767,7 @@ Add to `Caddyfile`:
 	handle @grafana { reverse_proxy thriller-bark:3001 }
 ```
 
-- [ ] **Step 5: Install Alloy on Going Merry [OPERATOR]** — as a second Alloy container in a small compose on going-merry, `remote_write` pointing at `http://thriller-bark:8428` and `loki` at `http://thriller-bark:3100` over the tailnet.
+- [ ] **Step 5: Install Alloy on Going Merry [OPERATOR]** — as a second Alloy container in a small compose on going-merry, `remote_write` pointing at `http://thriller-bark:8428` and `loki` at `http://thriller-bark:3100` over the WireGuard overlay.
 
 - [ ] **Step 6: Add Grafana data sources [OPERATOR]** — VictoriaMetrics (Prometheus type, `http://victoriametrics:8428`) and Loki (`http://loki:3100`). Import dashboard IDs 1860 (node) and a docker dashboard.
 
@@ -806,14 +811,14 @@ git commit -m "feat: observability stack (vm+loki+grafana+alloy)"
 
 - [ ] **Step 1: Write `docs/runbooks/disaster-recovery.md`**
 
-Document the rebuild-a-dead-node path: (1) provision host, (2) join tailnet (Task 2 script), (3) install Docker + periphery (Task 4), (4) place age key, (5) Komodo redeploys stacks from git, (6) restore data from Backrest (Task 8 restore drill). Include the exact commands.
+Document the rebuild-a-dead-node path: (1) provision host, (2) join WireGuard overlay (Task 2 script), (3) install Docker + periphery (Task 4), (4) place age key, (5) Komodo redeploys stacks from git, (6) restore data from Backrest (Task 8 restore drill). Include the exact commands.
 
 - [ ] **Step 2: Write `docs/architecture.md`** — condensed from the spec, kept current as the living overview.
 
 - [ ] **Step 3: Foundation acceptance check (spec §8)** — verify all six criteria pass:
 
 ```
-1. tailscale status            → 4 nodes active
+1. wg show                     → hub+spoke handshake active
 2. Komodo deploys from git     → dawarich stack green
 3. https://dawarich.<DOMAIN>   → 200, valid wildcard cert, CF DNS-only
 4. SOPS secret consumed        → dawarich running with decrypted POSTGRES_PASSWORD
