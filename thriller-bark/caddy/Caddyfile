@@ -1,0 +1,15 @@
+{
+	email siffr.hdesigy@gmail.com
+	acme_dns cloudflare {env.CF_API_TOKEN}
+}
+
+*.siffreinsigy.me {
+	@up host up.siffreinsigy.me
+	handle @up {
+		respond "the sea is up" 200
+	}
+
+	handle {
+		abort
+	}
+}
