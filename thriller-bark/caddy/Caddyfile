@@ -9,6 +9,11 @@
 		respond "the sea is up" 200
 	}
 
+	@headscale host headscale.siffreinsigy.me
+	handle @headscale {
+		reverse_proxy 127.0.0.1:8080
+	}
+
 	handle {
 		abort
 	}

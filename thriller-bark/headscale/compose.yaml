@@ -1,0 +1,19 @@
+services:
+  headscale:
+    image: headscale/headscale:v0.29
+    container_name: headscale
+    restart: unless-stopped
+    command: serve
+    read_only: true
+    tmpfs:
+      - /var/run/headscale
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./config.yaml:/etc/headscale/config.yaml:ro
+      - headscale-data:/var/lib/headscale
+    healthcheck:
+      test: ["CMD", "headscale", "health"]
+
+volumes:
+  headscale-data:
