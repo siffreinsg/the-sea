@@ -33,7 +33,7 @@ services:
       KOMODO_JWT_SECRET: ${KOMODO_JWT_SECRET}
       KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET}
       KOMODO_LOCAL_AUTH: "true"
-      KOMODO_DISABLE_USER_REGISTRATION: "false" # flip to true after first login
+      KOMODO_DISABLE_USER_REGISTRATION: "true"
     volumes:
       - keys:/config/keys # persist Core/Periphery comms keys
 
