@@ -70,8 +70,8 @@ reference); nothing auto-starts them once the containers and the cron entry are 
 - `bazarr2`'s `media` volume (`driver: rclone`, remote `blackpearl:media`) — the abandoned mount.
   The volume is already absent from `docker volume ls`; only the compose reference remains.
 
-> The rclone config held a **plaintext SFTP password** for `axiom.usbx.me` (user `siffreinsg`).
-> It was printed to a terminal during this cleanup — rotate that credential.
+> The rclone config held a plaintext SFTP password for `axiom.usbx.me` (user `siffreinsg`).
+> Not a concern: that host has been decommissioned for about a year. No rotation needed.
 
 ---
 
@@ -142,7 +142,6 @@ silence with `systemctl disable systemd-networkd-wait-online.service`.
 
 ## Open items
 
-- **Rotate the leaked `axiom.usbx.me` SFTP password** (see note above) — the only real action left.
 - `periphery.config.toml` is still the stock file (`bind_ip = "[::]"`). Harmless while outbound mode
   is active (`core_address` set ⇒ inbound server off), but Task 7 of the foundation plan specifies
   `bind_ip = "100.64.0.1"`. Worth aligning before enabling inbound mode.
