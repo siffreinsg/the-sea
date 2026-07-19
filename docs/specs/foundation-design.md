@@ -23,7 +23,7 @@ A reproducible, backed-up, unified homelab. Everything defined in Git, one dashb
 ### Mesh — Headscale
 
 - **Headscale** (self-hosted Tailscale control plane) on Thriller Bark, exposed publicly through Caddy.
-- Every node joins as a Tailscale client; userspace mode on Going Merry (old kernel) and The Thousand Sunny (no root).
+- Every node joins as a Tailscale client. Going Merry runs **kernel mode** (its OpenVZ host exposes `/dev/net/tun`); The Thousand Sunny stays userspace (no root). GM's mesh-reached services bind its tailscale IP `100.64.0.1` — off the public interface, mesh-reachable, and (unlike userspace) able to initiate outbound mesh connections.
 - All inter-node traffic — Komodo, metrics, logs, backups, reverse-proxying — goes over the mesh.
 
 ### Ingress — Caddy

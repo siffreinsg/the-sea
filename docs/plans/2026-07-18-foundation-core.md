@@ -6,14 +6,14 @@
 
 **Goal:** Mesh (Headscale) + ingress (Caddy) + secrets flow (SOPS) + GitOps deploy (Komodo) running end-to-end, proven by a canary stack deployed from Git to Going Merry and served at `https://whoami.siffreinsigy.me`.
 
-**Architecture:** Thriller Bark hosts everything public (Caddy on host network, ports 80/443) and the control plane (Headscale, Komodo Core). Going Merry joins the mesh in userspace mode (old OpenVZ kernel) and runs a Periphery agent; all its services bind to 127.0.0.1 and are reached over the mesh. Backups = Plan 2, observability = Plan 3.
+**Architecture:** Thriller Bark hosts everything public (Caddy on host network, ports 80/443) and the control plane (Headscale, Komodo Core). Going Merry joins the mesh in kernel mode (its OpenVZ host does expose `/dev/net/tun`) and runs a Periphery agent; its services bind to GM's tailscale IP `100.64.0.1` (off the public interface, mesh-reachable) and are reached over the mesh. Backups = Plan 2, observability = Plan 3.
 
 **Tech Stack:** Caddy 2 (+ caddy-dns/cloudflare), Headscale 0.26, Tailscale clients, Komodo Core + Periphery, MongoDB 7, SOPS + age.
 
 ## Global Constraints
 
 - Domain: `siffreinsigy.me`, Cloudflare DNS-only (grey cloud), wildcard `*.siffreinsigy.me` → Thriller Bark public IP.
-- Public ports 80/443 open **only** on Thriller Bark. Everything else binds `127.0.0.1` or a mesh address.
+- Public ports 80/443 open **only** on Thriller Bark. Everything else binds a private address: `127.0.0.1` on TB (reached by local host-networked Caddy/Core), or GM's tailscale IP `100.64.0.1` for GM services reached over the mesh. Never `0.0.0.0` on GM (public exposure).
 - age recipient: `age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md` (from `.sops.yaml`). Private key: password manager + `/etc/sops/age.key` on each node (root, mode 600).
 - Encrypted secrets are committed as `secrets.env`; decrypted output is `.env` (gitignored). Decryption happens on the node at deploy time: `sops -d secrets.env > .env`.
 - GitOps source: `git@github.com:siffreinsg/the-sea.git`, branch `main`.
@@ -325,26 +325,10 @@ Expected: a key string — save it for Task 5.
 sudo tailscale up --login-server=https://headscale.siffreinsigy.me --auth-key=<KEY> --hostname=thriller-bark
 ```
 
-- [ ] **Step 2: Install Tailscale on Going Merry** (static binary, userspace — old OpenVZ kernel)
+- [ ] **Step 2: Install Tailscale on Going Merry** (kernel mode — the OpenVZ host does expose `/dev/net/tun`, so the official installer's default kernel mode works; no userspace flag needed)
 
 ```bash
-curl -fsSL https://pkgs.tailscale.com/stable/tailscale_latest_amd64.tgz | sudo tar -xz -C /tmp
-sudo install /tmp/tailscale_*/tailscale /tmp/tailscale_*/tailscaled /usr/local/bin/
-sudo mkdir -p /var/lib/tailscale /run/tailscale
-sudo tee /etc/systemd/system/tailscaled.service > /dev/null <<'EOF'
-[Unit]
-Description=Tailscale (userspace networking)
-After=network.target
-
-[Service]
-ExecStart=/usr/local/bin/tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --tun=userspace-networking
-Restart=on-failure
-RuntimeDirectory=tailscale
-
-[Install]
-WantedBy=multi-user.target
-EOF
-sudo systemctl enable --now tailscaled
+curl -fsSL https://tailscale.com/install.sh | sudo sh
 sudo tailscale up --login-server=https://headscale.siffreinsigy.me --auth-key=<KEY> --hostname=going-merry
 ```
 
@@ -357,7 +341,7 @@ ping -c1 going-merry.mesh.siffreinsigy.me
 ```
 Expected: both nodes listed, ping succeeds, MagicDNS resolves to a `100.64.x.x` address.
 
-> Userspace-mode caveat on GM: **inbound** mesh connections are forwarded to `127.0.0.1:<same port>` (all we need — Core and Caddy dial in). **Outbound** to the mesh from GM apps doesn't work without a SOCKS proxy; nothing in this plan needs it (revisit in Plan 3 for Alloy).
+> **Binding model on GM (kernel mode).** GM has a real `100.64.0.1` tailscale interface. Bind GM's mesh-reached services to that IP (`100.64.0.1`), **not** `127.0.0.1` — localhost isn't reachable from the mesh in kernel mode, and `0.0.0.0` would expose them on GM's public IP. Binding to `100.64.0.1` keeps them off the public interface *and* mesh-reachable. Two caveats: the tailscale IP must exist before a container binds it (order Periphery/containers `After=tailscaled`, rely on restart policy), and pin GM's IP in Headscale so it doesn't shift on re-registration. Upside vs. userspace: GM apps can initiate **outbound** mesh connections (Plan 3 Alloy pushing to TB) with no SOCKS proxy.
 
 ---
 
@@ -489,12 +473,13 @@ sudo chmod +x /usr/local/bin/sops
 sudo mkdir -p /etc/sops
 sudo sh -c 'umask 077; cat > /etc/sops/age.key'   # paste key, Ctrl-D
 ```
-Then repeat the Step 1 block verbatim. `bind_ip = "127.0.0.1"` matters here: userspace Tailscale forwards inbound mesh traffic to localhost, and nothing gets exposed on GM's public IP.
+Then repeat the Step 1 block, but set **`bind_ip = "100.64.0.1"`** (GM's tailscale IP) instead of `127.0.0.1`. In kernel mode localhost isn't mesh-reachable; binding the tailscale IP keeps Periphery off GM's public interface while Core reaches it over the mesh. Also add `After=tailscaled.service` / `Requires=tailscaled.service` to the periphery unit so it doesn't start before the IP exists.
 
-- [ ] **Step 3: Verify agents answer locally** (on each node)
+- [ ] **Step 3: Verify agents answer locally** (on each node — use each node's bind IP)
 
 ```bash
-curl -sk https://127.0.0.1:8120/health
+curl -sk https://127.0.0.1:8120/health      # on TB
+curl -sk https://100.64.0.1:8120/health     # on GM (bound to its tailscale IP)
 ```
 Expected: HTTP 200 (or 401 without passkey — either proves it's listening).
 
@@ -532,7 +517,7 @@ services:
     restart: unless-stopped
     env_file: .env
     ports:
-      - "127.0.0.1:8090:80"
+      - "100.64.0.1:8090:80"     # GM tailscale IP — mesh-reachable, off the public interface
 ```
 
 ```bash
@@ -614,7 +599,7 @@ Expected: `Name: sops-decryption-works` — Git → sync → Core → mesh → P
 ```markdown
 # Add a service
 
-1. `mkdir <ship>/<app>` → `compose.yaml`. Bind ports to `127.0.0.1`; unique port per app on that ship.
+1. `mkdir <ship>/<app>` → `compose.yaml`. Bind ports to the ship's private address — `127.0.0.1` on TB, the ship's tailscale IP (e.g. `100.64.0.1` on GM) for mesh-reached services. Never `0.0.0.0`. Unique port per app on that ship.
 2. Secrets: `cat > <ship>/<app>/secrets.env` → `sops -e -i <ship>/<app>/secrets.env`.
    Compose references them via `env_file: .env`.
 3. Append to `komodo/resources.toml`:
@@ -636,8 +621,9 @@ Expected: `Name: sops-decryption-works` — Git → sync → Core → mesh → P
            reverse_proxy <target>:<port>   # 127.0.0.1 on TB, <ship>.mesh.siffreinsigy.me otherwise
        }
 
-5. Push → Execute Sync (or webhook) → Deploy in Komodo → reload Caddy if step 4:
-   `docker exec caddy caddy reload --config /etc/caddy/Caddyfile`
+5. Push → Execute Sync (or webhook) → Deploy in Komodo → apply Caddy if step 4.
+   Because `git pull` swaps the Caddyfile's inode, `caddy reload` reads stale content — use force-recreate instead:
+   `cd /opt/the-sea/thriller-bark/caddy && docker compose up -d --force-recreate` (see `docs/runbooks/commands.md`).
 ```
 
 - [ ] **Step 2: Commit**
@@ -652,5 +638,5 @@ git commit -m "docs: add-a-service runbook" && git push
 ## Self-review notes
 
 - Spec coverage: mesh ✔ (T4–5), ingress ✔ (T3), secrets ✔ (T1, pre-deploy hook T7–8), deploy ✔ (T6–8). Backups + observability intentionally out (Plans 2–3). Sunny/Den Den Mushi join the mesh in later plans when something needs them.
-- Caddy and Komodo Core run with host networking so they can dial mesh addresses; every backend binds 127.0.0.1 — this pairing is deliberate, don't "fix" it to bridge networks.
+- Caddy and Komodo Core run with host networking so they can dial mesh addresses; TB backends bind `127.0.0.1`, GM backends bind GM's tailscale IP `100.64.0.1` (kernel mode — localhost isn't mesh-reachable). This pairing is deliberate, don't "fix" it to bridge networks or `0.0.0.0`.
 - Komodo CLI flags / config keys (`preauthkeys --user <id>`, `pre_deploy.command`, `KOMODO_*` env names) move between releases — if a step errors, check `--help`/current docs before assuming the plan is wrong elsewhere.
