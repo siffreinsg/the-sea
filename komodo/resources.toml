@@ -1,0 +1,17 @@
+# Komodo resource sync. Servers are NOT declared here: both were created by the
+# Periphery outbound-onboarding flow (T7) and are already connected. Redeclaring
+# them with an inbound `address` would fight that model. The stack just references
+# the onboarded server by name.
+#
+# Keep this sync in NON-destructive mode (don't let it prune unmanaged resources),
+# or it may remove the onboarded servers.
+
+[[stack]]
+name = "whoami"
+[stack.config]
+server = "going-merry"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "going-merry/whoami"
+pre_deploy.command = "sops -d secrets.env > .env"

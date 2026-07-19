@@ -19,6 +19,11 @@
 		reverse_proxy 127.0.0.1:9120
 	}
 
+	@whoami host whoami.siffreinsigy.me
+	handle @whoami {
+		reverse_proxy 100.64.0.1:8090
+	}
+
 	handle {
 		abort
 	}

@@ -1,0 +1,8 @@
+services:
+  whoami:
+    image: traefik/whoami
+    container_name: whoami
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "100.64.0.1:8090:80"     # GM tailscale IP — mesh-reachable, off the public interface
