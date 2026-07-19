@@ -20,6 +20,6 @@ Infrastructure-as-code for a self-hosted homelab across four nodes.
 
 ## Layout
 
-Top-level dirs are per-ship (map onto Komodo server targets). Cross-cutting concerns live at root: `komodo/`, `scripts/`, `docs/`, `.sops.yaml`.
+Top-level dirs are per-ship (map onto Komodo server targets). Cross-cutting concerns live at root: `komodo/`, `docs/`, `.sops.yaml`.
 
 See [`docs/specs/foundation-design.md`](docs/specs/foundation-design.md) for the full foundation design and [`docs/specs/future.md`](docs/specs/future.md) for deferred items.
