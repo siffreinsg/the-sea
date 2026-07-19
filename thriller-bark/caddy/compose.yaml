@@ -2,7 +2,7 @@ services:
   caddy:
     build: .
     container_name: caddy
-    network_mode: host          # binds 80/443; backends reached via 127.0.0.1 and mesh DNS
+    network_mode: host # binds 80/443; backends reached via 127.0.0.1 and mesh DNS
     restart: unless-stopped
     env_file: .env
     volumes:
