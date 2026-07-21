@@ -1,6 +1,6 @@
 services:
   backrest:
-    image: garethgeorge/backrest:alpine   # alpine tag bundles restic + rclone
+    image: garethgeorge/backrest:v1.14.1-alpine   # -alpine bundles restic + rclone
     container_name: backrest
     restart: unless-stopped
     ports:
