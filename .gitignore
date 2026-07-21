@@ -2,6 +2,7 @@
 *.dec
 *.env.plain
 .env
+rclone.conf
 
 # age private keys
 keys.txt
