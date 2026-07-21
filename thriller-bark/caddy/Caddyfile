@@ -29,6 +29,11 @@
 		reverse_proxy 127.0.0.1:9898
 	}
 
+	@backrest-gm host backrest-gm.siffreinsigy.me
+	handle @backrest-gm {
+		reverse_proxy 100.64.0.1:9898
+	}
+
 	handle {
 		abort
 	}
