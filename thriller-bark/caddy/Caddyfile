@@ -24,6 +24,11 @@
 		reverse_proxy 100.64.0.1:8090
 	}
 
+	@backrest-tb host backrest-tb.siffreinsigy.me
+	handle @backrest-tb {
+		reverse_proxy 127.0.0.1:9898
+	}
+
 	handle {
 		abort
 	}

@@ -1,0 +1,35 @@
+services:
+  backrest:
+    image: garethgeorge/backrest:alpine   # alpine tag bundles restic + rclone
+    container_name: backrest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9898:9898"
+    environment:
+      BACKREST_DATA: /data
+      BACKREST_CONFIG: /config/config.json
+      XDG_CACHE_HOME: /cache
+    volumes:
+      - backrest-data:/data
+      - backrest-config:/config
+      - backrest-cache:/cache
+      - ./rclone.conf:/root/.config/rclone/rclone.conf:ro
+      # backup sources, all read-only
+      - /var/backups/the-sea:/userdata/backups:ro
+      - headscale-data:/userdata/headscale:ro
+      - caddy-data:/userdata/caddy:ro
+      - komodo-keys:/userdata/komodo-keys:ro
+
+volumes:
+  backrest-data:
+  backrest-config:
+  backrest-cache:
+  headscale-data:
+    external: true
+    name: headscale_headscale-data
+  caddy-data:
+    external: true
+    name: caddy_caddy-data
+  komodo-keys:
+    external: true
+    name: komodo_keys
