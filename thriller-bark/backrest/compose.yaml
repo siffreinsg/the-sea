@@ -13,7 +13,7 @@ services:
       - backrest-data:/data
       - backrest-config:/config
       - backrest-cache:/cache
-      - ./rclone.conf:/root/.config/rclone/rclone.conf:ro
+      - ./rclone.conf:/root/.config/rclone/rclone.conf   # rw: protondrive rewrites its own refreshed token in place
       # backup sources, all read-only
       - /var/backups/the-sea:/userdata/backups:ro
       - headscale-data:/userdata/headscale:ro
