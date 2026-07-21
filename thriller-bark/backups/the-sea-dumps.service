@@ -1,0 +1,8 @@
+[Unit]
+Description=Nightly DB dumps (Komodo Mongo + Headscale sqlite)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/the-sea/thriller-bark/backups/run.sh
