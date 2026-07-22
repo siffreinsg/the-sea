@@ -1,0 +1,42 @@
+services:
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:latest
+    container_name: victoriametrics
+    restart: unless-stopped
+    command:
+      - -storageDataPath=/storage
+      - -retentionPeriod=90d
+    ports:
+      - "100.64.0.2:8428:8428"   # mesh ingest — GM's Alloy pushes here
+    volumes:
+      - vm-data:/storage
+
+  loki:
+    image: grafana/loki:3
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki.yaml
+    ports:
+      - "100.64.0.2:3100:3100"   # mesh ingest
+    volumes:
+      - ./loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      GF_SERVER_ROOT_URL: https://grafana.siffreinsigy.me
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+
+volumes:
+  vm-data:
+  loki-data:
+  grafana-data:

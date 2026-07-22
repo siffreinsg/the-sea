@@ -34,6 +34,11 @@
 		reverse_proxy 100.64.0.1:9898
 	}
 
+	@grafana host grafana.siffreinsigy.me
+	handle @grafana {
+		reverse_proxy 127.0.0.1:3000
+	}
+
 	handle {
 		abort
 	}
