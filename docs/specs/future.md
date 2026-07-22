@@ -22,12 +22,10 @@ covers LLM logging.)
 - File converter (IT-Tools — single static container, easy first)
 - Obsidian web editor (SilverBullet, pointed at the Syncthing vault folder)
 - Local git with CI/CD (Forgejo + Actions runner)
-- Habit tracker — **research pending**: Habitica (heavy, Mongo, RPG gamification) vs
-  Beaverhabits (tiny, tracking only)
+- Habit tracker — **research pending**: Habitica (heavy, Mongo, RPG gamification) vs Beaverhabits (tiny, tracking only)
 - Static site
+- Authelia passkey/WebAuthn (add after TOTP baseline; OIDC apps inherit it)
 - Alerting → Telegram bot (n8n/Grafana), see also `future.md` deferred alerting
-- Vaultwarden — everyday creds only; **keep the age/DR key out-of-band** (circular DR
-  dependency otherwise)
-- Immich (self-hosted photos) — heavy, storage-hungry, overlaps Dawarich on location
 - Karakeep — bookmarks / read-it-later with AI tagging (synergy with LiteLLM)
-- Mealie (recipes), Wallos (subscription tracker, complements Actual)
+- Wallos (subscription tracker, complements Actual)
+- Open Terminal for Open WebUI
