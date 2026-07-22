@@ -1,0 +1,60 @@
+// ---- outputs ----
+prometheus.remote_write "vm" {
+  endpoint {
+    url = "http://100.64.0.2:8428/api/v1/write"
+  }
+}
+
+loki.write "central" {
+  endpoint {
+    url = "http://100.64.0.2:3100/loki/api/v1/push"
+  }
+  external_labels = { node = "going-merry" }
+}
+
+// every metric gets node="going-merry" before leaving
+prometheus.relabel "add_node" {
+  forward_to = [prometheus.remote_write.vm.receiver]
+  rule {
+    target_label = "node"
+    replacement  = "going-merry"
+  }
+}
+
+// ---- host metrics (embedded node_exporter) ----
+prometheus.exporter.unix "host" {
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+  rootfs_path = "/host/root"
+}
+prometheus.scrape "host" {
+  targets    = prometheus.exporter.unix.host.targets
+  forward_to = [prometheus.relabel.add_node.receiver]
+}
+
+// ---- container metrics (embedded cadvisor) ----
+prometheus.exporter.cadvisor "containers" {
+  docker_host = "unix:///var/run/docker.sock"
+}
+prometheus.scrape "containers" {
+  targets    = prometheus.exporter.cadvisor.containers.targets
+  forward_to = [prometheus.relabel.add_node.receiver]
+}
+
+// ---- docker logs ----
+discovery.docker "local" {
+  host = "unix:///var/run/docker.sock"
+}
+discovery.relabel "logs" {
+  targets = discovery.docker.local.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+loki.source.docker "logs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.logs.output
+  forward_to = [loki.write.central.receiver]
+}
