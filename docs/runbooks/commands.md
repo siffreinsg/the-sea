@@ -65,3 +65,18 @@ docker exec headscale headscale nodes list     # joined nodes
 tailscale status
 tailscale ping <hostname>
 ```
+
+## Observability (Thriller Bark)
+
+```bash
+# Data flowing from both nodes
+curl -s 'http://100.64.0.2:8428/api/v1/query?query=up' | jq '.data.result[].metric'
+curl -s -G 'http://100.64.0.2:3100/loki/api/v1/query_range' \
+  --data-urlencode 'query={node="going-merry"}' --data-urlencode 'limit=3'
+
+# Collector health (run on the node in question)
+curl -s http://127.0.0.1:12345/-/ready && docker logs alloy --since 10m
+```
+
+Grafana: `https://grafana.siffreinsigy.me` — admin pw in password manager.
+Retention: metrics 90d (VM flag), logs 30d (loki.yaml). Neither is backed up; grafana-data is.

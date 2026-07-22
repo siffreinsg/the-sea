@@ -19,6 +19,7 @@ services:
       - headscale-data:/userdata/headscale:ro
       - caddy-data:/userdata/caddy:ro
       - komodo-keys:/userdata/komodo-keys:ro
+      - grafana-data:/userdata/grafana:ro
 
 volumes:
   backrest-data:
@@ -33,3 +34,6 @@ volumes:
   komodo-keys:
     external: true
     name: komodo_keys
+  grafana-data:
+    external: true
+    name: observability_grafana-data
