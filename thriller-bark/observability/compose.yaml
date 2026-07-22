@@ -1,6 +1,6 @@
 services:
   victoriametrics:
-    image: victoriametrics/victoria-metrics:latest
+    image: victoriametrics/victoria-metrics:v1.148.0-scratch
     container_name: victoriametrics
     restart: unless-stopped
     command:
@@ -23,7 +23,7 @@ services:
       - loki-data:/loki
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.1.1-slim
     container_name: grafana
     restart: unless-stopped
     env_file: .env
