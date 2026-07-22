@@ -25,7 +25,7 @@ age-keygen -y /etc/sops/age.key
 ## Caddy (Thriller Bark)
 
 ```bash
-# Caddy is the "caddy-tb" Komodo stack — Sync + Deploy applies Caddyfile changes
+# Caddy is the "caddy" Komodo stack — Sync + Deploy applies Caddyfile changes
 # (extra_args = --force-recreate --build handles the stale-inode issue from
 # `git pull` swapping the Caddyfile; `caddy reload` would serve stale content).
 # Manual fallback, e.g. if Komodo itself is unreachable:

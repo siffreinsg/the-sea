@@ -65,7 +65,7 @@ branch = "main"
 run_directory = "going-merry/alloy"
 
 [[stack]]
-name = "caddy-tb"
+name = "caddy"
 [stack.config]
 server = "thriller-bark"
 git_account = "siffreinsg"

@@ -74,7 +74,7 @@ Then:
 - **Komodo:** Execute the `the-sea` Sync (or let the GitHub webhook fire it) → the new
   stack appears → **Deploy** it. Watch the deploy log; the `pre_deploy` sops step is
   where a missing/rotated key shows up.
-- **Caddy (TB)** — Komodo Sync deploys `caddy-tb` automatically (`extra_args =
+- **Caddy (TB)** — Komodo Sync deploys `caddy` automatically (`extra_args =
   ["--force-recreate", "--build"]` avoids the stale-inode issue from `git pull`
   swapping the Caddyfile — never `caddy reload`).
 
