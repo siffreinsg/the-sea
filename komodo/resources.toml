@@ -45,6 +45,7 @@ repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "thriller-bark/observability"
 pre_deploy.command = "sops -d secrets.env > .env"
+extra_args = ["--force-recreate"]
 
 [[stack]]
 name = "alloy-tb"
@@ -54,6 +55,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "thriller-bark/alloy"
+extra_args = ["--force-recreate"]
 
 [[stack]]
 name = "alloy-gm"
@@ -63,6 +65,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/alloy"
+extra_args = ["--force-recreate"]
 
 [[stack]]
 name = "caddy"
