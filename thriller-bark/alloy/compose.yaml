@@ -1,0 +1,21 @@
+services:
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    network_mode: host   # scrapes 127.0.0.1 targets; UI pinned to loopback below
+    restart: unless-stopped
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+      - --server.http.listen-addr=127.0.0.1:12345
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro,rslave
+
+volumes:
+  alloy-data:
