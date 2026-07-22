@@ -78,7 +78,34 @@ Then:
   ["--force-recreate", "--build"]` avoids the stale-inode issue from `git pull`
   swapping the Caddyfile — never `caddy reload`).
 
-## 5. Verify
+## 5. Observability — usually nothing to do
+
+Both nodes' Alloy discovers **all** containers via `docker.sock` — no allowlist.
+For any new service this is automatic, zero config:
+
+- **Logs** land in Loki, labeled `container=<app>`, `node=<node>`. Explore →
+  Loki → `{container="<app>"}`.
+- **Container resource metrics** (CPU/mem/net) land in VictoriaMetrics via
+  cadvisor, same labels — dashboard **14282** already covers any container.
+
+Only add something if the app exposes its **own** `/metrics` endpoint you
+want scraped (app-level counters, not container resource usage). Then, in
+that node's `config.alloy`:
+
+```alloy
+prometheus.scrape "<app>" {
+  targets    = [{ __address__ = "127.0.0.1:<metrics-port>", job = "<app>" }]
+  forward_to = [prometheus.relabel.add_node.receiver]
+}
+```
+
+Commit, push, Komodo Sync → Deploy `alloy-tb`/`alloy-gm`.
+
+No Grafana-side action either way — no per-service datasource, dashboard, or
+provisioning step. Only build a dedicated dashboard if 1860/14282/Explore
+don't answer a real question you have.
+
+## 6. Verify
 
 ```bash
 curl -s https://<app>.siffreinsigy.me
