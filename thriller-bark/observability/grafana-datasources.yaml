@@ -3,9 +3,9 @@ datasources:
   - name: VictoriaMetrics
     type: prometheus
     access: proxy
-    url: http://100.64.0.2:8428
+    url: http://victoriametrics:8428
     isDefault: true
   - name: Loki
     type: loki
     access: proxy
-    url: http://100.64.0.2:3100
+    url: http://loki:3100
