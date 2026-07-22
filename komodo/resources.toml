@@ -68,6 +68,16 @@ run_directory = "going-merry/alloy"
 extra_args = ["--force-recreate"]
 
 [[stack]]
+name = "headscale"
+[stack.config]
+server = "thriller-bark"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "thriller-bark/headscale"
+extra_args = ["--force-recreate"]
+
+[[stack]]
 name = "caddy"
 [stack.config]
 server = "thriller-bark"
