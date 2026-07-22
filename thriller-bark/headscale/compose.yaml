@@ -9,6 +9,7 @@ services:
       - /var/run/headscale
     ports:
       - "127.0.0.1:8080:8080"
+      - "127.0.0.1:9090:9090"    # metrics — scraped by local Alloy only
     volumes:
       - ./config.yaml:/etc/headscale/config.yaml:ro
       - headscale-data:/var/lib/headscale
