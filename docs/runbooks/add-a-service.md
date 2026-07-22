@@ -74,11 +74,9 @@ Then:
 - **Komodo:** Execute the `the-sea` Sync (or let the GitHub webhook fire it) → the new
   stack appears → **Deploy** it. Watch the deploy log; the `pre_deploy` sops step is
   where a missing/rotated key shows up.
-- **Caddy (TB)** — apply the new handle block. Use force-recreate, **not** `caddy reload`
-  (git pull swaps the Caddyfile inode → reload serves stale content):
-  ```bash
-  cd /opt/the-sea && git pull && cd thriller-bark/caddy && docker compose up -d --force-recreate
-  ```
+- **Caddy (TB)** — Komodo Sync deploys `caddy-tb` automatically (`extra_args =
+  ["--force-recreate", "--build"]` avoids the stale-inode issue from `git pull`
+  swapping the Caddyfile — never `caddy reload`).
 
 ## 5. Verify
 

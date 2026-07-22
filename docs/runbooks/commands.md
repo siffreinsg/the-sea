@@ -25,9 +25,10 @@ age-keygen -y /etc/sops/age.key
 ## Caddy (Thriller Bark)
 
 ```bash
-# Apply a Caddyfile change pulled from git. Use force-recreate, NOT `caddy reload`:
-# git pull swaps the file's inode, so the single-file bind-mount serves stale
-# content and reload re-reads the same stale inode. Recreate re-resolves the mount.
+# Caddy is the "caddy-tb" Komodo stack — Sync + Deploy applies Caddyfile changes
+# (extra_args = --force-recreate --build handles the stale-inode issue from
+# `git pull` swapping the Caddyfile; `caddy reload` would serve stale content).
+# Manual fallback, e.g. if Komodo itself is unreachable:
 cd /opt/the-sea/thriller-bark/caddy && docker compose up -d --force-recreate
 
 # Only safe when the Caddyfile was edited in place (not via git pull):
