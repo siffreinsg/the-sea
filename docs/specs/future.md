@@ -14,13 +14,20 @@ Not part of the foundation. Revisit after the foundation is running.
 
 ## Tool wishlist
 
-- PDF management
-- File converter (IT-Tools or OmniTools)
-- GenAI platform
-- Syncthing with Proton Drive support
-- Obsidian webapp alternative or interface
-- Local git with CI/CD pipelines
-- Habitica / habit tracker
+Concrete candidate in parens where decided. (Open-WebUI+LiteLLM, Profilarr, Syncthing
+now live in `docs/plans/2026-07-22-batch-1-apps.md`. LangFuse dropped — Grafana/Loki
+covers LLM logging.)
+
+- PDF management (Paperless-ngx) + PDF ops (Stirling-PDF)
+- File converter (IT-Tools — single static container, easy first)
+- Obsidian web editor (SilverBullet, pointed at the Syncthing vault folder)
+- Local git with CI/CD (Forgejo + Actions runner)
+- Habit tracker — **research pending**: Habitica (heavy, Mongo, RPG gamification) vs
+  Beaverhabits (tiny, tracking only)
 - Static site
-- Profilarr
-- Langfuse
+- Alerting → Telegram bot (n8n/Grafana), see also `future.md` deferred alerting
+- Vaultwarden — everyday creds only; **keep the age/DR key out-of-band** (circular DR
+  dependency otherwise)
+- Immich (self-hosted photos) — heavy, storage-hungry, overlaps Dawarich on location
+- Karakeep — bookmarks / read-it-later with AI tagging (synergy with LiteLLM)
+- Mealie (recipes), Wallos (subscription tracker, complements Actual)
