@@ -65,11 +65,13 @@
 		handle @n8n_public {
 			reverse_proxy 127.0.0.1:5678
 		}
-		forward_auth 127.0.0.1:9091 {
-			uri /api/authz/forward-auth
-			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+		handle {
+			forward_auth 127.0.0.1:9091 {
+				uri /api/authz/forward-auth
+				copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+			}
+			reverse_proxy 127.0.0.1:5678
 		}
-		reverse_proxy 127.0.0.1:5678
 	}
 
 	handle {
