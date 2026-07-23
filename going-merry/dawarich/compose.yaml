@@ -51,7 +51,7 @@ services:
     stdin_open: true
     tty: true
     entrypoint: web-entrypoint.sh
-    command: ['bin/rails', 'server', '-p', '3000', '-b', '::']
+    command: ['bin/rails', 'server', '-p', '3000', '-b', '0.0.0.0']
     restart: on-failure
     hostname: dawarich
     env_file: .env
