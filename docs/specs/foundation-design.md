@@ -14,7 +14,7 @@ A reproducible, backed-up, unified homelab. Everything defined in Git, one dashb
 | **Den Den Mushi**      | Raspberry Pi                      | Home Assistant            | HAOS (managed, not Komodo)        |
 
 - Major services run on **Thriller Bark**. Services without performance requirements or low sensitivity run on **Going Merry** to keep Thriller Bark uncrowded.
-- **Thriller Bark** hosts the control plane: Headscale, Komodo Core, Caddy edge, the observability stack and the backup orchestrator.
+- **Thriller Bark** hosts the control plane: Headscale, Komodo Core, Caddy edge and the backup orchestrator. The observability stack runs on Going Merry instead (disk-I/O-heavy workload, GM's disk is ~17x faster).
 - **The Thousand Sunny** runs the full media/arr stack as Ultra.cc-managed apps. Outside Komodo; this repo only versions helper scripts and docs.
 - **Den Den Mushi** stays independent (HAOS-managed); it joins the mesh and its backups are folded in later.
 
@@ -61,7 +61,8 @@ Secrets are committed to Git **encrypted** with `age`, decrypted at deploy time.
 
 ### Observability — Grafana + VictoriaMetrics + Loki + Alloy
 
-Central stack on **Thriller Bark**:
+Central stack on **Going Merry** (moved off Thriller Bark — GM's disk is ~17x
+faster, and VM/Loki are write-heavy):
 
 - **VictoriaMetrics** — metrics store.
 - **Loki** — log aggregation.
@@ -82,10 +83,12 @@ the-sea/
 │   ├── headscale/
 │   ├── caddy/
 │   ├── komodo/
-│   ├── observability/              # grafana, victoriametrics, loki, alloy
 │   ├── backrest/
+│   ├── alloy/
 │   └── <app>/                      # compose.yaml + sops-encrypted env
-├── going-merry/                    # Docker host (OpenVZ) — light/legacy
+├── going-merry/                    # Docker host (OpenVZ) — light/legacy, disk-heavy workloads
+│   ├── observability/              # grafana, victoriametrics, loki
+│   ├── alloy/
 │   └── <app>/                      # compose.yaml + sops-encrypted env
 ├── thethousandsunny/               # Ultra.cc managed apps — scripts + docs only
 │   └── scripts/                    # start_all / stop_all / upgrade_all
@@ -105,8 +108,8 @@ Per-ship top-level dirs map 1:1 onto Komodo server targets. Cross-cutting concer
 | Caddy                            | Thriller Bark              |
 | Komodo Core                      | Thriller Bark              |
 | Komodo Periphery                 | Thriller Bark, Going Merry |
-| Backrest                         | Thriller Bark              |
-| Grafana / VictoriaMetrics / Loki | Thriller Bark              |
+| Backrest                         | Thriller Bark, Going Merry |
+| Grafana / VictoriaMetrics / Loki | Going Merry                |
 | Alloy                            | Every node                 |
 
 ### Applications
