@@ -78,8 +78,11 @@ services:
       OIDC_ISSUER: https://auth.siffreinsigy.me
       OIDC_REDIRECT_URI: https://dawarich.siffreinsigy.me/users/auth/openid_connect/callback
       OIDC_PROVIDER_NAME: siffreinsigy.me
-      OIDC_AUTO_REGISTER: "true"
+      # single user, already linked - no new accounts via OIDC, no local password path
+      OIDC_AUTO_REGISTER: "false"
       OIDC_PKCE_ENABLED: "true"
+      ALLOW_EMAIL_PASSWORD_REGISTRATION: "false"
+      ALLOW_EMAIL_PASSWORD_LOGIN: "false"
     logging:
       driver: "json-file"
       options:
