@@ -35,6 +35,9 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./provisioning/alerting:/etc/grafana/provisioning/alerting:ro
+      - ./dashboards:/etc/grafana/dashboards:ro
 
 volumes:
   vm-data:

@@ -1,0 +1,163 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: infra
+      folder: Alerting
+      interval: 1m
+      rules:
+        - uid: eft00rnexqq68d
+          title: Node down
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: P4169E866C3094E38
+              model:
+                expr: up{job="integrations/unix"}
+                instant: true
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 1
+                        type: lt
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 5m
+          annotations:
+            summary: '{{ $labels.node }} node exporter is unreachable'
+          labels:
+            severity: critical
+          isPaused: false
+        - uid: dft00rnmwx1xcb
+          title: Root disk space low
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: P4169E866C3094E38
+              model:
+                expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100
+                instant: true
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 10
+                        type: lt
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 10m
+          annotations:
+            summary: '{{ $labels.node }} root filesystem below 10% free'
+          labels:
+            severity: critical
+          isPaused: false
+        - uid: aft0111ypbeo0e
+          title: High memory usage
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: P4169E866C3094E38
+              model:
+                expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
+                instant: true
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 10
+                        type: lt
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 10m
+          annotations:
+            summary: '{{ $labels.node }} available memory below 10%'
+          labels:
+            severity: warning
+          isPaused: false
+        - uid: fft01129bdvk0e
+          title: Caddy config reload failed
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: P4169E866C3094E38
+              model:
+                expr: caddy_config_last_reload_successful
+                instant: true
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 1
+                        type: lt
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: OK
+          execErrState: Alerting
+          for: 5m
+          annotations:
+            summary: Caddy on {{ $labels.node }} failed its last config reload
+          labels:
+            severity: critical
+          isPaused: false
