@@ -20,8 +20,8 @@
 		reverse_proxy 127.0.0.1:9120
 	}
 
-	@auth host auth.siffreinsigy.me
-	handle @auth {
+	@login host login.siffreinsigy.me
+	handle @login {
 		reverse_proxy 127.0.0.1:9091
 	}
 
