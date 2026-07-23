@@ -9,7 +9,7 @@ access_control:
 session:
     cookies:
         - domain: siffreinsigy.me
-          authelia_url: https://login.siffreinsigy.me
+          authelia_url: https://auth.siffreinsigy.me
 storage:
     local:
         path: /config/db.sqlite3
