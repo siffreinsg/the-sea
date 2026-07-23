@@ -1,0 +1,15 @@
+services:
+  plexautolanguages:
+    image: journeyover/plex-auto-languages:latest
+    container_name: plexautolanguages
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      TZ: Europe/Paris
+    volumes:
+      - config:/config
+      - logs:/logs
+
+volumes:
+  config:
+  logs:
