@@ -1,5 +1,5 @@
 {
-	email siffr.hdesigy@gmail.com
+	email hello@siffreinsigy.me
 	acme_dns cloudflare {env.CF_API_TOKEN}
 	metrics
 }
