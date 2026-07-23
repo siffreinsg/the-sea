@@ -85,7 +85,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "thriller-bark/authelia"
-pre_deploy.command = "sops -d secrets.configuration.yml > configuration.yml && sops -d secrets.users_database.yml > users_database.yml && sops -d secrets.env > .env"
+pre_deploy.command = "sops -d secrets.users_database.yml > users_database.yml && sops -d secrets.env > .env"
 extra_args = ["--force-recreate"]
 
 [[stack]]

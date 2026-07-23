@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://www.authelia.com/schemas/v4.39/json-schema/configuration.json
+totp:
+    issuer: siffreinsigy.me
+authentication_backend:
+    file:
+        path: /config/users_database.yml
+access_control:
+    default_policy: two_factor
+session:
+    cookies:
+        - domain: siffreinsigy.me
+          authelia_url: https://auth.siffreinsigy.me
+          default_redirection_url: https://auth.siffreinsigy.me
+storage:
+    local:
+        path: /config/db.sqlite3
+notifier:
+    filesystem:
+        filename: /config/notification.txt
