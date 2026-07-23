@@ -19,6 +19,7 @@ services:
       - headscale-data:/userdata/headscale:ro
       - caddy-data:/userdata/caddy:ro
       - komodo-keys:/userdata/komodo-keys:ro
+      - authelia-data:/userdata/authelia:ro
 
 volumes:
   backrest-data:
@@ -33,3 +34,6 @@ volumes:
   komodo-keys:
     external: true
     name: komodo_keys
+  authelia-data:
+    external: true
+    name: authelia_authelia-data

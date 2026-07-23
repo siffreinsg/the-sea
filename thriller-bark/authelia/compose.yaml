@@ -1,0 +1,15 @@
+services:
+  authelia:
+    image: authelia/authelia:4.39.20
+    container_name: authelia
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:9091:9091"
+    volumes:
+      - authelia-data:/config
+      - ./configuration.yml:/config/configuration.yml:ro
+      - ./users_database.yml:/config/users_database.yml:ro
+
+volumes:
+  authelia-data:
