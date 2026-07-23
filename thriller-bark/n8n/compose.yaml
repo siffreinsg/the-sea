@@ -1,0 +1,31 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.32.3
+    container_name: n8n
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    environment:
+      - GENERIC_TIMEZONE=Europe/Paris
+      - TZ=Europe/Paris
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_LISTEN_ADDRESS=0.0.0.0
+      - N8N_SECURE_COOKIE=false
+      - N8N_GIT_NODE_DISABLE_BARE_REPOS=true
+      - DB_SQLITE_POOL_SIZE=8
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_TEMPLATES_ENABLED=false
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_HOST=n8n.siffreinsigy.me
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.siffreinsigy.me/
+    ports:
+      - "127.0.0.1:5678:5678"
+    volumes:
+      - n8n-data:/home/node/.n8n
+      - n8n-files:/files
+
+volumes:
+  n8n-data:
+  n8n-files:

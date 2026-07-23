@@ -54,6 +54,24 @@
 		reverse_proxy 100.64.0.1:3000
 	}
 
+	@actualbudget host actual.siffreinsigy.me
+	handle @actualbudget {
+		reverse_proxy 127.0.0.1:5006
+	}
+
+	@n8n host n8n.siffreinsigy.me
+	handle @n8n {
+		@n8n_public path /webhook* /webhook-test*
+		handle @n8n_public {
+			reverse_proxy 127.0.0.1:5678
+		}
+		forward_auth 127.0.0.1:9091 {
+			uri /api/authz/forward-auth
+			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+		}
+		reverse_proxy 127.0.0.1:5678
+	}
+
 	handle {
 		abort
 	}

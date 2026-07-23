@@ -109,6 +109,24 @@ run_directory = "thriller-bark/caddy"
 pre_deploy.command = "sops -d secrets.env > .env"
 extra_args = ["--force-recreate", "--build"]
 
+[[stack]]
+name = "actualbudget"
+[stack.config]
+server = "thriller-bark"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "thriller-bark/actualbudget"
+
+[[stack]]
+name = "n8n"
+[stack.config]
+server = "thriller-bark"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "thriller-bark/n8n"
+
 [[repo]]
 name = "the-sea"
 [repo.config]
