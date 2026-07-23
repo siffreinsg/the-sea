@@ -34,9 +34,10 @@ the alloy/Caddy target flips and redeploy TB observability from git.
    port>` (was TB-local). After pulling: `cd .../caddy && docker compose up -d
    --force-recreate` (Caddyfile inode pin).
 
-5. **Migrate Grafana state** — before first GM start, copy the `grafana-data` volume
-   TB → GM over the mesh (tar | ssh) so dashboards (1860, 14282), datasources, and
-   settings survive. **Do not** migrate VM/Loki data — start fresh.
+5. **Grafana state — skip migration, start fresh.** User doesn't mind re-clicking:
+   let the GM `grafana-data` volume start empty, re-import dashboards 1860 and 14282
+   after first boot. Datasources are provisioned from `grafana-datasources.yaml`
+   (git-tracked), so those come back automatically.
 
 6. **Backups** — add `grafana-data` to **GM's** bulk Backrest plan; remove it from
    TB's bulk plan.

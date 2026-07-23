@@ -39,11 +39,11 @@ pre_deploy.command = "sops -d secrets.rclone.conf > rclone.conf"
 [[stack]]
 name = "observability"
 [stack.config]
-server = "thriller-bark"
+server = "going-merry"
 git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
-run_directory = "thriller-bark/observability"
+run_directory = "going-merry/observability"
 pre_deploy.command = "sops -d secrets.env > .env"
 extra_args = ["--force-recreate"]
 

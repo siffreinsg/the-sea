@@ -7,7 +7,7 @@ services:
       - -storageDataPath=/storage
       - -retentionPeriod=90d
     ports:
-      - "100.64.0.2:8428:8428"   # mesh ingest — GM's Alloy pushes here
+      - "100.64.0.1:8428:8428"   # mesh ingest — needs tailscaled up; restart policy retries
     volumes:
       - vm-data:/storage
 
@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     command: -config.file=/etc/loki/loki.yaml
     ports:
-      - "100.64.0.2:3100:3100"   # mesh ingest
+      - "100.64.0.1:3100:3100"   # mesh ingest — needs tailscaled up; restart policy retries
     volumes:
       - ./loki.yaml:/etc/loki/loki.yaml:ro
       - loki-data:/loki
@@ -31,7 +31,7 @@ services:
       GF_SERVER_ROOT_URL: https://grafana.siffreinsigy.me
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
     ports:
-      - "127.0.0.1:3000:3000"
+      - "100.64.0.1:3000:3000"   # needs tailscaled up; restart policy retries
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro

@@ -1,13 +1,13 @@
 // ---- outputs ----
 prometheus.remote_write "vm" {
   endpoint {
-    url = "http://100.64.0.2:8428/api/v1/write"
+    url = "http://100.64.0.1:8428/api/v1/write"
   }
 }
 
 loki.write "central" {
   endpoint {
-    url = "http://100.64.0.2:3100/loki/api/v1/push"
+    url = "http://100.64.0.1:3100/loki/api/v1/push"
   }
   external_labels = { node = "going-merry" }
 }
