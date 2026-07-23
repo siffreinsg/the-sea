@@ -29,3 +29,4 @@ covers LLM logging.)
 - Karakeep — bookmarks / read-it-later with AI tagging (synergy with LiteLLM)
 - Wallos (subscription tracker, complements Actual)
 - Open Terminal for Open WebUI
+- Coolify
