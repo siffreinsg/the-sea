@@ -64,6 +64,21 @@
 		reverse_proxy 127.0.0.1:5678
 	}
 
+	@your_spotify host spotify.siffreinsigy.me
+	handle @your_spotify {
+		@your_spotify_api path /api/*
+		handle @your_spotify_api {
+			reverse_proxy 100.64.0.1:8095
+		}
+		handle {
+			forward_auth 127.0.0.1:9091 {
+				uri /api/authz/forward-auth
+				copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+			}
+			reverse_proxy 100.64.0.1:8095
+		}
+	}
+
 	handle {
 		abort
 	}

@@ -1,0 +1,34 @@
+services:
+  your_spotify_mongo:
+    image: mongo:6-jammy
+    container_name: your_spotify_mongo
+    restart: unless-stopped
+    volumes:
+      - db-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  your_spotify:
+    image: lscr.io/linuxserver/your_spotify:latest
+    container_name: your_spotify
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Paris
+      APP_URL: https://spotify.siffreinsigy.me
+      CORS: https://spotify.siffreinsigy.me
+      MONGO_ENDPOINT: mongodb://your_spotify_mongo:27017/your_spotify
+    ports:
+      - "100.64.0.1:8095:80"
+    depends_on:
+      your_spotify_mongo:
+        condition: service_healthy
+
+volumes:
+  db-data:
