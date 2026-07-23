@@ -10,7 +10,6 @@ session:
     cookies:
         - domain: siffreinsigy.me
           authelia_url: https://auth.siffreinsigy.me
-          default_redirection_url: https://auth.siffreinsigy.me
 storage:
     local:
         path: /config/db.sqlite3
