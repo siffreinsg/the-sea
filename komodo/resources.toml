@@ -85,8 +85,18 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "thriller-bark/authelia"
-pre_deploy.command = "sops -d secrets.users_database.yml > users_database.yml && sops -d secrets.env > .env"
+pre_deploy.command = "sops -d secrets.users_database.yml > users_database.yml && sops -d secrets.oidc.yml > oidc.yml && sops -d secrets.env > .env"
 extra_args = ["--force-recreate"]
+
+[[stack]]
+name = "dawarich"
+[stack.config]
+server = "going-merry"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "going-merry/dawarich"
+pre_deploy.command = "sops -d secrets.env > .env"
 
 [[stack]]
 name = "caddy"

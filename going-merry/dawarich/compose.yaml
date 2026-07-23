@@ -1,0 +1,162 @@
+---
+# full list of environment variables: https://dawarich.app/docs/self-hosting/environment-variables/
+services:
+  dawarich_redis:
+    image: redis:7.4-alpine
+    container_name: dawarich_redis
+    command: >
+      redis-server
+      --save 900 1
+      --save 300 10
+      --appendonly no
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  dawarich_db:
+    image: postgis/postgis:17-3.5-alpine
+    shm_size: 1G
+    container_name: dawarich_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - shared:/var/shared
+    env_file: .env
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: dawarich_development
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d dawarich_development" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  dawarich_app:
+    image: freikin/dawarich:1.10.1
+    container_name: dawarich_app
+    volumes:
+      - public:/var/app/public
+      - watched:/var/app/tmp/imports/watched
+      - storage:/var/app/storage
+    ports:
+      - "100.64.0.1:3200:3000"
+    stdin_open: true
+    tty: true
+    entrypoint: web-entrypoint.sh
+    command: ['bin/rails', 'server', '-p', '3000', '-b', '::']
+    restart: on-failure
+    hostname: dawarich
+    env_file: .env
+    environment:
+      RAILS_ENV: production
+      REDIS_URL: redis://dawarich_redis:6379
+      DATABASE_HOST: dawarich_db
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_NAME: dawarich_development
+      MIN_MINUTES_SPENT_IN_CITY: 60
+      TIME_ZONE: Europe/Paris
+      APPLICATION_HOSTS: dawarich.siffreinsigy.me
+      APPLICATION_PROTOCOL: https
+      DOMAIN: dawarich.siffreinsigy.me
+      SELF_HOSTED: "true"
+      STORE_GEODATA: "true"
+      RAILS_LOG_TO_STDOUT: "true"
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      # OIDC — Authelia client, see thriller-bark/authelia/secrets.oidc.yml
+      OIDC_CLIENT_ID: dawarich
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      OIDC_ISSUER: https://auth.siffreinsigy.me
+      OIDC_PROVIDER_NAME: siffreinsigy.me
+      OIDC_AUTO_REGISTER: "true"
+      OIDC_PKCE_ENABLED: "true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO - http://127.0.0.1:3000/api/v1/health | grep -q '\"status\"\\s*:\\s*\"ok\"'" ]
+      interval: 10s
+      retries: 30
+      start_period: 30s
+      timeout: 10s
+    depends_on:
+      dawarich_db:
+        condition: service_healthy
+        restart: true
+      dawarich_redis:
+        condition: service_healthy
+        restart: true
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: '8G'
+
+  dawarich_sidekiq:
+    image: freikin/dawarich:1.10.1
+    container_name: dawarich_sidekiq
+    volumes:
+      - public:/var/app/public
+      - watched:/var/app/tmp/imports/watched
+      - storage:/var/app/storage
+    stdin_open: true
+    tty: true
+    entrypoint: sidekiq-entrypoint.sh
+    command: ['sidekiq']
+    restart: on-failure
+    env_file: .env
+    environment:
+      RAILS_ENV: production
+      REDIS_URL: redis://dawarich_redis:6379
+      DATABASE_HOST: dawarich_db
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_NAME: dawarich_development
+      BACKGROUND_PROCESSING_CONCURRENCY: 25
+      APPLICATION_PROTOCOL: https
+      DOMAIN: dawarich.siffreinsigy.me
+      SELF_HOSTED: "true"
+      STORE_GEODATA: "true"
+      RAILS_LOG_TO_STDOUT: "true"
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    healthcheck:
+      test: [ "CMD-SHELL", "pgrep -f sidekiq" ]
+      interval: 10s
+      retries: 30
+      start_period: 30s
+      timeout: 10s
+    depends_on:
+      dawarich_db:
+        condition: service_healthy
+        restart: true
+      dawarich_redis:
+        condition: service_healthy
+        restart: true
+      dawarich_app:
+        condition: service_healthy
+        restart: true
+
+volumes:
+  db-data:
+  redis-data:
+  shared:
+  public:
+  watched:
+  storage:

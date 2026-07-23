@@ -1,0 +1,8 @@
+[Unit]
+Description=Nightly DB dumps (Dawarich postgis)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/the-sea/going-merry/backups/run.sh
