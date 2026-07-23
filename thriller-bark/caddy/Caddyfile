@@ -68,3 +68,7 @@
 		abort
 	}
 }
+
+overseerr.blackpearl.siffreinsigy.me {
+	redir https://seerr-thousandsunny.fox.usbx.me{uri} 302
+}
