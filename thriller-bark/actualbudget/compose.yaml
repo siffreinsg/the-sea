@@ -3,7 +3,6 @@ services:
     image: actualbudget/actual-server:26.7.0-alpine
     container_name: actual_server
     restart: unless-stopped
-    env_file: .env
     ports:
       - "127.0.0.1:5006:5006"
     volumes:

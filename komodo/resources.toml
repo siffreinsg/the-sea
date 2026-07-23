@@ -117,7 +117,6 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "thriller-bark/actualbudget"
-pre_deploy.command = "sops -d secrets.env > .env"
 
 [[stack]]
 name = "n8n"
