@@ -16,8 +16,12 @@ services:
       - ./rclone.conf:/root/.config/rclone/rclone.conf   # rw: protondrive rewrites its own refreshed token in place
       - /home/siffrein/docker-mei:/userdata/docker-mei:ro
       - /var/backups/the-sea:/userdata/backups:ro   # future per-app dumps land here
+      - grafana-data:/userdata/grafana:ro
 
 volumes:
   backrest-data:
   backrest-config:
   backrest-cache:
+  grafana-data:
+    external: true
+    name: observability_grafana-data
