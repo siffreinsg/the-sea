@@ -34,6 +34,7 @@ services:
       KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET}
       KOMODO_LOCAL_AUTH: "true"
       KOMODO_DISABLE_USER_REGISTRATION: "true"
+      KOMODO_DISABLE_CONFIRM_DIALOG: "true"
     volumes:
       - keys:/config/keys # persist Core/Periphery comms keys
 
