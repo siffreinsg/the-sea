@@ -76,6 +76,7 @@ services:
       OIDC_CLIENT_ID: dawarich
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
       OIDC_ISSUER: https://auth.siffreinsigy.me
+      OIDC_REDIRECT_URI: https://dawarich.siffreinsigy.me/users/auth/openid_connect/callback
       OIDC_PROVIDER_NAME: siffreinsigy.me
       OIDC_AUTO_REGISTER: "true"
       OIDC_PKCE_ENABLED: "true"
