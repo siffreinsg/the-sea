@@ -59,6 +59,15 @@
 		reverse_proxy 127.0.0.1:5006
 	}
 
+	@profilarr host profilarr.siffreinsigy.me
+	handle @profilarr {
+		forward_auth 127.0.0.1:9091 {
+			uri /api/authz/forward-auth
+			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+		}
+		reverse_proxy 100.64.0.1:6868
+	}
+
 	@n8n host n8n.siffreinsigy.me
 	handle @n8n {
 		reverse_proxy 127.0.0.1:5678

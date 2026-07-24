@@ -119,6 +119,15 @@ run_directory = "going-merry/plexautolanguages"
 pre_deploy.command = "sops -d secrets.env > .env"
 
 [[stack]]
+name = "profilarr"
+[stack.config]
+server = "going-merry"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "going-merry/profilarr"
+
+[[stack]]
 name = "caddy"
 [stack.config]
 server = "thriller-bark"
