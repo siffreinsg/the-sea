@@ -126,6 +126,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/profilarr"
+pre_deploy.command = "sops -d secrets.env > .env"
 
 [[stack]]
 name = "caddy"

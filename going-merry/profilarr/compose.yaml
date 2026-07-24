@@ -3,10 +3,14 @@ services:
     image: ghcr.io/dictionarry-hub/profilarr:latest
     container_name: profilarr
     restart: unless-stopped
+    env_file: .env
     environment:
       PUID: 1000
       PGID: 1000
       TZ: Europe/Paris
+      AUTH: oidc
+      OIDC_DISCOVERY_URL: https://auth.siffreinsigy.me/.well-known/openid-configuration
+      ORIGIN: https://profilarr.siffreinsigy.me
     ports:
       - "100.64.0.1:6868:6868"
     volumes:
