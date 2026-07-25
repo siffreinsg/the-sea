@@ -1,0 +1,28 @@
+# Telegram contact point + the notification policy tree that routes to it.
+# `$VAR` is Grafana's provisioning env interpolation — the values come from .env
+# (SOPS: secrets.env), never from this file.
+#
+# Provisioning `policies` REPLACES the whole notification tree, and the tree then
+# becomes read-only in the UI. That's deliberate: it's the same as-code model the
+# rules and dashboards already use. Edit here, not in Grafana.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: telegram
+    receivers:
+      - uid: telegram
+        type: telegram
+        settings:
+          bottoken: $TELEGRAM_BOT_TOKEN
+          chatid: $TELEGRAM_CHAT_ID
+
+policies:
+  - orgId: 1
+    receiver: telegram
+    group_by: ["grafana_folder", "alertname"]
+    group_wait: 30s
+    group_interval: 5m
+    # A still-firing alert re-notifies once a day — enough to not forget it,
+    # rare enough not to train you to ignore the chat.
+    repeat_interval: 24h
