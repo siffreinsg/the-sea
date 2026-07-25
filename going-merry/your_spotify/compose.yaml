@@ -13,7 +13,7 @@ services:
       timeout: 10s
 
   your_spotify:
-    image: lscr.io/linuxserver/your_spotify:latest
+    image: lscr.io/linuxserver/your_spotify:1.20.0
     container_name: your_spotify
     restart: unless-stopped
     env_file: .env

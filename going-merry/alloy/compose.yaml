@@ -1,6 +1,6 @@
 services:
   alloy:
-    image: grafana/alloy:latest
+    image: grafana/alloy:v1.18.0
     container_name: alloy
     network_mode: host   # scrapes 127.0.0.1 targets; UI pinned to loopback below
     restart: unless-stopped
