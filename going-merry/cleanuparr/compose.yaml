@@ -7,7 +7,7 @@ services:
       PORT: 11011
       PUID: 1000
       PGID: 1000
-      UMASK: 022
+      UMASK: "022"   # quoted: YAML reads bare 022 as octal and passes 18
       TZ: Europe/Paris
     ports:
       - "100.64.0.1:11011:11011"
