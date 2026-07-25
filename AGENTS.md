@@ -37,3 +37,14 @@
 - **Test for anything written mid-session:** would a fresh clone need this? Yes → `domains/` or `decisions/`. No → HANDOFF.
 - Audit reports and reviews are session artifacts: triage, dispatch the durable parts, delete the report, merge the branch **squashed**.
 - Deleting beats adding. If a doc restates another, cut it.
+
+## Git
+
+- **Work directly on `main`.** Solo repo, no PR flow. Don't branch, and don't open a PR, unless I ask or the work is a long audit/review (those get a branch and a **squashed** merge, per above).
+- **Commit and push only when I ask.** Never mid-task, never "to be safe".
+- **Split by concern, one commit per thing.** A runbook fix, a set of plans and a decision reversal are three commits, not one. If two concerns touch the same file, group them rather than surgically splitting the diff — but say in the message that you did.
+- **Commit messages are prose, not a changelog line.** Subject is `type(scope): imperative summary`; the body says *why*, names the trap found, and records what was rejected. A future clone reads these to understand a choice it can't see in the diff.
+- **Never add `Co-Authored-By` or session/tool trailers.** Plain messages.
+- **`docs/HANDOFF.md` stays out of git.** It's gitignored and it stays that way — session state, not history. If something in it is still true next month, it belongs in `domains/` or `decisions/` instead, and *that* gets committed.
+- **Nothing decrypted ever lands.** `.env`, `rclone.conf`, `users_database.yml`, `oidc.yml` are all gitignored; a new decrypt target gets its `.gitignore` entry **in the same commit** that introduces it. Check `git status` before committing, not after pushing.
+- Deleting a landed plan from `docs/plans/` is part of the commit that lands it, not a later tidy-up.
