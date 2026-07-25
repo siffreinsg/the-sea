@@ -214,9 +214,13 @@ rebuilt), Homepage (all config is in git).
   that runs user code) can read the whole fleet's metrics and *every container's logs
   on both nodes*, and reach GM's mesh binds behind Caddy and Authelia. Headscale has no
   ACL policy, so the tailnet is allow-all. Closed by
-  `thriller-bark/firewall/the-sea-mesh-guard.service`, a oneshot that inserts a
-  `DOCKER-USER` REJECT — **`PartOf=docker.service` is load-bearing**, Docker recreates
-  that chain empty on every start. **A Headscale ACL cannot substitute for it**: the
+  `thriller-bark/firewall/the-sea-mesh-guard.service`, a oneshot that DROPs the traffic
+  in **raw/PREROUTING**. Not `DOCKER-USER`: `FORWARD` jumps to `ts-forward` *before*
+  `DOCKER-USER`, so Tailscale accepts mesh-bound packets and Docker's chain never sees
+  them. Both daemons insert their jump at position 1, so the order depends on who
+  restarted last — raw/PREROUTING is ahead of both and settles it.
+  **`PartOf=docker.service` is load-bearing**, Docker flushes on every start.
+  **A Headscale ACL cannot substitute for it**: the
   masquerade rewrites the source to TB's own tailnet IP, so GM sees container traffic
   as host traffic and no policy can tell them apart.
 - **The host firewall does protect the host from its own containers** — the iptables
