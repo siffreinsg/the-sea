@@ -55,7 +55,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "<node>/<app>"
-pre_deploy.command = "sops -d secrets.env > .env"   # omit if no secrets.env
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env"   # omit if no secrets.env
 ```
 Do **not** add `[[server]]` blocks — servers come from Periphery onboarding, not
 the sync. Keep the Sync in **non-prune** mode.
