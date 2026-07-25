@@ -1,6 +1,9 @@
 # Habit tracker: Beaverhabits, not Habitica
 
-**2026-07-25 · Accepted**
+**2026-07-25 · Reopened 2026-07-26** — Beaverhabits is no longer the answer and nothing
+replaces it yet. Not superseded, because there is no replacement decision to point at; the
+comparison below stands and is worth reading before picking again. Deploy nothing until a
+new record exists.
 
 The wishlist item was left as "research pending". Researched: **Beaverhabits**.
 
