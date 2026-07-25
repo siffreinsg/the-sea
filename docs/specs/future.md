@@ -13,23 +13,22 @@ Not part of the foundation. Revisit after the foundation is running.
   mesh** — VM and Loki bind the mesh IP and have no public route, so Sunny can't reach
   them today. Weigh a userspace Tailscale client on Sunny against simply not
   collecting from it.
-- **Move Home Assistant off Baratie into the cloud** — **setup TBD.** The Pi is the
-  one piece of infra whose failure needs physical presence to fix, and the only node
-  outside the Komodo/GitOps model. Moving HA to TB or GM would fold it into the same
-  deploy, backup and observability story as everything else.
-  Open questions to settle before planning it:
-  - **HAOS vs Container.** HAOS (the appliance OS, with add-ons and Supervisor) can't
-    run as a Komodo stack; `home-assistant/home-assistant` in Docker can, but loses
-    the add-on store and Supervisor backups. That trade is the whole decision.
-  - **Local radios.** Anything Zigbee/Z-Wave/Bluetooth/Thread is bound to hardware in
-    the house and cannot move. A cloud HA needs those bridged home (e.g. a Zigbee
-    coordinator over IP), which turns the Pi into a radio bridge rather than
-    retiring it.
-  - **Local-network dependencies.** Discovery, mDNS, and any device speaking only to a
-    LAN address stop working from a VPS unless the house joins the mesh.
-  - **Latency and outage behaviour** — lights that stop responding when the home
-    internet drops is a real regression, not a footnote.
-  - Placement if it happens: **TB** (sensitive, always-on, and HA is not disk-heavy).
+
+## Deferred plans
+
+- **Move Home Assistant off Baratie into the cloud** — HA **Container** on **GM**, not
+  HAOS. Baratie stays, reduced to a radio/LAN bridge: fresh RPi OS Lite, Tailscale
+  subnet router advertising the LAN, Komodo Periphery. On the Freebox, the port forward
+  goes away — nothing inbound to the LAN.
+  - **Already decided, don't relitigate:** occasional outages are acceptable, and the
+    Pi remaining a single point of failure is acceptable.
+  - **Still to do before this is plannable:** an exhaustive inventory of what has to
+    migrate — automations, dashboards, config, every integration, and each manual
+    modification made to the running instance.
+- **n8n automations for Actual Budget** — auto-sync, auto-categorization, rule
+  creation, Telegram bot.
+- **n8n automations for Radarr/Sonarr** — on Radarr, switch anime to the right quality
+  profile; on Sonarr/Seerr, route anime requests to the correct Sonarr instance.
 
 ## Tool wishlist
 
@@ -47,7 +46,6 @@ Concrete candidate in parens where decided. Anything with a live plan is in
 - Local git with CI/CD (Forgejo + Actions runner)
 - Habit tracker — **research pending**: Habitica (heavy, Mongo, RPG gamification) vs Beaverhabits (tiny, tracking only)
 - Static site
-- Alerting → Telegram bot (n8n/Grafana), see also `future.md` deferred alerting
 - Karakeep — bookmarks / read-it-later with AI tagging (synergy with LiteLLM)
 - Wallos (subscription tracker, complements Actual)
 - Open Terminal for Open WebUI
