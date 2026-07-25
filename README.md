@@ -9,8 +9,7 @@ Infrastructure-as-code for a self-hosted homelab across four nodes.
 | **The Thousand Sunny** | Ultra.cc box            | Media + downloads (Ultra.cc-managed apps, no Docker)              |
 | **Baratie**            | Raspberry Pi            | Home Assistant (HAOS)                                             |
 
-**Den Den Mushi** is the Telegram alert bot, not a node — the transponder snail
-carries messages, so Grafana's alerts speak through it.
+**Den Den Mushi** is the name of the alerting systems which covers all Telegram or Discord bots dedicated to the management of this infrastructure.
 
 ## Stack
 
@@ -25,4 +24,5 @@ carries messages, so Grafana's alerts speak through it.
 
 Top-level dirs are per-ship (map onto Komodo server targets). Cross-cutting concerns live at root: `komodo/`, `docs/`, `.sops.yaml`.
 
-See [`docs/specs/foundation-design.md`](docs/specs/foundation-design.md) for the full foundation design and [`docs/specs/future.md`](docs/specs/future.md) for deferred items.
+Start at [`docs/`](docs/) — it indexes the decision record, the per-domain docs and the
+runbooks. [`docs/reference.md`](docs/reference.md) has the addresses and schedules.

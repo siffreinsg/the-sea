@@ -83,4 +83,4 @@ Grafana: `https://grafana.siffreinsigy.me` — admin pw in password manager.
 Retention: metrics 90d (VM flag), logs 30d (loki.yaml). Neither is backed up; grafana-data is.
 Dashboards (1860, 14282) and alert rules are provisioned as code under
 `going-merry/observability/{dashboards,provisioning}/` — see
-`docs/runbooks/grafana-alerting.md` to extend.
+`docs/domains/observability.md` to extend.
