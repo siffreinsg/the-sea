@@ -17,6 +17,7 @@ services:
       - /home/siffrein/docker-mei:/userdata/docker-mei:ro
       - /var/backups/the-sea:/userdata/backups:ro   # future per-app dumps land here
       - grafana-data:/userdata/grafana:ro
+      - cleanuparr-config:/userdata/cleanuparr:ro
 
 volumes:
   backrest-data:
@@ -25,3 +26,6 @@ volumes:
   grafana-data:
     external: true
     name: observability_grafana-data
+  cleanuparr-config:
+    external: true
+    name: cleanuparr_config

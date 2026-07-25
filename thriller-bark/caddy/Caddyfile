@@ -55,6 +55,11 @@
 		reverse_proxy 100.64.0.1:6868
 	}
 
+	@cleanuparr host cleanuparr.siffreinsigy.me
+	handle @cleanuparr {
+		reverse_proxy 100.64.0.1:11011
+	}
+
 	@n8n host n8n.siffreinsigy.me
 	handle @n8n {
 		reverse_proxy 127.0.0.1:5678
