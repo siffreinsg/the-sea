@@ -45,8 +45,18 @@ this file is the part that must survive a disaster recovery.
   Periphery onboarding. Keep the sync **non-prune** so it can't delete them.
 - Periphery is a **systemd binary** on the hosts, not a container, because it execs
   `sops -d` as `pre_deploy`. It uses **outbound onboarding** (dials
-  `wss://komodo.siffreinsigy.me/ws/periphery`) — no bind_ip, no passkey. To flip a
-  server to inbound later, set `bind_ip = "100.64.0.1"` on GM first.
+  `wss://komodo.siffreinsigy.me/ws/periphery`). **Each node's `periphery.config.toml`
+  must carry `bind_ip` = that node's mesh IP and `allowed_ips = ["100.64.0.0/10"]`,
+  mode 0600**, so a later flip to inbound is safe by default. Shipped defaults are
+  `[::]` with
+  an empty `allowed_ips` and no passkeys — by the file's own comment that is an
+  **unauthenticated root-RCE listener**, inert only while onboarding is outbound.
+  Never restore those defaults; Periphery runs as root with `SOPS_AGE_KEY_FILE`.
+- **The `komodo` stack is not managed by Komodo** (bootstrap order: it would be
+  redeploying itself). It is the one stack with no `[[stack]]` entry, so it runs from
+  `/opt/the-sea/thriller-bark/komodo/` — a user-owned checkout that drifts silently.
+  `git -C /opt/the-sea pull` before touching it, and remember `resources.toml` changes
+  never reach it.
 - **A bind-mounted git-tracked file is inode-pinned.** `git pull` swaps the inode, so
   plain `up -d` won't pick the change up — every stack mounting a single tracked
   config file carries `extra_args = ["--force-recreate"]` (Caddy also `--build`).
@@ -68,6 +78,18 @@ this file is the part that must survive a disaster recovery.
 
 - Encrypted `secrets.env` / `secrets.<name>` committed; decrypted `.env` on-node,
   gitignored. Decryption needs sudo (the age key is root:600).
+- **Every `pre_deploy.command` starts with `umask 077`.** Without it the decrypted
+  outputs land 0644 and the whole sops+age design buys nothing on-node — the OIDC
+  token-signing private key, `CF_API_TOKEN` and the restic/rclone credentials were all
+  world-readable until 2026-07-25. Same reason `thriller-bark/backups/run.sh` sets it.
+  A new decrypt target must also be added to `.gitignore`: one `git add -A` in a clone
+  where the Authelia decrypt has run commits the signing key to history forever.
+- **Never pass a secret as a CLI argument.** It lands in `~/.bash_history` and in `ps`.
+  Authelia's `crypto hash generate` prompts when `--password` is omitted.
+- **Komodo stores its git PAT unencrypted in Mongo**, so the nightly
+  `komodo-mongo.archive.gz` *is* a credential for the repo — and the repo is the trust
+  boundary for root execution (see Backups). `/var/backups/the-sea/dumps` is 0700 for
+  that reason. Same for n8n's `--decrypted=true` credential export beside it.
 - **Secrets or hashes needing the app's own CLI** (argon2 passwords, pbkdf2 OIDC
   client secrets): there's no Docker on the dev machine, so `docker exec <container>`
   on-node, then set the value locally with `sops set '<path>' '"<value>"'` — avoids a
@@ -80,7 +102,10 @@ this file is the part that must survive a disaster recovery.
   its webhook URL in the clear, and Komodo's secret interpolation only reaches builds,
   deployments and repos — never alerter endpoints. So the Discord alerter lives in the
   Komodo UI and is *not* in `resources.toml`; non-prune sync leaves it alone. It is one
-  of the few things a DR clone won't recreate — re-add it by hand.
+  of the few things a DR clone won't recreate — re-add it by hand. **The same holds for
+  three Procedures** (`Backup Core Database`, `Global Auto Update`, `Rotate Server Keys`)
+  **and one Tag** — UI-only, Mongo-only, and `Global Auto Update` in particular changes
+  what runs on both nodes. All four are DR gaps to recreate by hand.
 
 ## Backups
 
@@ -163,5 +188,19 @@ rebuilt), Homepage (all config is in git).
   because default-deny is what makes a `0.0.0.0` bind mistake survivable — on those two
   ports it wouldn't have been.
 - **VictoriaMetrics has no auth and Loki runs `auth_enabled: false`**, both on the
-  mesh. Fine for a single-tenant trusted tailnet; revisit if the mesh ever gains a
-  less-trusted node.
+  mesh. That rests on the mesh being single-tenant and trusted — and it currently
+  **isn't**: Docker's per-bridge MASQUERADE plus Tailscale's `ts-forward` accept means
+  every bridged container on TB routes onto `100.64.0.0/10`, so n8n (a workflow engine
+  that runs user code) can read the whole fleet's metrics and *every container's logs
+  on both nodes*, and reach GM's mesh binds behind Caddy and Authelia. Headscale has no
+  ACL policy, so the tailnet is allow-all. Open, tracked in `specs/future.md`.
+- **The host firewall does protect the host from its own containers** — the iptables
+  INPUT default REJECT gives `EHOSTUNREACH` from a container to `172.x.0.1` on 9120 /
+  27017 / 2019, and every Docker publish is loopback-scoped, so Docker's usual
+  publish-past-the-firewall problem doesn't apply. Keep both properties.
+- **Caddy's admin API (`127.0.0.1:2019`) is unauthenticated read/write config** for any
+  local user. `admin off` isn't available because Alloy scrapes it
+  (`thriller-bark/alloy/config.alloy`); needs a dedicated loopback metrics site first.
+- **Reboot to activate kernels.** `unattended-upgrades` installs but does not reboot
+  unless `Automatic-Reboot` is set; TB carried seven uninstalled-into kernel releases
+  for a month. `/var/run/reboot-required` is the thing to check.

@@ -5,6 +5,16 @@
 }
 
 *.siffreinsigy.me {
+	# The only record that a public request happened. Alloy already ships this
+	# container's stdout to Loki (container="caddy"), 30-day retention.
+	log {
+		output stdout
+		format json
+	}
+	# No `preload` until includeSubDomains is verified safe for every name
+	# under the apex — preload is effectively irreversible.
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
 	@up host up.siffreinsigy.me
 	handle @up {
 		respond "the sea is up" 200

@@ -6,14 +6,32 @@ Not part of the foundation. Revisit after the foundation is running.
 
 - **Sunny backups** — decide whether app configs/DBs on Ultra.cc are worth backing up (restic + rclone binaries in userspace) or nothing at all.
 - **Baratie** — join the mesh; fold HAOS backups into Backrest.
-- **Security audit — GM done 2026-07-25, TB outstanding.** GM audited on-node: network
-  posture, legacy surface, secrets-at-rest, SSH/sudo/patching. Findings fixed (secret
-  file modes, legacy credential archives, stale ufw 80/443, dump modes); durable rules
-  folded into `runbooks/operations.md`. Two GM items left open there: container
-  least-privilege is capped by the OpenVZ kernel (no AppArmor, no userns-remap, seccomp
-  active — accepted), and an off-node port scan of `62.4.16.10` was never run (expect
-  only 4747). **TB has not been audited** — same brief, and it holds Komodo Core,
-  Authelia and the Caddy edge, so it's the higher-value node of the two.
+- **Security — what the 2026-07 reviews left open.** Both nodes were reviewed (GM, then
+  TB on 2026-07-25); the perimeter was found sound on both and everything actionable was
+  fixed or dispatched into the runbooks. Still open, in rough priority order:
+  - **Containers reach the tailnet** (TB, see `operations.md`). Short fix:
+    `iptables -I DOCKER-USER -s 172.16.0.0/12 -d 100.64.0.0/10 -j REJECT`, persisted via
+    `iptables-persistent` — the chain is empty today and no bridged container needs mesh
+    access. Durable fix: a Headscale ACL policy, which also covers future mesh nodes.
+  - **Decide whether `komodo` becomes a synced stack.** Bootstrap-order concerns are
+    real, but the current arrangement gets the discipline of neither approach.
+  - **Rotate four `*arr` API keys** that sat in world-readable legacy `.env` files on GM.
+    The files are gone; the keys authenticate to Sunny, which is public. Check which
+    live stacks consume them first.
+  - **Narrow the `your_spotify` `/api/*` edge bypass** to the paths that genuinely can't
+    carry a redirect (OAuth callback + the SPA's XHR prefix). Today the whole API is
+    unauthenticated at the edge and `/api/global/preferences` is public; only
+    `allowRegistrations: false` stops public account creation — **it must stay off**.
+  - **Caddy admin API** — dedicated loopback metrics site, then `admin off`.
+  - **GM container least-privilege is capped by the OpenVZ kernel** — no AppArmor, no
+    userns-remap, seccomp active. Accepted, not fixable there.
+  - **`profilarr` OIDC client has `require_pkce: false`** (deliberate, confidential
+    client, `client_secret_post`); revisit if Profilarr gains support.
+  - **`going-merry/profilarr/compose.yaml` still pins `:latest`** — the pinning pass
+    missed it. A parallel session owns that dir.
+  - **Never scanned from off-network.** Hairpin NAT against `141.253.109.196` showed only
+    80/443/22, and GM only 4747, but a source-conditional rule wouldn't show up that way.
+    Also unread: the Oracle VCN security list, so it's unknown which layer closes what.
 - **Sunny / Baratie collectors** — a userspace Alloy binary on Sunny, HAOS
   Prometheus add-on or mesh scrape for Baratie; both push to VM/Loki on **GM**
   (`100.64.0.1`). **This is the only thing that would justify putting Sunny on the

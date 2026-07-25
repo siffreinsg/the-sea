@@ -3,6 +3,8 @@
 *.env.plain
 .env
 rclone.conf
+users_database.yml
+oidc.yml
 
 # age private keys
 keys.txt

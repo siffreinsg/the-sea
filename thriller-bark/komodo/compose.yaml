@@ -1,6 +1,6 @@
 services:
   mongo:
-    image: mongo:7
+    image: mongo:7.0.39
     container_name: komodo-mongo
     labels:
       komodo.skip:
@@ -16,7 +16,7 @@ services:
       - mongo-config:/data/configdb
 
   core:
-    image: ghcr.io/moghtech/komodo-core:2
+    image: ghcr.io/moghtech/komodo-core:2.2.0
     container_name: komodo-core
     init: true
     network_mode: host # must reach periphery agents over the mesh

@@ -55,10 +55,8 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "<node>/<app>"
-pre_deploy.command = "umask 077 && sops -d secrets.env > .env"   # omit if no secrets.env
+pre_deploy.command = "sops -d secrets.env > .env"   # omit if no secrets.env
 ```
-**Keep the `umask 077`** — the redirect creates `.env` with root's default `022`
-otherwise, i.e. every decrypted secret world-readable on the node.
 Do **not** add `[[server]]` blocks — servers come from Periphery onboarding, not
 the sync. Keep the Sync in **non-prune** mode.
 
@@ -82,13 +80,17 @@ across everything. Pick by the app's capability, in this order:
 identity, no double-gate). Caddy stays a plain `reverse_proxy`.
 
 ```bash
-# secret + its hash: Authelia's own CLI, in the running container
- docker exec authelia authelia crypto hash generate pbkdf2 --variant sha512 --password '<secret>'
+# secret + its hash: Authelia's own CLI, in the running container.
+# Omit --password: the CLI prompts. Passing it on the command line puts the
+# plaintext in ~/.bash_history and in `ps` output for every local user — the
+# 2026-07-25 TB review found the SSO password and three client secrets there.
+docker exec -it authelia authelia crypto hash generate pbkdf2 --variant sha512
 # adding a whole client: open the file, append to the clients array
 sops thriller-bark/authelia/secrets.oidc.yml
 ```
-The **leading space** on the first line is deliberate: `HISTCONTROL=ignoreboth` keeps
-it out of `~/.bash_history`, which otherwise preserves the plaintext secret.
+If a tool ever leaves you no choice but to put a secret on the command line, prefix
+that line with a **leading space** — `HISTCONTROL=ignoreboth` keeps it out of
+`~/.bash_history`. That's a backstop, not the plan; prefer the prompt.
 **Add a client by editing the file, not with `sops set`** on the `clients` path — it
 holds every existing client, and setting it replaces the array wholesale, silently
 deleting the live ones. `sops set` is for a **single scalar** at an indexed path
@@ -127,7 +129,7 @@ double-login friction wasn't worth it. Record the decision, don't leave it impli
 
 - **Live DB** → drop a `backup.sh` in the service dir writing to
   `/var/backups/the-sea/dumps/` (pattern: `going-merry/dawarich/backup.sh` — atomic
-  `.part` + `mv`, `umask 077`, dump inside the container). The node's `run.sh` globs it up
+  `.part` + `mv`, dump inside the container). The node's `run.sh` globs it up
   automatically, no edits. The dumps dir is already a Backrest source on both nodes,
   so nothing to add per-app there.
 - **Cold config dir/volume** → mount it `:ro` into that node's Backrest
