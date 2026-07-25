@@ -15,7 +15,7 @@ record of the assignment** — keep it current.
 | Node | Critical (Mega) | Bulk (Proton) |
 |---|---|---|
 | TB | Authelia config + db, Actual Budget, n8n exports, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping) | Komodo Mongo dump, headscale dump, the whole `/userdata/backups` dumps dir |
-| GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, Cleanuparr + Profilarr config, cold config dirs |
+| GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, Cleanuparr + Profilarr config |
 
 Both nodes' **bulk** plans include the dumps directory as a *directory* entry
 (`/userdata/backups`), not a file list — so a new `backup.sh` is covered the moment it
