@@ -76,6 +76,11 @@ this file is the part that must survive a disaster recovery.
 - **Backrest's `config.json` is deliberately not in git**, even unencrypted — a real
   export carries a live bcrypt hash and an Ed25519 private key. Its repos and plans
   stay UI-managed, not GitOps.
+- **Komodo alerters are UI-managed for the same reason.** An `[[alerter]]` block holds
+  its webhook URL in the clear, and Komodo's secret interpolation only reaches builds,
+  deployments and repos — never alerter endpoints. So the Discord alerter lives in the
+  Komodo UI and is *not* in `resources.toml`; non-prune sync leaves it alone. It is one
+  of the few things a DR clone won't recreate — re-add it by hand.
 
 ## Backups
 
