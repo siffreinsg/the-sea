@@ -68,8 +68,13 @@ VictoriaMetrics and Loki on **GM**
 | TB | GM |
 |---|---|
 | Authelia, Actual Budget, n8n | Dawarich, your_spotify, Profilarr, Cleanuparr |
-| Open-WebUI, LiteLLM, Homepage | PlexAutoLanguages, Wizarr, bazarr2, Configarr |
-| | Huntarr, Maintainerr, Hedgedoc |
+| Open-WebUI, LiteLLM, Homepage | PlexAutoLanguages, Wizarr, bazarr2 |
+| Wallos, Syncthing | Karakeep, Forgejo |
+
+Two of those go against the rule on purpose. **Syncthing** is on TB's slow disk because it
+is the only node that can hold a
+[public listener](../decisions/2026-07-26-syncthing-public-port.md). **Wallos** is on TB
+because it is financial data, not because of its load.
 
 Placement intent, not deployment status — what is live is in `docs/HANDOFF.md` and
 [`docs/plans/`](../plans/). **Code-Server is

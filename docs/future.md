@@ -9,10 +9,10 @@ Not part of the foundation. Revisit after the foundation is running.
 - **Security — what the 2026-07 reviews left open.** Both nodes were reviewed (GM, then
   TB on 2026-07-25); the perimeter was found sound on both and everything actionable was
   fixed or dispatched into the runbooks. Still open, in rough priority order:
-  - **Narrow the `your_spotify` `/api/*` edge bypass** to the paths that genuinely can't
-    carry a redirect (OAuth callback + the SPA's XHR prefix). Today the whole API is
-    unauthenticated at the edge and `/api/global/preferences` is public; only
-    `allowRegistrations: false` stops public account creation — **it must stay off**.
+  - ~~**Narrow the `your_spotify` `/api/*` edge bypass**~~ — planned, see
+    `docs/plans/2026-07-26-your-spotify-api-bypass.md`. Until it lands,
+    `allowRegistrations: false` is the only thing stopping public account creation and
+    **must stay off**.
   - ~~**Caddy admin API**~~ — planned, see `docs/plans/2026-07-25-caddy-admin-off.md`.
   - **GM container least-privilege is capped by the OpenVZ kernel** — no AppArmor, no
     userns-remap, seccomp active. Accepted, not fixable there.
@@ -49,18 +49,28 @@ Not part of the foundation. Revisit after the foundation is running.
 Concrete candidate in parens where decided. Anything with a live plan is in
 `docs/plans/`, not here. LangFuse dropped — Grafana/Loki covers LLM logging.
 
-- **Syncthing** (Obsidian vault sync) — **dropped for now**, not abandoned. It needs
-  its peers to reach port 22000, but GM services bind `100.64.0.1` (mesh-only) and only
-  TB opens public ports. Revisit when every sync peer is a Tailscale client, or decide
-  deliberately to make an exception to the bind rule.
+Syncthing's "dropped for now" entry is gone — the exception it was waiting on was
+[made deliberately](decisions/2026-07-26-syncthing-public-port.md), and it has a plan.
+Karakeep, Wallos and Forgejo likewise.
 
-- PDF management (Paperless-ngx) + PDF ops (Stirling-PDF)
-- File converter (IT-Tools — single static container, easy first)
-- Obsidian web editor (SilverBullet, pointed at the Syncthing vault folder)
-- Local git with CI/CD (Forgejo + Actions runner)
-- Habit tracker (Beaverhabits) — [decided](decisions/2026-07-25-beaverhabits-not-habitica.md)
-- Static site
-- Karakeep — bookmarks / read-it-later with AI tagging (synergy with LiteLLM)
-- Wallos (subscription tracker, complements Actual)
-- Open Terminal for Open WebUI
-- Coolify
+- **Forgejo Actions runner** — deferred out of the Forgejo plan, not dropped. It needs a
+  registration token from a running instance, so it can never share that first deploy.
+  When it lands it goes on **TB** (GM's single-thread CPU would make builds crawl) and it
+  gets the Docker socket, which on GM would mean no AppArmor and no userns-remap.
+- **Obsidian web editor** — skipped for now. Syncthing already puts the vault on every
+  machine that matters, so browser editing is a want, not a gap. If it comes back:
+  SilverBullet (small, multi-arch, plain markdown, but *not* Obsidian — no plugins, no
+  Dataview) pointed at the vault dir, which pins it to **TB** beside Syncthing.
+  obsidian-remote gives real Obsidian at the cost of a whole VNC desktop.
+
+Six candidates were [dropped in one pass](decisions/2026-07-26-wishlist-tools-dropped.md)
+— configarr, huntarr, hedgedoc, it-tools, stirling-pdf, coolify — and maintainerr moved to
+Sunny. What's left:
+
+- ~~PDF management (Paperless-ngx)~~ — planned, see
+  `docs/plans/2026-07-26-paperless-ngx.md`. Blocked on Syncthing.
+- **Habit tracker — tool choice reopened.** Beaverhabits was
+  [chosen on 2026-07-25](decisions/2026-07-25-beaverhabits-not-habitica.md) and is no
+  longer the answer; nothing replaces it yet. Pick the tool before writing a plan.
+- Static site — too underspecified to plan. Decide what the site *is* first.
+- Open Terminal for Open WebUI — needs Open-WebUI live first.

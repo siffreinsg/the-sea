@@ -9,7 +9,7 @@ The constants. Everything here is looked up, not reasoned about.
 | Contact mail | `hello@siffreinsigy.me` (ACME + Authelia user) |
 | Mesh IPs | TB `100.64.0.2`, GM `100.64.0.1`. Base domain `mesh.siffreinsigy.me` |
 | Public IPs | TB `141.253.109.196`, GM `62.4.16.10` |
-| Open ports | TB 80/443/22 · GM 4747 (SSH) · nothing else |
+| Open ports | TB 80/443/22 + 22000/tcp+udp (Syncthing, [the one exception](decisions/2026-07-26-syncthing-public-port.md)) · GM 4747 (SSH) · nothing else |
 | Repo on nodes | `/opt/the-sea` ← `git@github.com:siffreinsg/the-sea.git`, `main` |
 | age recipient | `age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md` |
 | age private key | password manager + `/etc/sops/age.key` (root, 0600) on each node |
