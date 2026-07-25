@@ -1,10 +1,40 @@
 # AGENTS.md
 
-- Keep documentations concise and straightforward. No need to document everything, only what will be used later.
-- Be concise in responses too, not just docs. I search documentation myself — guide in broad steps, don't pre-explain; help when I'm stuck.
-- Record useful commands in `docs/runbooks/commands.md`. For complex tasks, create a dedicated runbook.
-- Docs are split by purpose: **why** goes in `docs/decisions/` (one dated file per decision, plus a row in its README), **how a layer works** in `docs/domains/`, **what to type** in `docs/runbooks/`, **constants** in `docs/reference.md`. Rationale lives in the decision record only — domain docs state the rule and link to it.
-- Use minimal variants of Docker images when available, such as alpine-based or slim.
-- Always challenge existing plans against new decisions, observations and facts. They are generated upfront as broad strokes, which does not make them correct or complete. Say so in the response when a plan is wrong.
-- **Don't edit plan or handoff docs mid-session.** Raise the drift, keep working, and batch every doc update until I ask for it ("update the docs"). Rewriting docs as we skim through them burns tokens on churn that one pass at the end covers.
-- Leverage agents
+## Working style
+
+- Be concise. I search docs myself — guide in broad steps, don't pre-explain; help when I'm stuck.
+- I have **no SSH access from here**. Hand me commands to run and I paste the output back.
+- Challenge plans against new facts. They're broad strokes written upfront, not truth. Say so when one is wrong.
+- **Don't edit docs mid-session.** Raise the drift, keep working, batch every doc update until I say "update the docs".
+- Root-cause fixes, not symptom patches. Grep every caller before editing a shared path.
+
+## Infra rules that bite
+
+- **Never bind `0.0.0.0`** — `127.0.0.1` on TB, `100.64.0.1` on GM. Docker publishes past the firewall.
+- **Every `pre_deploy` and `backup.sh` starts with `umask 077`.** Decrypted secrets and dumps must be 0600.
+- **Never pass a secret as a CLI argument** (`~/.bash_history`, `ps`). Prompt instead.
+- **Pin every image** to a released tag, and prefer alpine/slim variants.
+- A new decrypt target needs a `.gitignore` entry in the same commit.
+- Read the docs before proposing infra changes — most traps are already written down.
+
+## Where docs go
+
+| Kind | Location |
+|---|---|
+| **Why** a choice was made | `docs/decisions/YYYY-MM-DD-slug.md` + a row in its `README.md` |
+| **How** a layer works, and its rules | `docs/domains/<domain>.md` |
+| **What to type**, repeatable | `docs/runbooks/` |
+| **Constants** — addresses, ports, schedules | `docs/reference.md` |
+| One-off commands worth keeping | `docs/runbooks/commands.md` |
+| In-flight app deployment | `docs/plans/` — **delete when it lands** |
+| Deferred / wishlist | `docs/future.md` |
+| Session state, what's half-done | `docs/HANDOFF.md` — untracked, never committed |
+
+## Maintaining them
+
+- **Rationale lives in the decision record only.** Domain docs state the rule and link to the ADR. Two copies drift — that's what this structure replaced.
+- **New decision** = new dated file (context, decision, consequences, ~10 lines) + one index row. Date = the day it was decided.
+- **Reversed a decision?** Mark the old one `Superseded by <link>`, never delete it. Why it was reversed is worth more than the original.
+- **Test for anything written mid-session:** would a fresh clone need this? Yes → `domains/` or `decisions/`. No → HANDOFF.
+- Audit reports and reviews are session artifacts: triage, dispatch the durable parts, delete the report, merge the branch **squashed**.
+- Deleting beats adding. If a doc restates another, cut it.

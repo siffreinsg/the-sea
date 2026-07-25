@@ -1,86 +1,103 @@
-# Common commands
+# Commands
 
-Quick reference for the commands you run often. Paths assume the repo at
-`/opt/the-sea` on a node, `~/projects/the-sea` locally.
+Copy-paste reference. `<ship>` = `thriller-bark` | `going-merry`. Repo is `/opt/the-sea`
+on a node. Anything needing explanation lives in [`docs/domains/`](../domains/), not here.
 
-## Secrets (SOPS + age)
+## Secrets
 
 ```bash
-# Encrypt a plaintext secrets.env in place (local, before commit)
-sops -e -i <ship>/<app>/secrets.env
+sops -e -i <ship>/<app>/secrets.env                  # encrypt in place (local, pre-commit)
+sops <ship>/<app>/secrets.env                        # edit decrypted in $EDITOR
+sops set <ship>/<app>/secrets.env '["KEY"]' '"<value>"'   # set one scalar, no round trip
 
-# Edit an already-encrypted file (opens decrypted in $EDITOR, re-encrypts on save)
-sops <ship>/<app>/secrets.env
+# on a node — always with the umask, the decrypt inherits root's 022 otherwise
+sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sh -c 'umask 077; sops -d secrets.env > .env'
+sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sops -d <ship>/<app>/secrets.env   # verify round-trip
+age-keygen -y /etc/sops/age.key                      # key matches .sops.yaml recipient?
 
-# Decrypt to .env on a node at deploy time (key is root-owned)
-sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sops -d secrets.env > .env
+# hashes needing the app's own CLI — omit --password, it prompts
+docker exec -it authelia authelia crypto hash generate pbkdf2 --variant sha512
+docker exec -it authelia authelia crypto hash generate argon2 --variant argon2id
 
-# Verify a round-trip / that a key is present
-sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sops -d <ship>/<app>/secrets.env
-
-# Check the age key on a node matches the .sops.yaml recipient
-age-keygen -y /etc/sops/age.key
+# audit file modes — expect no output
+sudo find /etc/komodo /var/backups/the-sea -type f \
+  \( -name '.env' -o -name 'rclone.conf' -o -name '*.gz' \) -perm -o=r
 ```
 
-## Caddy (Thriller Bark)
+## Deploy
 
 ```bash
-# Caddy is the "caddy" Komodo stack — Sync + Deploy applies Caddyfile changes
-# (extra_args = --force-recreate --build handles the stale-inode issue from
-# `git pull` swapping the Caddyfile; `caddy reload` would serve stale content).
-# Manual fallback, e.g. if Komodo itself is unreachable:
-cd /opt/the-sea/thriller-bark/caddy && docker compose up -d --force-recreate
-
-# Only safe when the Caddyfile was edited in place (not via git pull):
-docker exec caddy caddy reload --config /etc/caddy/Caddyfile
-
-# See what config the running container actually has (0 hits = stale mount)
-docker exec caddy caddy adapt --config /etc/caddy/Caddyfile 2>/dev/null | grep -c <name>
-
-# Logs (ACME/DNS-01 errors show here)
-docker logs caddy
-```
-
-## Deploy a stack on a node
-
-```bash
+# normal path: Komodo Sync -> Deploy. Manual fallback:
 cd /opt/the-sea && git pull
 cd <ship>/<app>
-sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sops -d secrets.env > .env
-docker compose up -d          # add --build if it has a Dockerfile
-docker logs <container>
+sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sh -c 'umask 077; sops -d secrets.env > .env'
+sudo docker compose up -d --force-recreate          # --build if it has a Dockerfile
+docker logs <container> --tail 50
 ```
 
-## Headscale (Thriller Bark)
+The control plane (`komodo` stack) updates differently — [deploy](../domains/deploy.md).
+
+## Caddy
 
 ```bash
-curl -s http://127.0.0.1:8080/health          # health, bypassing Caddy
-docker exec headscale headscale users list
-docker exec headscale headscale preauthkeys create --user <id> --reusable --expiration 24h
-docker exec headscale headscale nodes list     # joined nodes
+docker exec caddy caddy validate --config /etc/caddy/Caddyfile    # BEFORE a rebuild lands
+cd /opt/the-sea/thriller-bark/caddy && sudo docker compose up -d --force-recreate --build
+docker logs caddy                                    # ACME / DNS-01 errors
+docker exec caddy caddy adapt --config /etc/caddy/Caddyfile | grep -c <name>   # 0 = stale mount
 ```
 
-## Mesh (Tailscale client, any node)
+Never `caddy reload` after a `git pull` — the file is inode-pinned.
+
+## Backups & dumps
+
+```bash
+sudo systemctl start the-sea-dumps.service           # run now
+systemctl status the-sea-dumps.service --no-pager    # want inactive (dead), status=0
+systemctl list-timers the-sea-dumps.timer            # next 03:00 UTC
+ls -l /var/backups/the-sea/dumps/                    # all present, non-trivial, 0600
+sudo journalctl -u the-sea-dumps.service -n 30
+```
+
+Backrest UIs: `https://backrest-{tb,gm}.siffreinsigy.me`.
+
+## Mesh & firewall
 
 ```bash
 tailscale status
 tailscale ping <hostname>
+curl -s http://127.0.0.1:8080/health                 # headscale, bypassing Caddy
+docker exec headscale headscale nodes list
+docker exec headscale headscale users list
+docker exec headscale headscale preauthkeys create --user <id> --reusable --expiration 24h
+
+# containers must NOT reach the mesh — this should hang, then time out
+docker exec n8n node -e 'require("net").connect(3100,"100.64.0.1")\
+  .on("error",e=>console.log("blocked:",e.code)).on("connect",()=>console.log("REACHABLE"))'
+sudo iptables -t raw -S PREROUTING | head -3
+sudo systemctl restart the-sea-mesh-guard
 ```
 
-## Observability (Going Merry)
+## Observability
 
 ```bash
-# Data flowing from both nodes
 curl -s 'http://100.64.0.1:8428/api/v1/query?query=up' | jq '.data.result[].metric'
 curl -s -G 'http://100.64.0.1:3100/loki/api/v1/query_range' \
   --data-urlencode 'query={node="going-merry"}' --data-urlencode 'limit=3'
+curl -s http://127.0.0.1:12345/-/ready && docker logs alloy --since 10m   # on the node itself
 
-# Collector health (run on the node in question)
-curl -s http://127.0.0.1:12345/-/ready && docker logs alloy --since 10m
+# pull live Grafana state back into the repo (service-account token, Admin role)
+TOK="<token>"; BASE="https://grafana.siffreinsigy.me"
+curl -s -H "Authorization: Bearer $TOK" \
+  "$BASE/api/v1/provisioning/alert-rules/export?format=yaml" > provisioning/alerting/rules.yaml
+curl -s -H "Authorization: Bearer $TOK" "$BASE/api/dashboards/uid/<uid>" \
+  | jq .dashboard > dashboards/<name>.json
 ```
 
-Grafana: `https://grafana.siffreinsigy.me` — admin pw in password manager.
-Retention: metrics 90d (VM flag), logs 30d (loki.yaml). Neither is backed up; grafana-data is.
-Dashboards (1860, 14282) and alert rules are provisioned as code under
-`going-merry/observability/{dashboards,provisioning}/` — see
-`docs/domains/observability.md` to extend.
+## Node health
+
+```bash
+uname -r; ls /var/run/reboot-required 2>/dev/null && cat /var/run/reboot-required.pkgs
+sudo apt update && sudo apt upgrade -y
+docker ps --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
+sudo ss -tulpn | grep -v 127.0.0.1                   # nothing unexpected on a public bind
+```
