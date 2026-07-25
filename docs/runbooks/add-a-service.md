@@ -129,7 +129,10 @@ double-login friction wasn't worth it. Record the decision, don't leave it impli
 
 - **Live DB** → drop a `backup.sh` in the service dir writing to
   `/var/backups/the-sea/dumps/` (pattern: `going-merry/dawarich/backup.sh` — atomic
-  `.part` + `mv`, dump inside the container). The node's `run.sh` globs it up
+  `.part` + `mv`, dump inside the container). `run.sh` sets `umask 077` so the dump
+  lands 0600 — **but if it leaves the container via `docker cp` rather than a stdout
+  pipe, `chmod 600` it yourself**: `docker cp` carries the container-side mode across
+  and the umask never applies. Bit the n8n export. The node's `run.sh` globs it up
   automatically, no edits. The dumps dir is already a Backrest source on both nodes,
   so nothing to add per-app there.
 - **Cold config dir/volume** → mount it `:ro` into that node's Backrest

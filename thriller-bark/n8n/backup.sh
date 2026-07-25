@@ -30,6 +30,10 @@ export_or_empty /tmp/n8n-credentials.json n8n export:credentials --all --decrypt
 docker cp n8n:/tmp/n8n-workflows.json "$outdir/n8n-workflows.json.part"
 docker cp n8n:/tmp/n8n-credentials.json "$outdir/n8n-credentials.json.part"
 docker exec n8n rm -f /tmp/n8n-workflows.json /tmp/n8n-credentials.json
+# `docker cp` carries the container-side mode across and ignores the umask, so
+# these land 0644 while every other dump is 0600. The credentials export is
+# plaintext — fix the mode before the file is visible under its final name.
+chmod 600 "$outdir"/n8n-*.json.part
 
 mv "$outdir/n8n-workflows.json.part" "$outdir/n8n-workflows.json"
 mv "$outdir/n8n-credentials.json.part" "$outdir/n8n-credentials.json"
