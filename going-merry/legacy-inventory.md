@@ -2,8 +2,13 @@
 
 The **redeploy reference**: which host dir maps where when each app is recreated as a Komodo stack.
 
-All surviving app data is under `/home/siffrein/docker-mei/` — **preserved in full**, plus the two
-archives `/home/siffrein/docker-mei.tar.gz` (7.6G) and `/home/siffrein/minecraft.tar.gz` (5.6G).
+All surviving app data is under `/home/siffrein/docker-mei/` — **preserved in full**.
+
+The two archives `docker-mei.tar.gz` (7.6G) and `minecraft.tar.gz` (5.6G) are **no longer on GM**:
+exported to the operator's machine and deleted on 2026-07-25. They were world-readable plaintext
+copies of the entire pre-Komodo credential set (Authentik's Postgres cluster, 815 Let's Encrypt
+key/cert entries, n8n's encryption key *beside* its credential DB, portainer.db, 13 `.env` files).
+Anything needed from them now comes off the local copy, not the node.
 
 Legacy compose files live beside the data in the same tree (`docker-mei` is its own git repo), so
 each app's original config is recoverable from there.

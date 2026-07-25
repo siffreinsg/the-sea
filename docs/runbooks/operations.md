@@ -140,8 +140,28 @@ rebuilt), Homepage (all config is in git).
   docker.sock — `:ro` on a socket only protects the file, the API is fully usable).
   It's necessary: cadvisor has no path-override args and needs `/rootfs`, `/sys`,
   `/var/lib/docker` **and `/run/containerd/containerd.sock` — that last one was
-  missing once and silently broke container-stats scraping on TB only. Accepted risk,
-  feed it to the security audit in `specs/future.md`.
+  missing once and silently broke container-stats scraping on TB only. Accepted risk.
+  Its real blast radius: `/:/rootfs:ro` lets Alloy read **`/etc/sops/age.key`**, so an
+  Alloy compromise yields every secret on the node regardless of file modes. File
+  hygiene below is defence-in-depth, not the mitigation — the mitigation would be
+  fronting docker.sock with a proxy, not tightening permissions.
+- **Everything sops writes on-node must be `600`.** `sops -d … > file` uses root's
+  default `022` umask, so the decrypted `.env`/`rclone.conf` lands world-readable while
+  the age key is correctly `600` — the decrypt step throws the protection away. Every
+  `pre_deploy` in `komodo/resources.toml` is prefixed `umask 077 &&`; keep it there.
+  Same for `backup.sh`: DB dumps are app data in the clear (Dawarich's is a full GPS
+  history). Audit with
+  `find /etc/komodo /var/backups/the-sea -type f \( -name '.env' -o -name 'rclone.conf' -o -name '*.gz' \) -perm -o=r`
+  — expect no output. `umask` only affects **new** files, so a mode fix on existing ones
+  is a one-time `chmod`, not a redeploy.
+- **`/etc/komodo/periphery.config.toml` holds the onboarding key in cleartext** and is
+  outside the sops pattern. Keep it `600` (Periphery runs as root, so it loses nothing).
+  The same file has terminals enabled, which is how Komodo works — meaning **Komodo
+  Core's own authentication is load-bearing for root on both nodes.**
+- **Inbound firewall: 4747 only on GM; 80/443 are TB's alone.** GM carried a leftover
+  ufw "Nginx Full" allow from the nginx-proxy-manager era until 2026-07-25. It mattered
+  because default-deny is what makes a `0.0.0.0` bind mistake survivable — on those two
+  ports it wouldn't have been.
 - **VictoriaMetrics has no auth and Loki runs `auth_enabled: false`**, both on the
   mesh. Fine for a single-tenant trusted tailnet; revisit if the mesh ever gains a
   less-trusted node.

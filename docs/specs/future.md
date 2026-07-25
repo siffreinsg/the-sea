@@ -6,7 +6,14 @@ Not part of the foundation. Revisit after the foundation is running.
 
 - **Sunny backups** — decide whether app configs/DBs on Ultra.cc are worth backing up (restic + rclone binaries in userspace) or nothing at all.
 - **Baratie** — join the mesh; fold HAOS backups into Backrest.
-- **Security audit (TB + GM)** — after Plan 2/3 land: close unnecessary open ports, review what's exposed beyond the Caddy edge, harden both nodes (firewall rules, unattended-upgrades, SSH config, container least-privilege, etc).
+- **Security audit — GM done 2026-07-25, TB outstanding.** GM audited on-node: network
+  posture, legacy surface, secrets-at-rest, SSH/sudo/patching. Findings fixed (secret
+  file modes, legacy credential archives, stale ufw 80/443, dump modes); durable rules
+  folded into `runbooks/operations.md`. Two GM items left open there: container
+  least-privilege is capped by the OpenVZ kernel (no AppArmor, no userns-remap, seccomp
+  active — accepted), and an off-node port scan of `62.4.16.10` was never run (expect
+  only 4747). **TB has not been audited** — same brief, and it holds Komodo Core,
+  Authelia and the Caddy edge, so it's the higher-value node of the two.
 - **Sunny / Baratie collectors** — a userspace Alloy binary on Sunny, HAOS
   Prometheus add-on or mesh scrape for Baratie; both push to VM/Loki on **GM**
   (`100.64.0.1`). **This is the only thing that would justify putting Sunny on the

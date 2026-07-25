@@ -1,6 +1,6 @@
 services:
   profilarr:
-    image: ghcr.io/dictionarry-hub/profilarr:latest
+    image: ghcr.io/dictionarry-hub/profilarr:2.0.9
     container_name: profilarr
     restart: unless-stopped
     env_file: .env

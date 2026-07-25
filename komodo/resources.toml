@@ -14,7 +14,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "thriller-bark/backrest"
-pre_deploy.command = "sops -d secrets.rclone.conf > rclone.conf"
+pre_deploy.command = "umask 077 && sops -d secrets.rclone.conf > rclone.conf"
 
 [[stack]]
 name = "backrest-gm"
@@ -24,7 +24,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/backrest"
-pre_deploy.command = "sops -d secrets.rclone.conf > rclone.conf"
+pre_deploy.command = "umask 077 && sops -d secrets.rclone.conf > rclone.conf"
 
 [[stack]]
 name = "observability"
@@ -34,7 +34,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/observability"
-pre_deploy.command = "sops -d secrets.env > .env"
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 extra_args = ["--force-recreate"]
 
 [[stack]]
@@ -75,7 +75,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "thriller-bark/authelia"
-pre_deploy.command = "sops -d secrets.users_database.yml > users_database.yml && sops -d secrets.oidc.yml > oidc.yml && sops -d secrets.env > .env"
+pre_deploy.command = "umask 077 && sops -d secrets.users_database.yml > users_database.yml && sops -d secrets.oidc.yml > oidc.yml && sops -d secrets.env > .env"
 extra_args = ["--force-recreate"]
 
 [[stack]]
@@ -86,7 +86,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/dawarich"
-pre_deploy.command = "sops -d secrets.env > .env"
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 
 [[stack]]
 name = "your_spotify"
@@ -96,7 +96,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/your_spotify"
-pre_deploy.command = "sops -d secrets.env > .env"
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 
 [[stack]]
 name = "plexautolanguages"
@@ -106,7 +106,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/plexautolanguages"
-pre_deploy.command = "sops -d secrets.env > .env"
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 
 [[stack]]
 name = "profilarr"
@@ -116,7 +116,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/profilarr"
-pre_deploy.command = "sops -d secrets.env > .env"
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 
 [[stack]]
 name = "cleanuparr"
@@ -135,7 +135,7 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "thriller-bark/caddy"
-pre_deploy.command = "sops -d secrets.env > .env"
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 extra_args = ["--force-recreate", "--build"]
 
 [[stack]]

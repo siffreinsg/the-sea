@@ -4,6 +4,7 @@
 # ships no sqlite3, so the host provides it and reads the db via its named volume.
 # .dump is transaction-consistent against the live, container-open db.
 set -euo pipefail
+umask 077   # dumps hold app data in the clear; keep them root-only
 out=/var/backups/the-sea/dumps/headscale.sql.gz
 mkdir -p "$(dirname "$out")"
 

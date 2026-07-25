@@ -55,8 +55,10 @@ git_account = "siffreinsg"
 repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "<node>/<app>"
-pre_deploy.command = "sops -d secrets.env > .env"   # omit if no secrets.env
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env"   # omit if no secrets.env
 ```
+**Keep the `umask 077`** — the redirect creates `.env` with root's default `022`
+otherwise, i.e. every decrypted secret world-readable on the node.
 Do **not** add `[[server]]` blocks — servers come from Periphery onboarding, not
 the sync. Keep the Sync in **non-prune** mode.
 
@@ -81,10 +83,12 @@ identity, no double-gate). Caddy stays a plain `reverse_proxy`.
 
 ```bash
 # secret + its hash: Authelia's own CLI, in the running container
-docker exec authelia authelia crypto hash generate pbkdf2 --variant sha512 --password '<secret>'
+ docker exec authelia authelia crypto hash generate pbkdf2 --variant sha512 --password '<secret>'
 # adding a whole client: open the file, append to the clients array
 sops thriller-bark/authelia/secrets.oidc.yml
 ```
+The **leading space** on the first line is deliberate: `HISTCONTROL=ignoreboth` keeps
+it out of `~/.bash_history`, which otherwise preserves the plaintext secret.
 **Add a client by editing the file, not with `sops set`** on the `clients` path — it
 holds every existing client, and setting it replaces the array wholesale, silently
 deleting the live ones. `sops set` is for a **single scalar** at an indexed path
@@ -123,7 +127,7 @@ double-login friction wasn't worth it. Record the decision, don't leave it impli
 
 - **Live DB** → drop a `backup.sh` in the service dir writing to
   `/var/backups/the-sea/dumps/` (pattern: `going-merry/dawarich/backup.sh` — atomic
-  `.part` + `mv`, dump inside the container). The node's `run.sh` globs it up
+  `.part` + `mv`, `umask 077`, dump inside the container). The node's `run.sh` globs it up
   automatically, no edits. The dumps dir is already a Backrest source on both nodes,
   so nothing to add per-app there.
 - **Cold config dir/volume** → mount it `:ro` into that node's Backrest

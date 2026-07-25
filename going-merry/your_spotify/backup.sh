@@ -4,6 +4,7 @@
 # file — restic (Backrest bulk plan) keeps the history. Atomic: a failed run
 # keeps the last good file.
 set -euo pipefail
+umask 077   # dumps hold app data in the clear; keep them root-only
 out=/var/backups/the-sea/dumps/your_spotify-mongo.archive.gz
 mkdir -p "$(dirname "$out")"
 

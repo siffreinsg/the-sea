@@ -5,6 +5,7 @@
 # files — restic (Backrest critical plan) keeps the history. Atomic: a failed
 # run keeps the last good files.
 set -euo pipefail
+umask 077   # dumps hold app data in the clear; keep them root-only
 outdir=/var/backups/the-sea/dumps
 mkdir -p "$outdir"
 
