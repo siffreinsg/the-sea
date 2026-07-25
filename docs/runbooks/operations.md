@@ -193,7 +193,12 @@ rebuilt), Homepage (all config is in git).
   every bridged container on TB routes onto `100.64.0.0/10`, so n8n (a workflow engine
   that runs user code) can read the whole fleet's metrics and *every container's logs
   on both nodes*, and reach GM's mesh binds behind Caddy and Authelia. Headscale has no
-  ACL policy, so the tailnet is allow-all. Open, tracked in `specs/future.md`.
+  ACL policy, so the tailnet is allow-all. Closed by
+  `thriller-bark/firewall/the-sea-mesh-guard.service`, a oneshot that inserts a
+  `DOCKER-USER` REJECT — **`PartOf=docker.service` is load-bearing**, Docker recreates
+  that chain empty on every start. **A Headscale ACL cannot substitute for it**: the
+  masquerade rewrites the source to TB's own tailnet IP, so GM sees container traffic
+  as host traffic and no policy can tell them apart.
 - **The host firewall does protect the host from its own containers** — the iptables
   INPUT default REJECT gives `EHOSTUNREACH` from a container to `172.x.0.1` on 9120 /
   27017 / 2019, and every Docker publish is loopback-scoped, so Docker's usual

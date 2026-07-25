@@ -9,10 +9,6 @@ Not part of the foundation. Revisit after the foundation is running.
 - **Security — what the 2026-07 reviews left open.** Both nodes were reviewed (GM, then
   TB on 2026-07-25); the perimeter was found sound on both and everything actionable was
   fixed or dispatched into the runbooks. Still open, in rough priority order:
-  - **Containers reach the tailnet** (TB, see `operations.md`). Short fix:
-    `iptables -I DOCKER-USER -s 172.16.0.0/12 -d 100.64.0.0/10 -j REJECT`, persisted via
-    `iptables-persistent` — the chain is empty today and no bridged container needs mesh
-    access. Durable fix: a Headscale ACL policy, which also covers future mesh nodes.
   - **Decide whether `komodo` becomes a synced stack.** Bootstrap-order concerns are
     real, but the current arrangement gets the discipline of neither approach.
   - **Rotate four `*arr` API keys** that sat in world-readable legacy `.env` files on GM.
@@ -27,8 +23,6 @@ Not part of the foundation. Revisit after the foundation is running.
     userns-remap, seccomp active. Accepted, not fixable there.
   - **`profilarr` OIDC client has `require_pkce: false`** (deliberate, confidential
     client, `client_secret_post`); revisit if Profilarr gains support.
-  - **`going-merry/profilarr/compose.yaml` still pins `:latest`** — the pinning pass
-    missed it. A parallel session owns that dir.
   - **Never scanned from off-network.** Hairpin NAT against `141.253.109.196` showed only
     80/443/22, and GM only 4747, but a source-conditional rule wouldn't show up that way.
     Also unread: the Oracle VCN security list, so it's unknown which layer closes what.

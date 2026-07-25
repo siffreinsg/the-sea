@@ -1,0 +1,29 @@
+# Keeps bridged containers off the tailnet.
+#
+# Docker's per-bridge MASQUERADE plus Tailscale's ts-forward accept means every
+# container on a TB bridge network can reach 100.64.0.0/10 — GM's unauthenticated
+# VictoriaMetrics and Loki included — even though no container is a tailnet member.
+# A Headscale ACL can't fix this: the masquerade rewrites the source to TB's own
+# tailnet IP, so GM cannot tell container traffic from host traffic. The drop has
+# to happen here, before the NAT.
+#
+# Docker recreates DOCKER-USER empty when it starts, so PartOf= re-runs this on
+# every docker restart. Caddy and Komodo Core are network_mode: host and unaffected.
+#
+# Install (once, mirrors thriller-bark/backups/README.md):
+#   sudo ln -sf /opt/the-sea/thriller-bark/firewall/the-sea-mesh-guard.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now the-sea-mesh-guard
+
+[Unit]
+Description=Block bridged containers from reaching the tailnet
+After=docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'iptables -C DOCKER-USER -s 172.16.0.0/12 -d 100.64.0.0/10 -j REJECT 2>/dev/null || iptables -I DOCKER-USER -s 172.16.0.0/12 -d 100.64.0.0/10 -j REJECT'
+
+[Install]
+WantedBy=multi-user.target
