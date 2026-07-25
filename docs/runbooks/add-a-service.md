@@ -1,9 +1,16 @@
 # Add a service
 
-The repeatable pattern, proven by the whoami canary (T8). Every new service is
-four things: a **ship dir** (compose + secrets), a **stack entry**, a **Caddy
-handle block**, and one **sync + deploy**. No per-service DNS — the wildcard
+The repeatable pattern. Every new service is a **ship dir** (compose + secrets), a
+**stack entry**, a **Caddy handle block** with **auth**, a **backup entry** if it's
+stateful, and one **sync + deploy**. No per-service DNS — the wildcard
 `*.siffreinsigy.me` already resolves to Thriller Bark.
+
+**Before writing any config: pin the image to a released tag and read *that*
+version's docs.** Never write app config from memory — Authelia's schema moved
+hard at 4.38, and floating `:latest` plus Komodo's update polling silently
+advances the running version. Also check Cloudflare for an existing record at the
+subdomain you picked: a name with **any** record (even an MX) is no longer covered
+by the wildcard.
 
 `<node>` = `thriller-bark` (TB) or `going-merry` (GM). Pick a unique host port `<P>`.
 
@@ -64,10 +71,75 @@ Inside `*.siffreinsigy.me`, above the final `handle { abort }`:
 ```
 `<bind>` matches the compose bind: `127.0.0.1` for a TB app, `100.64.0.1` for a GM app.
 
+## 3b. Auth — pick one of three
+
+Default policy is `two_factor`; one Authelia cookie on `*.siffreinsigy.me` gives SSO
+across everything. Pick by the app's capability, in this order:
+
+**a) App supports OIDC** → make it an Authelia client (native login button, real
+identity, no double-gate). Caddy stays a plain `reverse_proxy`.
+
+```bash
+# secret + its hash: Authelia's own CLI, in the running container
+docker exec authelia authelia crypto hash generate pbkdf2 --variant sha512 --password '<secret>'
+# adding a whole client: open the file, append to the clients array
+sops thriller-bark/authelia/secrets.oidc.yml
+```
+**Add a client by editing the file, not with `sops set`** on the `clients` path — it
+holds every existing client, and setting it replaces the array wholesale, silently
+deleting the live ones. `sops set` is for a **single scalar** at an indexed path
+(e.g. filling in one client's hashed secret) — that's the round-trip-saving trick,
+and it's safe only because it targets a leaf.
+
+One client entry = `client_id`, `client_secret` (hashed), `redirect_uris`,
+`require_pkce` (`false` if the app doesn't implement it — harmless on a
+confidential client). The plaintext secret also goes in the app's `secrets.env`.
+**Set the app's redirect URI explicitly**; don't trust its auto-derivation from a
+hostname env var (bit us on Dawarich).
+
+**b) No OIDC** → Caddy `forward_auth`:
+
+```caddyfile
+	@<app> host <app>.siffreinsigy.me
+	handle @<app> {
+		forward_auth 127.0.0.1:9091 {
+			uri /api/authz/forward-auth
+			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+		}
+		reverse_proxy <bind>:<P>
+	}
+```
+
+Need to bypass paths (API, webhooks, OAuth callbacks)? **Wrap every branch in its
+own `handle {}`.** Caddy's mutual exclusion only applies between *sibling* `handle`
+blocks — mixing a nested `handle` with trailing loose directives silently doesn't
+short-circuit (this is what broke the n8n webhook bypass). See the `your_spotify`
+block for the working shape.
+
+**c) App has its own login + 2FA judged sufficient** → neither. n8n went this way;
+double-login friction wasn't worth it. Record the decision, don't leave it implicit.
+
+## 3c. Backups — mandatory if stateful
+
+- **Live DB** → drop a `backup.sh` in the service dir writing to
+  `/var/backups/the-sea/dumps/` (pattern: `going-merry/dawarich/backup.sh` — atomic
+  `.part` + `mv`, dump inside the container). The node's `run.sh` globs it up
+  automatically, no edits. The dumps dir is already a Backrest source on both nodes,
+  so nothing to add per-app there.
+- **Cold config dir/volume** → mount it `:ro` into that node's Backrest
+  (`<node>/backrest/compose.yaml`) and add it to the bulk plan in Backrest's UI.
+  Backrest source paths in the UI are **container-side** (`/userdata/...`), not host
+  paths.
+- Sensitive data (finances, secrets material, workflow exports) also goes in the
+  node's **critical** plan.
+- Genuinely re-creatable cache (e.g. plexautolanguages' `/config`) → skip, but say so
+  in the plan doc.
+
 ## 4. Ship it
 
 ```bash
-git add <node>/<app> komodo/resources.toml thriller-bark/caddy/Caddyfile
+git add <node>/<app> komodo/resources.toml thriller-bark/caddy/Caddyfile \
+        thriller-bark/authelia/secrets.oidc.yml   # if you added an OIDC client
 git commit -m "feat(<app>): deploy on <node>" && git push
 ```
 Then:

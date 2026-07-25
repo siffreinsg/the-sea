@@ -34,16 +34,21 @@ alert rules only re-read on container start/reload.
 | High memory usage | `node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100` | < 10 for 10m | warning |
 | Caddy config reload failed | `caddy_config_last_reload_successful` (TB only) | < 1 for 5m | critical |
 
-All route to Grafana's built-in default contact point.
+## Notifications — the Den Den Mushi bot
 
-## The gap: no notification channel
+All rules route to a **Telegram** contact point, provisioned as code in
+`provisioning/alerting/contact-points.yaml` alongside the notification policy tree.
+Grafana talks to Telegram natively, so there's no n8n hop. Deliberately **not ntfy**.
 
-**Nothing currently pages anyone.** Rules fire and show up in the Alerting UI
-only. The intended channel is a Telegram bot (see `docs/specs/future.md`) —
-deliberately **not ntfy**, that was already decided against. Grafana can talk
-to Telegram natively (bot token + chat id), no n8n required — ask to wire
-that up when ready; it's a contact-point + notification-policy change, no
-rule edits needed.
+- The bot token and chat id come from the environment (`$TELEGRAM_BOT_TOKEN`,
+  `$TELEGRAM_CHAT_ID`, Grafana's `$VAR` provisioning interpolation) and live in
+  `secrets.env` — never in the provisioning file.
+- **The policy tree is read-only in the UI** once provisioned. Grouping, timing and
+  routing changes go through `contact-points.yaml`, not through Grafana.
+- `repeat_interval` is 24h: a still-firing alert nags once a day. Frequent enough to
+  not forget, rare enough that you don't learn to ignore the chat.
+- Changing the bot or chat: `sops set going-merry/observability/secrets.env
+  '["TELEGRAM_CHAT_ID"]' '"<id>"'`, then redeploy `observability`.
 
 ## Extend
 

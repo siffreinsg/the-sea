@@ -11,19 +11,23 @@ A reproducible, backed-up, unified homelab. Everything defined in Git, one dashb
 | **Thriller Bark**      | Oracle Cloud ARM (4 vCPU / 24 GB) | Workhorse + control plane | Docker + Komodo agent             |
 | **Going Merry**        | Omgserv OpenVZ VPS (old kernel)   | Legacy/light Docker node  | Docker + Komodo agent             |
 | **The Thousand Sunny** | Ultra.cc box (no sudo, no Docker) | Media + download node     | Ultra.cc managed `app-*` services |
-| **Den Den Mushi**      | Raspberry Pi                      | Home Assistant            | HAOS (managed, not Komodo)        |
+| **Baratie**            | Raspberry Pi                      | Home Assistant            | HAOS (managed, not Komodo)        |
+
+**Den Den Mushi** is reserved for the Telegram alert bot (the transponder snail
+carries messages), not for a machine.
 
 - Major services run on **Thriller Bark**. Services without performance requirements or low sensitivity run on **Going Merry** to keep Thriller Bark uncrowded.
 - **Thriller Bark** hosts the control plane: Headscale, Komodo Core, Caddy edge and the backup orchestrator. The observability stack runs on Going Merry instead (disk-I/O-heavy workload, GM's disk is ~17x faster).
 - **The Thousand Sunny** runs the full media/arr stack as Ultra.cc-managed apps. Outside Komodo; this repo only versions helper scripts and docs.
-- **Den Den Mushi** stays independent (HAOS-managed); it joins the mesh and its backups are folded in later.
+- **Baratie** stays independent (HAOS-managed); it joins the mesh and its backups are folded in later.
 
 ## Cross-cutting architecture
 
 ### Mesh — Headscale
 
 - **Headscale** (self-hosted Tailscale control plane) on Thriller Bark, exposed publicly through Caddy.
-- Every node joins as a Tailscale client. Going Merry runs **kernel mode** (its OpenVZ host exposes `/dev/net/tun`); The Thousand Sunny stays userspace (no root). GM's mesh-reached services bind its tailscale IP `100.64.0.1` — off the public interface, mesh-reachable, and (unlike userspace) able to initiate outbound mesh connections.
+- Thriller Bark and Going Merry join as Tailscale clients. Going Merry runs **kernel mode** (its OpenVZ host exposes `/dev/net/tun`). GM's mesh-reached services bind its tailscale IP `100.64.0.1` — off the public interface, mesh-reachable, and able to initiate outbound mesh connections.
+- **The Thousand Sunny is not on the mesh at all**, and doesn't need to be: every service it runs is publicly reachable over HTTPS, and its SSH/SFTP is reachable on port 22 (verified from GM). Nothing would be gained by adding a userspace client. The one case that would justify revisiting is shipping Sunny's own logs/metrics to the observability stack, which binds a mesh address — see `future.md`.
 - All inter-node traffic — Komodo, metrics, logs, backups, reverse-proxying — goes over the mesh.
 
 ### Ingress — Caddy
@@ -92,7 +96,7 @@ the-sea/
 │   └── <app>/                      # compose.yaml + sops-encrypted env
 ├── thethousandsunny/               # Ultra.cc managed apps — scripts + docs only
 │   └── scripts/                    # start_all / stop_all / upgrade_all
-├── dendenmushi/                    # Home Assistant — backup config + docs
+├── baratie/                    # Home Assistant — backup config + docs
 └── scripts/                        # cross-node helpers: bootstrap-node, sops wrappers, restore-test
 ```
 
@@ -114,18 +118,33 @@ Per-ship top-level dirs map 1:1 onto Komodo server targets. Cross-cutting concer
 
 ### Applications
 
-| Service             | Node          | Comments                 |
-| ------------------- | ------------- | ------------------------ |
-| Actual Budget       | Thriller Bark | Sensitive                |
-| Authentik           | Thriller Bark | Core, sensitive          |
-| n8n                 | Thriller Bark | Performance requirements |
-| Open-WebUI          | Thriller Bark | Critical                 |
-| Wizarr              | Thriller Bark | Important                |
-| bazarr2             | Going Merry   | Not critical             |
-| Cleanuparr          | Going Merry   | Not critical             |
-| Code-Server         | Going Merry   | Not critical             |
-| Configarr           | Going Merry   | Runs infrequently        |
-| Dawarich            | Going Merry   | Not critical             |
-| Hedgedoc            | Going Merry   | Not critical             |
-| Plex_Auto_Languages | Going Merry   | Not critical             |
-| your_spotify        | Going Merry   | Not critical             |
+Placement rule of thumb (post-benchmark): **CPU / edge / sensitive → TB;
+disk-I/O-heavy, DB, RAM-hungry → GM.**
+
+| Service             | Node          | Comments                                    |
+| ------------------- | ------------- | ------------------------------------------- |
+| Authelia            | Thriller Bark | Core, sensitive. Replaces Authentik         |
+| Actual Budget       | Thriller Bark | Sensitive. Password auth only, no OIDC      |
+| n8n                 | Thriller Bark | Performance requirements. Own login + 2FA   |
+| Open-WebUI          | Thriller Bark | Critical. Talks to LiteLLM                  |
+| LiteLLM             | Thriller Bark | Internal gateway, deliberately not exposed  |
+| Homepage            | Thriller Bark | Config-as-code launcher                     |
+| Dawarich            | Going Merry   | Postgis, write-heavy → GM's disk            |
+| your_spotify        | Going Merry   | Fleet's only Mongo                          |
+| Plex_Auto_Languages | Going Merry   | Headless, no web UI                         |
+| Profilarr           | Going Merry   | API-only to the arr stack on Sunny          |
+| Wizarr              | Going Merry   | With its legacy data + the rest of the arrs |
+| bazarr2             | Going Merry   | Needs an rclone SFTP mount to Sunny         |
+| Cleanuparr          | Going Merry   | Not critical                                |
+| Configarr           | Going Merry   | Runs infrequently                           |
+| Huntarr             | Going Merry   | Not critical                                |
+| Maintainerr         | Going Merry   | Not critical                                |
+| Hedgedoc            | Going Merry   | Not critical                                |
+
+What's live vs pending is tracked in `docs/HANDOFF.md` and `docs/plans/`, not here —
+this table is placement intent, which doesn't change every deploy.
+
+**Code-Server is dropped**, not deferred — arbitrary code-exec surface on GM, judged
+not worth the value. **Syncthing dropped for now** (peer-reachability doesn't fit the
+mesh-only bind rule); it's back in `future.md`. **nginx-proxy-manager is not
+migrated** — Caddy on TB is the edge. **portainer / diun** are superseded by Komodo.

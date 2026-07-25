@@ -67,12 +67,12 @@ tailscale status
 tailscale ping <hostname>
 ```
 
-## Observability (Thriller Bark)
+## Observability (Going Merry)
 
 ```bash
 # Data flowing from both nodes
-curl -s 'http://100.64.0.2:8428/api/v1/query?query=up' | jq '.data.result[].metric'
-curl -s -G 'http://100.64.0.2:3100/loki/api/v1/query_range' \
+curl -s 'http://100.64.0.1:8428/api/v1/query?query=up' | jq '.data.result[].metric'
+curl -s -G 'http://100.64.0.1:3100/loki/api/v1/query_range' \
   --data-urlencode 'query={node="going-merry"}' --data-urlencode 'limit=3'
 
 # Collector health (run on the node in question)
