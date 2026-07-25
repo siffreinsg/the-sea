@@ -10,6 +10,7 @@ New decision = new dated file + one row here.
 
 | Date | Decision | Status |
 |---|---|---|
+| 2026-07-25 | [Habit tracker: Beaverhabits, not Habitica](2026-07-25-beaverhabits-not-habitica.md) | Accepted |
 | 2026-07-25 | [Operating rules are versioned; HANDOFF stays local](2026-07-25-operating-rules-versioned.md) | Accepted |
 | 2026-07-25 | [The container/tailnet block lives in raw/PREROUTING](2026-07-25-mesh-guard-in-raw-prerouting.md) | Accepted |
 | 2026-07-25 | [The komodo stack is not managed by Komodo](2026-07-25-komodo-stack-hand-managed.md) | Accepted |

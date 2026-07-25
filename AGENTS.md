@@ -5,7 +5,6 @@
 - Be concise. I search docs myself — guide in broad steps, don't pre-explain; help when I'm stuck.
 - I have **no SSH access from here**. Hand me commands to run and I paste the output back.
 - Challenge plans against new facts. They're broad strokes written upfront, not truth. Say so when one is wrong.
-- **Don't edit docs mid-session.** Raise the drift, keep working, batch every doc update until I say "update the docs".
 - Root-cause fixes, not symptom patches. Grep every caller before editing a shared path.
 
 ## Infra rules that bite

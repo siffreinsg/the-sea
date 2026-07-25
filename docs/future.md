@@ -13,7 +13,7 @@ Not part of the foundation. Revisit after the foundation is running.
     carry a redirect (OAuth callback + the SPA's XHR prefix). Today the whole API is
     unauthenticated at the edge and `/api/global/preferences` is public; only
     `allowRegistrations: false` stops public account creation — **it must stay off**.
-  - **Caddy admin API** — dedicated loopback metrics site, then `admin off`.
+  - ~~**Caddy admin API**~~ — planned, see `docs/plans/2026-07-25-caddy-admin-off.md`.
   - **GM container least-privilege is capped by the OpenVZ kernel** — no AppArmor, no
     userns-remap, seccomp active. Accepted, not fixable there.
   - **`profilarr` OIDC client has `require_pkce: false`** (deliberate, confidential
@@ -58,7 +58,7 @@ Concrete candidate in parens where decided. Anything with a live plan is in
 - File converter (IT-Tools — single static container, easy first)
 - Obsidian web editor (SilverBullet, pointed at the Syncthing vault folder)
 - Local git with CI/CD (Forgejo + Actions runner)
-- Habit tracker — **research pending**: Habitica (heavy, Mongo, RPG gamification) vs Beaverhabits (tiny, tracking only)
+- Habit tracker (Beaverhabits) — [decided](decisions/2026-07-25-beaverhabits-not-habitica.md)
 - Static site
 - Karakeep — bookmarks / read-it-later with AI tagging (synergy with LiteLLM)
 - Wallos (subscription tracker, complements Actual)
