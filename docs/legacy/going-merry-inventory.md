@@ -2,11 +2,14 @@
 
 The **redeploy reference**: which host dir maps where when each app is recreated as a Komodo stack.
 
-All surviving app data is under `/home/siffrein/docker-mei/` on GM — **preserved in full, but
-no longer backed up.** Its Backrest mount was removed on 2026-07-25 once the final copy was
-taken: nightly snapshots of a frozen tree were paying for the same bytes forever. That copy
-is now the only one, and restic's retention will eventually expire the last snapshot that
-held it — treat the tree on GM and the operator's copy as the record, not the backups.
+All surviving app data is under `/home/siffrein/docker-mei/` on GM — **preserved in full and
+deliberately not backed up.** Its Backrest mount was removed on 2026-07-25: it is a frozen
+tree with cold copies already on Proton, Mega and the operator's machine, so nightly
+snapshots were re-paying for the same bytes forever.
+
+This tree shrinks in relevance as each app is redeployed under Komodo, and gets deleted
+outright once nothing needs it. Each migrated app's data is backed up properly by its own
+stack — look there, not here.
 
 The two archives `docker-mei.tar.gz` (7.6G) and `minecraft.tar.gz` (5.6G) are **no longer on GM**:
 exported to the operator's machine and deleted on 2026-07-25. They were world-readable plaintext
