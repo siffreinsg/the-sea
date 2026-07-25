@@ -48,15 +48,32 @@ this file is the part that must survive a disaster recovery.
   `wss://komodo.siffreinsigy.me/ws/periphery`). **Each node's `periphery.config.toml`
   must carry `bind_ip` = that node's mesh IP and `allowed_ips = ["100.64.0.0/10"]`,
   mode 0600**, so a later flip to inbound is safe by default. Shipped defaults are
-  `[::]` with
-  an empty `allowed_ips` and no passkeys — by the file's own comment that is an
+  `[::]` with an empty `allowed_ips` and no passkeys — by the file's own comment that is an
   **unauthenticated root-RCE listener**, inert only while onboarding is outbound.
   Never restore those defaults; Periphery runs as root with `SOPS_AGE_KEY_FILE`.
-- **The `komodo` stack is not managed by Komodo** (bootstrap order: it would be
-  redeploying itself). It is the one stack with no `[[stack]]` entry, so it runs from
-  `/opt/the-sea/thriller-bark/komodo/` — a user-owned checkout that drifts silently.
-  `git -C /opt/the-sea pull` before touching it, and remember `resources.toml` changes
-  never reach it.
+- **The `komodo` stack is deliberately not managed by Komodo — decided 2026-07-25,
+  don't relitigate.** Syncing it would mean Core redeploying the container performing
+  the deploy; the bootstrap hazard is worse than the inconsistency. It is the one stack
+  with no `[[stack]]` entry, so it runs from `/opt/the-sea/thriller-bark/komodo/`, a
+  user-owned checkout that drifts silently. The two things that made that dangerous are
+  fixed (images pinned, and the rule below), so what's left is procedure:
+
+  **Updating the control plane, by hand, on TB:**
+  ```bash
+  cd /opt/the-sea && git pull                     # ALWAYS first — nothing syncs this dir
+  vim thriller-bark/komodo/compose.yaml           # e.g. bump the pinned komodo-core tag
+  # commit and push from the dev machine, then pull again here — don't edit only on-node
+  cd /opt/the-sea/thriller-bark/komodo
+  sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sops -d secrets.env > .env   # no pre_deploy here
+  sudo chmod 600 .env
+  sudo docker compose up -d                       # plain up -d; no single-file bind mounts
+  docker logs --tail 30 komodo-core
+  ```
+  Three traps: `resources.toml` changes **never** reach this stack; a `sops -d` here
+  needs the manual `umask`/`chmod` because there's no `pre_deploy` hook to carry it; and
+  an edit made only on-node is invisible to git and will be clobbered by the next pull.
+  Pin `komodo-core` to the version **already running** unless you mean to upgrade —
+  read it with `docker exec komodo-core /usr/local/bin/core --version`.
 - **A bind-mounted git-tracked file is inode-pinned.** `git pull` swaps the inode, so
   plain `up -d` won't pick the change up — every stack mounting a single tracked
   config file carries `extra_args = ["--force-recreate"]` (Caddy also `--build`).
@@ -86,7 +103,10 @@ this file is the part that must survive a disaster recovery.
   where the Authelia decrypt has run commits the signing key to history forever.
 - **Never pass a secret as a CLI argument.** It lands in `~/.bash_history` and in `ps`.
   Authelia's `crypto hash generate` prompts when `--password` is omitted.
-- **Komodo stores its git PAT unencrypted in Mongo**, so the nightly
+- **Komodo's git PAT is read-only on `siffreinsg/the-sea`, and must stay that way.**
+  Komodo only ever clones. A write-capable token there turns any leak into root on both
+  nodes, because the repo is what the root-executed nightly scripts run from.
+- **Komodo stores that PAT unencrypted in Mongo**, so the nightly
   `komodo-mongo.archive.gz` *is* a credential for the repo — and the repo is the trust
   boundary for root execution (see Backups). `/var/backups/the-sea/dumps` is 0700 for
   that reason. Same for n8n's `--decrypted=true` credential export beside it.

@@ -9,11 +9,6 @@ Not part of the foundation. Revisit after the foundation is running.
 - **Security — what the 2026-07 reviews left open.** Both nodes were reviewed (GM, then
   TB on 2026-07-25); the perimeter was found sound on both and everything actionable was
   fixed or dispatched into the runbooks. Still open, in rough priority order:
-  - **Decide whether `komodo` becomes a synced stack.** Bootstrap-order concerns are
-    real, but the current arrangement gets the discipline of neither approach.
-  - **Rotate four `*arr` API keys** that sat in world-readable legacy `.env` files on GM.
-    The files are gone; the keys authenticate to Sunny, which is public. Check which
-    live stacks consume them first.
   - **Narrow the `your_spotify` `/api/*` edge bypass** to the paths that genuinely can't
     carry a redirect (OAuth callback + the SPA's XHR prefix). Today the whole API is
     unauthenticated at the edge and `/api/global/preferences` is public; only
