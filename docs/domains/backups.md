@@ -15,7 +15,7 @@ record of the assignment** — keep it current.
 | Node | Critical (Mega) | Bulk (Proton) |
 |---|---|---|
 | TB | Authelia config + db, Actual Budget, n8n exports, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping) | Komodo Mongo dump, headscale dump, the whole `/userdata/backups` dumps dir |
-| GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, cold config dirs |
+| GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, Cleanuparr + Profilarr config, cold config dirs |
 
 Both nodes' **bulk** plans include the dumps directory as a *directory* entry
 (`/userdata/backups`), not a file list — so a new `backup.sh` is covered the moment it
@@ -48,8 +48,8 @@ Clone the repo, drop in the age key, redeploy. What that does **not** restore, a
 rebuilt by hand: Backrest's repos and plans, the Komodo Discord alerter, three Komodo
 Procedures and one Tag.
 
-**Deploy order matters.** Backrest mounts four `external: true` volumes (headscale, caddy,
-komodo, observability) and will not start until those stacks have each been deployed once.
+**Deploy order matters.** Backrest mounts `external: true` volumes on both nodes (TB: headscale, caddy, komodo;
+GM: observability, cleanuparr, profilarr) and will not start until those stacks have each been deployed once.
 Deploy the source stacks before `backrest-tb`.
 
 Restore-relevant identifiers are in [reference](../reference.md) — full node names, never

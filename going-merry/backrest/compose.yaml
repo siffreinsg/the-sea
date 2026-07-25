@@ -18,6 +18,7 @@ services:
       - /var/backups/the-sea:/userdata/backups:ro   # future per-app dumps land here
       - grafana-data:/userdata/grafana:ro
       - cleanuparr-config:/userdata/cleanuparr:ro
+      - profilarr-config:/userdata/profilarr:ro
 
 volumes:
   backrest-data:
@@ -29,3 +30,6 @@ volumes:
   cleanuparr-config:
     external: true
     name: cleanuparr_config
+  profilarr-config:
+    external: true
+    name: profilarr_config
