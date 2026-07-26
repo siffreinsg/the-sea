@@ -69,8 +69,14 @@ This works because containers *can* reach the host — proven by connect, not in
 [corrected on that page](networking.md) where it previously said otherwise.
 
 The Grafana links that make three panes into one are in `grafana-datasources.yaml`:
-`tracesToLogsV2` on Tempo, and a `TraceID` derived field on Loki. The Loki direction only
-works if the app actually logs a trace id — unproven per app.
+`tracesToLogsV2` on Tempo, and a `TraceID` derived field on Loki. **The Loki direction is
+per-app**, because it needs the app to print a trace id in the log line: Open-WebUI does
+(`trace_id": "<32 hex>`), LiteLLM does not. Trace→Logs works for both, since that matches
+on time window rather than on the log content.
+
+Alloy drops spans that are never worth storing — healthchecks, static assets, SQLAlchemy
+connection setup. Only leaf or self-contained spans are dropped; filtering a span with
+children would orphan them.
 
 ## Alert rules
 

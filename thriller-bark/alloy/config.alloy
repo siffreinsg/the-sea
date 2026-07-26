@@ -82,6 +82,12 @@ otelcol.processor.filter "noise" {
       `IsMatch(attributes["http.route"], "^/health(/.*)?$")`,
       `IsMatch(attributes["url.path"], "^/health(/.*)?$")`,
       `IsMatch(attributes["url.path"], "^/(static|assets|_app)/")`,
+      // Open-WebUI instruments SQLAlchemy, so every connection to its local SQLite file
+      // becomes a span. Leaf spans, so dropping them orphans nothing. A single-user app
+      // hitting a file on disk has no query performance story worth the volume.
+      // Widen to all of `attributes["db.system"] == "sqlite"` if the query spans are
+      // noise too — this drops only the connection setup.
+      `name == "connect" and attributes["db.system"] == "sqlite"`,
     ]
   }
   output { traces = [otelcol.processor.batch.traces.input] }
