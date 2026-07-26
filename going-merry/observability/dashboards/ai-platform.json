@@ -1,0 +1,235 @@
+{
+  "uid": "ai-platform",
+  "title": "AI platform",
+  "tags": ["ai", "litellm"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "consumer",
+        "label": "Consumer",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+        "query": "label_values(litellm_spend_metric_total, api_key_alias)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "model",
+        "label": "Model",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+        "query": "label_values(litellm_spend_metric_total, requested_model)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    { "type": "row", "title": "Cost", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "collapsed": false },
+
+    {
+      "type": "stat",
+      "title": "Spend, selected range",
+      "description": "Sum of litellm_spend_metric over the dashboard time range. This is what LiteLLM computed from the per-token prices in config.yaml, not a Scaleway invoice.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "currencyEUR", "decimals": 4 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(litellm_spend_metric_total{api_key_alias=~\"$consumer\", requested_model=~\"$model\"}[$__range]))",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Spend rate by consumer",
+      "description": "EUR per hour, by virtual key alias. This is the cost-attribution panel: it answers which of Open-WebUI / n8n / Karakeep is actually spending.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 6, "w": 9, "x": 6, "y": 1 },
+      "fieldConfig": {
+        "defaults": { "unit": "currencyEUR", "custom": { "fillOpacity": 10, "showPoints": "never" } },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (api_key_alias) (rate(litellm_spend_metric_total{api_key_alias=~\"$consumer\", requested_model=~\"$model\"}[$__rate_interval])) * 3600",
+          "legendFormat": "{{api_key_alias}}"
+        }
+      ]
+    },
+    {
+      "type": "barchart",
+      "title": "Spend by model, selected range",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 6, "w": 9, "x": 15, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "currencyEUR", "decimals": 4 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (requested_model) (increase(litellm_spend_metric_total{api_key_alias=~\"$consumer\", requested_model=~\"$model\"}[$__range]))",
+          "legendFormat": "{{requested_model}}",
+          "instant": true,
+          "format": "table"
+        }
+      ]
+    },
+
+    { "type": "row", "title": "Usage", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 }, "collapsed": false },
+
+    {
+      "type": "timeseries",
+      "title": "Tokens per second by model",
+      "description": "Input and output separated: output tokens are the expensive half on every model in config.yaml.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "fillOpacity": 10, "showPoints": "never" } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (requested_model) (rate(litellm_input_tokens_metric_total{api_key_alias=~\"$consumer\", requested_model=~\"$model\"}[$__rate_interval]))",
+          "legendFormat": "in — {{requested_model}}"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (requested_model) (rate(litellm_output_tokens_metric_total{api_key_alias=~\"$consumer\", requested_model=~\"$model\"}[$__rate_interval]))",
+          "legendFormat": "out — {{requested_model}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Requests per second",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "fillOpacity": 10, "showPoints": "never" } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (api_key_alias) (rate(litellm_requests_metric_total{api_key_alias=~\"$consumer\"}[$__rate_interval]))",
+          "legendFormat": "{{api_key_alias}}"
+        }
+      ]
+    },
+
+    { "type": "row", "title": "Latency — is it Scaleway, or us?", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 }, "collapsed": false },
+
+    {
+      "type": "stat",
+      "title": "Time to first token, p95",
+      "description": "What the chat UI feels as responsiveness — matters more than total latency for interactive use. Scoped to the dashboard time range, not a rolling rate: at this fleet's request volume a rate() window is almost always empty, which reads as a broken panel rather than an idle one.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 2 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_and_name" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, model) (increase(litellm_llm_api_time_to_first_token_metric_bucket{api_key_alias=~\"$consumer\"}[$__range])))",
+          "legendFormat": "{{model}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Provider call latency, p95",
+      "description": "litellm_llm_api_latency_metric — time spent inside the call to Scaleway, over the dashboard time range.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 2 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_and_name" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, model) (increase(litellm_llm_api_latency_metric_bucket{api_key_alias=~\"$consumer\"}[$__range])))",
+          "legendFormat": "{{model}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "LiteLLM's own overhead, p95",
+      "description": "Gateway time excluding the provider call. If this ever becomes a meaningful share of the panel to its left, the problem is us, not Scaleway.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_and_name" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (increase(litellm_overhead_latency_metric_bucket{api_key_alias=~\"$consumer\"}[$__range])))",
+          "legendFormat": "overhead",
+          "instant": true
+        }
+      ]
+    },
+
+    { "type": "row", "title": "Health and rate limits", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 }, "collapsed": false },
+
+    {
+      "type": "timeseries",
+      "title": "Failed requests",
+      "description": "Empty until something fails, which is correct — the series does not exist before the first failure. exception_status distinguishes a 429 from a real error.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 24 },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "fillOpacity": 20, "showPoints": "never" } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (exception_status, requested_model) (rate(litellm_proxy_failed_requests_metric_total[$__rate_interval]))",
+          "legendFormat": "{{exception_status}} — {{requested_model}}"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (exception_status) (rate(litellm_deployment_failure_responses_total[$__rate_interval]))",
+          "legendFormat": "deployment {{exception_status}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Rate-limit headroom at Scaleway",
+      "description": "Requests and tokens Scaleway says are left in the current window. This is the early warning for 429s — watch it fall before the chat starts failing.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 24 },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "fillOpacity": 0, "showPoints": "never" } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "min by (model_group) (litellm_remaining_requests_metric)",
+          "legendFormat": "requests — {{model_group}}"
+        },
+        {
+          "refId": "B",
+          "expr": "min by (model_group) (litellm_remaining_tokens_metric)",
+          "legendFormat": "tokens — {{model_group}}"
+        }
+      ]
+    },
+
+    { "type": "row", "title": "Individual calls", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 }, "collapsed": false },
+
+    {
+      "type": "text",
+      "title": "Explore a single conversation",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
+      "options": {
+        "mode": "markdown",
+        "content": "Per-call detail lives in **Explore → Tempo**, which is better at it than any panel here. Paste one of these into the TraceQL tab:\n\n| Query | Answers |\n| --- | --- |\n| `{ span.http.route = \"/api/chat/completions\" }` | Real chat requests, one trace per message. Everything else is FastAPI tracing browser polls. |\n| `{ trace:rootServiceName = \"litellm\" }` | Calls that arrived **without** a parent — Karakeep, curl, anything not propagating context. |\n| `{ resource.service.name = \"litellm\" && duration > 10s }` | Slow generations. |\n| `{ status = error }` | Everything that failed, any service. |\n\nOpen a trace and the waterfall shows Open-WebUI → LiteLLM → Scaleway in one tree. Click a span for model, tokens and the message content; **Logs for this span** jumps to Loki (Open-WebUI lines only — LiteLLM does not print a trace id).\n\nOlder than Tempo's 14d retention? The durable archive is the `LiteLLM_SpendLogs` table in Postgres on TB, kept 180d. There is no Grafana datasource for it yet — that needs a network path and a read-only DB user, deliberately not built."
+      }
+    }
+  ]
+}

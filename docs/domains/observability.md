@@ -41,8 +41,10 @@ the Grafana container:
   the provisioning module fails, and the container exits — not a degraded start, a crash.
   The fix is a `deleteDatasources:` entry for that datasource; deletes run before inserts.
   Loki carries one. Never add VictoriaMetrics to that block.
-- `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter)
-  and `dashboards/containers.json` (14282, cadvisor).
+- `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter),
+  `dashboards/containers.json` (14282, cadvisor) and `dashboards/ai-platform.json`
+  (hand-written: LiteLLM spend, tokens, latency, rate-limit headroom, plus the TraceQL
+  cheatsheet for per-call exploration).
 - `provisioning/alerting/rules.yaml` and `contact-points.yaml`.
 
 **Provisioned resources are read-only in the UI.** Edit the file and redeploy. Grafana
@@ -108,7 +110,16 @@ Add a rule: copy a block in `rules.yaml`, drop the `uid` key (Grafana assigns on
 service-account token; the commands are in [commands](../runbooks/commands.md).
 
 Only add a scrape target if the app exposes its **own** `/metrics` worth collecting —
-container resource usage is already covered.
+container resource usage is already covered. **LiteLLM is the one app that qualifies**
+(`prometheus.scrape "litellm"` on TB): spend, tokens, provider latency and rate-limit
+headroom per model and virtual key exist nowhere else. Its `/metrics` is unauthenticated
+so Alloy needs no key in a plaintext config, and Caddy 404s the path to keep it off the
+public internet — **if that Caddy block ever goes, spend and key aliases go public.**
+
+**Panels on low-volume metrics must be range-scoped, not rate-scoped.** This fleet serves a
+handful of LLM requests a day, so `rate(...[$__rate_interval])` is zero almost always and
+the panel reads as broken rather than idle. The latency quantiles in `ai-platform.json` use
+`increase(...[$__range])` on stat panels for exactly this reason.
 
 ## Known gaps, on purpose
 
