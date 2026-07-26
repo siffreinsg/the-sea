@@ -166,7 +166,12 @@ general_settings:
   # No `database_url:` here — the proxy reads DATABASE_URL from the environment already,
   # and the entrypoint's prisma migration uses that same variable.
 
-# Phase 3 turns tracing on here — `callbacks: ["otel"]` plus the OTEL_* env vars — but
-# Tempo has to exist on GM first, so it stays off until then.
 litellm_settings:
   drop_params: true
+  # Traces to Alloy on the host, which relays to Tempo on GM. The OTEL_* endpoint and
+  # exporter live in compose.yaml — non-secret, so not in the sops file.
+  #
+  # This also parents correctly: LiteLLM resolves an inbound `traceparent` header before
+  # starting its own root span, so a call from n8n or Open-WebUI joins their trace rather
+  # than opening a second one.
+  callbacks: ["otel"]

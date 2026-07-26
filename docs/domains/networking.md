@@ -39,8 +39,17 @@ Two properties worth keeping, both verified by connection rather than by reading
 
 - **Every Docker publish is loopback- or mesh-scoped**, so Docker's usual
   publish-past-the-firewall problem does not apply here.
-- **The host is protected from its own containers** — the iptables INPUT default REJECT
-  gives `EHOSTUNREACH` from a container to `172.x.0.1` on 9120 / 27017 / 2019.
+- **Containers reach the host, and that is load-bearing.** An earlier version of this page
+  claimed the INPUT default REJECT gave `EHOSTUNREACH` from a container to `172.x.0.1`,
+  verified on 9120 / 27017 / 2019. That generalised too far. On 2026-07-27, from LiteLLM:
+  `172.17.0.1` and `172.24.0.1` both returned `ECONNREFUSED` on a closed port, and a
+  **connect to `172.24.0.1:4318` succeeded** once Alloy was listening. The earlier result
+  was those three ports being closed, not the bridges being blocked.
+
+  The trace path depends on this — apps push OTLP to Alloy on the host
+  ([observability](observability.md)). Anything binding a non-loopback address on TB is
+  therefore reachable by every container, including n8n, which runs user-supplied code.
+  Bind `127.0.0.1` unless a container genuinely has to reach it.
 
 ### Containers must not reach the tailnet
 

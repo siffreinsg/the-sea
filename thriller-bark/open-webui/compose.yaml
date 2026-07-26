@@ -6,6 +6,10 @@ services:
     env_file:
       - config.env
       - .env
+    extra_hosts:
+      # For the OTLP endpoint in config.env. Bridge gateway IPs move when a network is
+      # recreated, so never write a literal 172.x address.
+      - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:3020:8080"
     volumes:

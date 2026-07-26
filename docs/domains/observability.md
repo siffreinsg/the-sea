@@ -65,11 +65,8 @@ IPs change when a network is recreated. The perimeter firewall is the gate — T
 Senders use `host.docker.internal` with `extra_hosts: host-gateway`, never a literal
 gateway IP, for the same reason.
 
-**Note against `networking.md`:** that page says the INPUT default REJECT gives containers
-`EHOSTUNREACH` to `172.x.0.1`, verified on ports 9120/27017/2019. On 2026-07-27 a connect
-from LiteLLM to both `172.17.0.1` and `172.24.0.1` returned `ECONNREFUSED` instead — the
-packet reached the host. The two claims are not consistent; the trace path depends on the
-observed behaviour, so re-check it if traces stop arriving.
+This works because containers *can* reach the host — proven by connect, not inferred, and
+[corrected on that page](networking.md) where it previously said otherwise.
 
 The Grafana links that make three panes into one are in `grafana-datasources.yaml`:
 `tracesToLogsV2` on Tempo, and a `TraceID` derived field on Loki. The Loki direction only
