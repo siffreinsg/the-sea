@@ -44,6 +44,30 @@ model_list:
       supports_prompt_caching: false
       supports_reasoning: true
 
+  # The task model: title generation, tags, search-query generation. Non-reasoning on
+  # purpose — a reasoning model burns hundreds of thinking tokens to produce a six-word
+  # chat title. At EUR 0.35/M output it is ~4x cheaper than qwen3.6 on the metric that
+  # matters here, and these calls are almost pure output.
+  - model_name: scw-mistral-small-3.2-24b
+    litellm_params:
+      model: mistral-small-3.2-24b-instruct-2506
+      litellm_credential_name: scaleway
+      custom_llm_provider: openai
+      tpm: 2000000
+      rpm: 600
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.15e-6
+      output_cost_per_token: 0.35e-6
+      max_input_tokens: 128000
+      max_output_tokens: 32000
+      max_tokens: 32000
+      supports_vision: true
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      supports_response_schema: true
+      supports_prompt_caching: false
+
   - model_name: scw-qwen3.5-397b-a17b
     litellm_params:
       model: scaleway/qwen/qwen3.5-397b-a17b
@@ -101,8 +125,8 @@ model_list:
     litellm_params:
       model: openai/whisper-large-v3
       litellm_credential_name: scaleway
-      response_format:
-        type: "text"
+      # No response_format override: Open-WebUI's STT client reads `.text` off a JSON
+      # body, which is the default. Forcing text would hand it a bare string.
       rpm: 600
     model_info:
       mode: audio_transcription
