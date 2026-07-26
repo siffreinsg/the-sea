@@ -166,6 +166,24 @@ general_settings:
   # No `database_url:` here — the proxy reads DATABASE_URL from the environment already,
   # and the entrypoint's prisma migration uses that same variable.
 
+  # --- conversation archive -------------------------------------------------------------
+  # Full prompt and response per call, joined to model, cost, latency and virtual key.
+  # This is the durable copy; Tempo holds the recent 14d working set (LiteLLM already puts
+  # message content in its otel spans, `turn_off_message_logging` defaults False).
+  #
+  # **This table now holds every conversation in the clear.** It is in TB's *critical*
+  # Backrest plan, which is correct, and it is one more reason the DB has no published
+  # port.
+  store_prompts_in_spend_logs: true
+
+  # 6 months, pruned daily by the proxy itself — no cron, no prune script.
+  maximum_spend_logs_retention_period: "180d"
+  maximum_spend_logs_retention_interval: "1d"
+  # Partition by date so the daily prune drops partitions instead of DELETEing rows.
+  # Enable it now: it is a schema change, and the table is nearly empty today. Turning it
+  # on after six months of conversations is a migration nobody wants to run.
+  use_spend_logs_partitioning: true
+
 litellm_settings:
   drop_params: true
   # Traces to Alloy on the host, which relays to Tempo on GM. The OTEL_* endpoint and
