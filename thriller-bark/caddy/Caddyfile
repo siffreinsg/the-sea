@@ -75,6 +75,26 @@
 		reverse_proxy 127.0.0.1:5678
 	}
 
+	# LiteLLM's admin UI only. forward_auth covers the whole host on purpose: the UI is a
+	# shell that XHRs to root-level endpoints (/model/info, /key/list, /spend/logs), so a
+	# `path /ui*` split would load a page that shows nothing. Nothing legitimate reaches
+	# this name but a browser — n8n and Open-WebUI dial litellm:4000 on the-sea-internal,
+	# Karakeep uses the 100.64.0.2 mesh bind. Exposing /v1/* here is a separate decision.
+	@litellm host ai.siffreinsigy.me
+	handle @litellm {
+		forward_auth 127.0.0.1:9091 {
+			uri /api/authz/forward-auth
+			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+		}
+		reverse_proxy 127.0.0.1:4000
+	}
+
+	# Open-WebUI has its own OIDC client in Authelia, so no forward_auth here.
+	@open-webui host chat.siffreinsigy.me
+	handle @open-webui {
+		reverse_proxy 127.0.0.1:3020
+	}
+
 	@your_spotify host spotify.siffreinsigy.me
 	handle @your_spotify {
 		@your_spotify_api path /api/*

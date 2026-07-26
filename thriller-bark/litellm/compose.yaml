@@ -1,0 +1,57 @@
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.93.0
+    container_name: litellm
+    restart: unless-stopped
+    command: ["--config=/app/config.yaml", "--port", "4000"]
+    env_file: .env
+    ports:
+      # 127.0.0.1 for TB's own consumers, 100.64.0.2 for Karakeep on GM.
+      # Both are private; the public route is Caddy -> ai.siffreinsigy.me, admin UI only.
+      - "127.0.0.1:4000:4000"
+      - "100.64.0.2:4000:4000"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
+      - the-sea-internal
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4000/health/liveliness || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Not just LiteLLM's: this is the fleet's Postgres, and Phase 4's pgvector store.
+  # The pgvector image from day one so Open-WebUI's vector store needs no migration.
+  # No `ports:` on purpose — every consumer is on the-sea-internal, so there is
+  # nothing to bind and the bind rule is satisfied by having no host port at all.
+  postgres:
+    image: pgvector/pgvector:0.8.5-pg17
+    container_name: postgres
+    restart: unless-stopped
+    # One .env for both services, so this container also sees LITELLM_SALT_KEY and the
+    # Scaleway key. Deliberate — a second secrets file to keep in sync is worse than a
+    # few unused variables in an environment nothing reads them from.
+    env_file: .env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - default
+      - the-sea-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  postgres-data:
+
+networks:
+  the-sea-internal:
+    external: true

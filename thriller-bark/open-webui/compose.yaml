@@ -1,0 +1,21 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.10.2
+    container_name: open-webui
+    restart: unless-stopped
+    env_file:
+      - config.env
+      - .env
+    ports:
+      - "127.0.0.1:3020:8080"
+    volumes:
+      - open-webui-data:/app/backend/data
+    networks:
+      - the-sea-internal
+
+volumes:
+  open-webui-data:
+
+networks:
+  the-sea-internal:
+    external: true

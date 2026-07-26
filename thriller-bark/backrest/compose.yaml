@@ -20,6 +20,7 @@ services:
       - caddy-data:/userdata/caddy:ro
       - komodo-keys:/userdata/komodo-keys:ro
       - authelia-data:/userdata/authelia:ro
+      - open-webui-data:/userdata/open-webui:ro
 
 volumes:
   backrest-data:
@@ -37,3 +38,6 @@ volumes:
   authelia-data:
     external: true
     name: authelia_authelia-data
+  open-webui-data:
+    external: true
+    name: open-webui_open-webui-data
