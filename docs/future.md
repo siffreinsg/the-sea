@@ -39,6 +39,14 @@ Not part of the foundation. Revisit after the foundation is running.
   - **Still to do before this is plannable:** an exhaustive inventory of what has to
     migrate — automations, dashboards, config, every integration, and each manual
     modification made to the running instance.
+- **When the first n8n workflow calls LiteLLM, set a session header.** Nothing does this
+  automatically. Open-WebUI gets session grouping for free because it sends the chat id;
+  an n8n HTTP Request node must set `x-litellm-session-id` itself. The value has to match
+  `^[a-zA-Z0-9_\-]{8,}$` — a slash or colon and LiteLLM silently ignores it, no error.
+  **Decide once, because it cannot be fixed retroactively in the logs:** is a session one
+  execution (`{{ $execution.id }}`) or one logical conversation spanning executions?
+  Tracing is already wired — `N8N_OTEL_TRACES_INJECT_OUTBOUND=true` is set, so the calls
+  will join one trace — but that has never been exercised by a real workflow either.
 - **n8n automations for Actual Budget** — auto-sync, auto-categorization, rule
   creation, Telegram bot.
 - **n8n automations for Radarr/Sonarr** — on Radarr, switch anime to the right quality
