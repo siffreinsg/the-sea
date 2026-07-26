@@ -63,6 +63,27 @@ prometheus.scrape "caddy" {
 otelcol.receiver.otlp "in" {
   grpc { endpoint = "0.0.0.0:4317" }
   http { endpoint = "0.0.0.0:4318" }
+  output { traces = [otelcol.processor.filter.noise.input] }
+}
+
+// Drop traffic that is never worth a trace. Only self-contained requests are listed —
+// dropping a span with children would orphan them, so nothing here is a parent.
+//
+// The healthchecks alone are the bulk of it: LiteLLM's compose healthcheck curls
+// /health/liveliness every 60s, forever, and each one is a full trace.
+//
+// Deliberately conservative. Open-WebUI's browser polling is noisier still, but the
+// routes have not been read off a real trace yet — add them here once they have, rather
+// than guessing a path prefix and silently losing the one request that mattered.
+otelcol.processor.filter "noise" {
+  error_mode = "ignore"
+  traces {
+    span = [
+      `IsMatch(attributes["http.route"], "^/health(/.*)?$")`,
+      `IsMatch(attributes["url.path"], "^/health(/.*)?$")`,
+      `IsMatch(attributes["url.path"], "^/(static|assets|_app)/")`,
+    ]
+  }
   output { traces = [otelcol.processor.batch.traces.input] }
 }
 
