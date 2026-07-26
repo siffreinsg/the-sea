@@ -25,7 +25,6 @@ and Komodo's carries the git token — see [secrets](../domains/secrets.md).
 
 ```bash
 sudo apt-get install -y sqlite3            # TB only — host dep for the headscale dump
-cd /opt/the-sea && git pull
 sudo ln -sf /opt/the-sea/<node>/backups/the-sea-dumps.service /etc/systemd/system/
 sudo ln -sf /opt/the-sea/<node>/backups/the-sea-dumps.timer   /etc/systemd/system/
 sudo systemctl daemon-reload

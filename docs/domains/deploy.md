@@ -13,6 +13,19 @@ nodes ([why Komodo and not Kubernetes](../decisions/2026-07-18-komodo-compose-no
   ([why](secrets.md)).
 - `KOMODO_DISABLE_CONFIRM_DIALOG=true` turns most confirmations into a double-click.
 
+## `/opt/the-sea` on the nodes
+
+Stacks deploy from Komodo's own per-stack checkout, never from `/opt/the-sea`. That
+directory exists for the things Komodo doesn't run: `backups/run.sh` and each
+`backup.sh`, the systemd units, the firewall unit, and the hand-managed `komodo` stack.
+
+Two `[[repo]]` resources in `komodo/resources.toml` pin it to `/opt/the-sea` on each node
+with a GitHub webhook, so a push to `main` syncs both. Consequences:
+
+- **Komodo owns the checkout and hard-resets it.** Never hand-edit there.
+- Untracked and gitignored files survive a pull (verified on a canary) — which is what
+  keeps the in-tree volume dirs and the hand-made `komodo/.env` alive.
+
 ## Periphery
 
 Periphery is a **systemd binary** on the hosts, not a container, because it execs `sops -d`
@@ -53,7 +66,7 @@ The `komodo` stack is [deliberately not managed by Komodo](../decisions/2026-07-
 so it is the one thing you update by hand, on TB:
 
 ```bash
-cd /opt/the-sea && git pull                     # ALWAYS first — nothing syncs this dir
+cd /opt/the-sea && git log -1                   # confirm the repo resource pulled your push
 # edit thriller-bark/komodo/compose.yaml from the dev machine, commit, push, pull again
 cd /opt/the-sea/thriller-bark/komodo
 sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sops -d secrets.env > .env   # no pre_deploy here

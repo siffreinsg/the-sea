@@ -28,7 +28,7 @@ sudo find /etc/komodo /var/backups/the-sea -type f \
 
 ```bash
 # normal path: Komodo Sync -> Deploy. Manual fallback:
-cd /opt/the-sea && git pull
+cd /opt/the-sea      # a Komodo repo resource pulls this on push; `git pull` only if impatient
 cd <ship>/<app>
 sudo SOPS_AGE_KEY_FILE=/etc/sops/age.key sh -c 'umask 077; sops -d secrets.env > .env'
 sudo docker compose up -d --force-recreate          # --build if it has a Dockerfile

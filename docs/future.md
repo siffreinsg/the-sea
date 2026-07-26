@@ -74,3 +74,4 @@ Sunny. What's left:
   longer the answer; nothing replaces it yet. Pick the tool before writing a plan.
 - Static site — too underspecified to plan. Decide what the site *is* first.
 - Open Terminal for Open WebUI — needs Open-WebUI live first.
+- Proton Mail Bridge
