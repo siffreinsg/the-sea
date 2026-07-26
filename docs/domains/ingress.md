@@ -49,13 +49,12 @@ Outcome (c), with the reason each time:
 
 Two notes on the newest entries:
 
-- **Open-WebUI and LiteLLM are the fleet's first *same-node* OIDC clients** — containers
-  on TB dialling TB's own public `auth.` name, which hairpins past the `INPUT` default
-  REJECT. Every earlier client is on GM, so this path has no precedent here and both are
-  exposed to it. If discovery fails, the fix
-  is **not** an internal `http://authelia:9091`: Authelia advertises the public URL as its
-  issuer, so issuer validation breaks. Put Authelia on `the-sea-internal` instead and
-  resolve the public name internally.
+- **Same-node OIDC works — verified 2026-07-27.** Open-WebUI and LiteLLM are the fleet's
+  first, containers on TB dialling TB's own public `auth.` name and hairpinning past the
+  `INPUT` default REJECT. It needed no workaround. Kept for the day one breaks: the fix
+  is **not** an internal `http://authelia:9091`, because Authelia advertises the public URL
+  as its issuer and issuer validation would break. Put Authelia on `the-sea-internal`
+  instead and resolve the public name internally.
 - **LiteLLM started on `forward_auth` and was moved to its own OIDC client.** Its admin
   UI has a mandatory login that cannot be disabled, so `forward_auth` meant two logins
   every time. SSO is free below five users at v1.93.0 (`ui_sso.py:858`) — no
@@ -83,6 +82,12 @@ Two notes on the newest entries:
   logs. It is bookkeeping, not an identity, and there is nothing to merge it with;
   deleting it or resetting the database to "clean it up" would break the global spend row
   and the audit trail for no gain.
+
+**Pick `token_endpoint_auth_method` from the app's HTTP client, not from taste.** It is
+not negotiated — a mismatch fails the token exchange with `invalid_client`, which reads
+like a wrong secret. Open-WebUI uses authlib, which sends `client_secret_basic` and offers
+no env to change it; LiteLLM's fastapi-sso does the same. `profilarr` and `cleanuparr` are
+`client_secret_post` and work — don't "unify" them.
 
 All OIDC clients are confidential (`public: false`), carry
 `authorization_policy: two_factor`, and have exact redirect URIs — none wildcarded.
