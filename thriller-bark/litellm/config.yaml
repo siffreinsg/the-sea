@@ -17,6 +17,24 @@ credential_list:
     credential_info:
       description: Scaleway Personal account
 
+  # Free tier. **Assume everything sent here is used for training** — that is the price of
+  # the free plan, and it is why only mechanical task calls route to this credential and
+  # never a user's chat or a RAG-retrieved document. See the `free-*` models below.
+  - credential_name: mistral
+    credential_values:
+      api_key: os.environ/MISTRAL_API_KEY
+    credential_info:
+      description: Mistral La Plateforme, free tier
+
+  # Self-hosted cross-encoder on GM. No api_key that means anything — Infinity has no auth
+  # — but LiteLLM requires the field, so it carries a placeholder.
+  - credential_name: infinity
+    credential_values:
+      api_key: none
+      api_base: http://100.64.0.1:7997/v1
+    credential_info:
+      description: Infinity reranker on Going Merry
+
 model_list:
   # --- chat ---------------------------------------------------------------------------
   # Cheap and fast. This is also Open-WebUI's TASK_MODEL_EXTERNAL.
@@ -118,6 +136,68 @@ model_list:
       supports_prompt_caching: false
       supports_reasoning: true
 
+  # --- free tier: mechanical calls only -------------------------------------------------
+  # Open-WebUI's TASK_MODEL_EXTERNAL points at `task-cheap`, not at a model directly. That
+  # indirection is the whole design: `task-cheap` resolves to Mistral's free tier first and
+  # falls back to the paid Scaleway deployment when the free quota is exhausted — see
+  # `router_settings.fallbacks`.
+  #
+  # **Nothing sensitive routes here.** Title, tag and retrieval-query generation only. Note
+  # honestly that title generation still sees the user's first message, so this is a bounded
+  # trade, not zero exposure. Main chat never falls back to a free tier.
+  #
+  # **No rpm/tpm on purpose.** Mistral's free tier is not a fixed quota — the limit moves
+  # with global platform load, day to day. A static cap would either never trigger or
+  # throw away free capacity you actually had, so the 429 itself is the signal instead:
+  # `router_settings.retry_policy` fails the call over to Scaleway rather than retrying a
+  # limit that someone else's traffic is setting.
+  #
+  # Note this group has a single deployment, and cooldown_handlers.py:178 skips cooldown
+  # entirely for single-deployment groups — so `allowed_fails`/`cooldown_time` do NOT
+  # apply here. Fallback on error is the whole mechanism, which is why the retry policy
+  # below matters more than it looks.
+  - model_name: task-cheap
+    litellm_params:
+      model: mistral/mistral-small-latest
+      litellm_credential_name: mistral
+    model_info:
+      mode: chat
+      # Free. Recorded as zero so the spend dashboard shows the saving rather than hiding it.
+      input_cost_per_token: 0.0
+      output_cost_per_token: 0.0
+      max_input_tokens: 128000
+      max_output_tokens: 8000
+      supports_function_calling: true
+      supports_prompt_caching: false
+
+  # The paid fallback is the existing `scw-mistral-small-3.2-24b` entry above, reached via
+  # router_settings.fallbacks — deliberately NOT a second deployment inside this group.
+  # A model group with two deployments load-balances across them, which would send half
+  # the task calls to Scaleway while free quota was still available. One deployment plus a
+  # fallback is what actually means "free first, paid only when the quota is spent".
+
+  # --- reranking ------------------------------------------------------------------------
+  # Infinity on GM serving BAAI/bge-reranker-v2-m3, a real cross-encoder. Open-WebUI points
+  # RAG_EXTERNAL_RERANKER_URL at this proxy rather than at Infinity directly, so reranking
+  # inherits the same virtual key, spend log and trace as every other call.
+  #
+  # Not Scaleway's /v1/rerank: that serves qwen3-embedding-8b, and Scaleway's own docs state
+  # it is equivalent to cosine similarity on normalised vectors — which is exactly what
+  # Open-WebUI already does with no reranker at all. It would have been a network hop and a
+  # bill for nothing.
+  #
+  # LiteLLM's `infinity/` provider appends /rerank to api_base
+  # (llms/infinity/rerank/transformation.py:38). **Curl this before trusting it** — the
+  # response-shape transformation is unverified against a real Infinity build.
+  - model_name: bge-reranker-v2-m3
+    litellm_params:
+      model: infinity/BAAI/bge-reranker-v2-m3
+      litellm_credential_name: infinity
+    model_info:
+      mode: rerank
+      input_cost_per_token: 0.0
+      output_cost_per_token: 0.0
+
   # --- audio --------------------------------------------------------------------------
   # Whisper, not voxtral: this is the /v1/audio/transcriptions model, which is what
   # Open-WebUI's STT calls. Voxtral is a chat model that accepts audio — not a drop-in.
@@ -163,6 +243,39 @@ model_list:
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
+
+  # Defaults to "all". The literal is `admin_only` — verified at
+  # sso_helper_utils.py:9, which compares `== "admin_only"`. Do not trust the
+  # `Literal["admin", "all"]` annotation at proxy_server.py:1939; it is stale, and "admin"
+  # would silently fall through to permissive.
+  #
+  # **Currently inert, on purpose.** Enforcement lives in the SSO login path
+  # (ui_sso.py:3155), and this proxy's UI is entered with UI_USERNAME/UI_PASSWORD, not SSO.
+  # Set now so that wiring the UI to Authelia later does not also need this remembered —
+  # the default would otherwise let any virtual-key holder into the admin UI, spend and
+  # model config included, on a publicly-resolvable hostname.
+  ui_access_mode: admin_only
+  # allowed_routes left unset on purpose: every consumer is ours, and pinning the list
+  # makes each new endpoint fail as a confusing 404 in a lab that is actively changing.
+
+  # A user pressing "stop" in Open-WebUI abandons the stream, but without this the proxy
+  # keeps consuming the whole generation upstream — tokens billed and nobody reads them.
+  cancel_on_disconnect: true
+  # Ceilings, not tuning. Nothing legitimate here approaches 20 MB.
+  max_request_size_mb: 20
+  max_response_size_mb: 20
+  # TB is 4 vCPU. Headroom above this is for parallel RAG embedding batches, which is the
+  # one workload that legitimately fans out.
+  global_max_parallel_requests: 40
+
+  # /health then reflects real upstream state instead of only checking when asked, so
+  # Prometheus sees a model go bad before a user does.
+  background_health_checks: true
+  health_check_interval: 300
+
+  # Postgres is shared with Open-WebUI (pool 10 + 5 overflow). Sized so the two consumers
+  # do not compete for backends on a box where each connection is a forked process.
+  database_connection_pool_limit: 20
   # No `database_url:` here — the proxy reads DATABASE_URL from the environment already,
   # and the entrypoint's prisma migration uses that same variable.
 
@@ -214,3 +327,58 @@ litellm_settings:
     - x-openwebui-user-id
     - x-openwebui-user-email
     - x-openwebui-user-role
+
+  # Structured stdout, so Loki queries by field instead of grepping text. Alloy already
+  # ships this container's logs; nothing else to wire.
+  json_logs: true
+  # redact_user_api_key_info stays False: per-key attribution is the entire point of the
+  # virtual-key layer, and /metrics exposes key aliases anyway.
+  # turn_off_message_logging stays False: the conversation archive depends on it.
+
+  # Guardrails against a runaway loop, not forecasts — total spend to date is €0.00006.
+  # Per-key budgets live on the virtual keys themselves (Open-WebUI €30, n8n €10,
+  # Karakeep €5 / 30d) so one runaway consumer cannot drain the others; this is the
+  # backstop across all of them.
+  max_budget: 50
+  budget_duration: 30d
+
+  # Embeddings only, in-memory. Re-embedding an identical chunk is pure waste, and
+  # re-indexing is on the table while chunking is still being benchmarked.
+  # Deliberately NOT chat completions: identical prompts returning identical answers is
+  # wrong for a chat UI, where a retry means "give me something different".
+  # `local` because Redis was scoped out — note this cache is per-replica and stops
+  # helping the moment the proxy is scaled out. That limitation is the point to remember
+  # when this design moves to the company build.
+  cache: true
+  cache_params:
+    type: local
+    supported_call_types: ["embedding", "aembedding"]
+
+router_settings:
+  # Bound failures rather than degrade quality silently. A hung upstream must not tie up a
+  # worker forever, and a persistently failing model should leave rotation instead of being
+  # retried on every request.
+  request_timeout: 120
+  num_retries: 2
+  allowed_fails: 3
+  cooldown_time: 60
+
+  # A 429 means "this quota is spent right now", which retrying rarely fixes — and on
+  # Mistral's free tier the limit is set by other people's traffic, so hammering it is
+  # pure latency. One retry, then fall over. Everything else keeps the default.
+  # This is global, so a Scaleway 429 also gets one retry and then surfaces as an error
+  # rather than being retried into the ground — consistent with having no chat fallbacks.
+  retry_policy:
+    RateLimitErrorRetries: 1
+
+  # **The only fallbacks here are free-tier quota fallbacks.** User-facing chat has none on
+  # purpose: a Scaleway incident on qwen3.6 surfaces as a visible error, not as a silently
+  # different and weaker answer. `task-cheap` is the exception because both entries in the
+  # group are the same model family and the fallback is triggered by an exhausted free
+  # quota, not by a quality judgement.
+  #
+  # Note that a model group with two deployments already load-balances between them; the
+  # rpm/tpm caps on the free deployment are what push traffic to the paid one once the free
+  # quota is spent.
+  fallbacks:
+    - task-cheap: ["scw-mistral-small-3.2-24b"]
