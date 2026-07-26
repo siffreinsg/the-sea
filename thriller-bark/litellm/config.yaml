@@ -174,4 +174,13 @@ litellm_settings:
   # This also parents correctly: LiteLLM resolves an inbound `traceparent` header before
   # starting its own root span, so a call from n8n or Open-WebUI joins their trace rather
   # than opening a second one.
-  callbacks: ["otel"]
+  callbacks: ["otel", "prometheus"]
+  # `prometheus` mounts /metrics on the proxy — spend, tokens, latency and failures
+  # labelled by model and virtual key. Not an enterprise feature at v1.93.0.
+  #
+  # Auth off, because the alternative is a virtual key inside config.alloy, which is
+  # committed in plaintext. /metrics is only bound to 127.0.0.1 and the mesh, and Caddy
+  # 404s the path — so this is the same posture VictoriaMetrics and Loki already have,
+  # not a new exception. **If the Caddy block is ever removed, this leaks spend, key
+  # aliases and model names to the public internet.**
+  require_auth_for_metrics_endpoint: false

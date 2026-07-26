@@ -50,6 +50,13 @@ prometheus.scrape "caddy" {
   targets    = [{ __address__ = "127.0.0.1:2019", job = "caddy" }]
   forward_to = [prometheus.relabel.add_node.receiver]
 }
+// LiteLLM's own /metrics: spend, tokens, latency and failures per model and virtual key.
+// This is the exception to "container resource usage is already covered" — none of it
+// exists anywhere else, and the traces carry individual calls but nothing aggregated.
+prometheus.scrape "litellm" {
+  targets    = [{ __address__ = "127.0.0.1:4000", job = "litellm" }]
+  forward_to = [prometheus.relabel.add_node.receiver]
+}
 
 // ---- traces ----
 // Apps ship OTLP here, Alloy relays to Tempo on GM. They cannot push to Tempo directly:

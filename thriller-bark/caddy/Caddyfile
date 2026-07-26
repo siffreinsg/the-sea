@@ -85,6 +85,12 @@
 	# on upgrade.
 	@litellm host ai.siffreinsigy.me
 	handle @litellm {
+		# /metrics is unauthenticated on the proxy (see litellm/config.yaml) so Alloy can
+		# scrape it without a virtual key in a plaintext config. It must never be public:
+		# it carries spend, virtual-key aliases and the model list. Order matters — this
+		# has to precede reverse_proxy or the proxy answers first.
+		@metrics path /metrics /metrics/*
+		respond @metrics 404
 		reverse_proxy 127.0.0.1:4000
 	}
 
