@@ -14,13 +14,19 @@ record of the assignment** — keep it current.
 
 | Node | Critical (Mega) | Bulk (Proton) |
 |---|---|---|
-| TB | Authelia config + db, Actual Budget, n8n exports, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping) | Komodo Mongo dump, headscale dump, the whole `/userdata/backups` dumps dir |
+| TB | Authelia config + db, Actual Budget, n8n exports, LiteLLM Postgres dump, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping) | Komodo Mongo dump, headscale dump, Open-WebUI data, the whole `/userdata/backups` dumps dir |
 | GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, Cleanuparr + Profilarr config |
 
 Both nodes' **bulk** plans include the dumps directory as a *directory* entry
 (`/userdata/backups`), not a file list — so a new `backup.sh` is covered the moment it
 runs, with nothing to add per app. Those paths are **container-side** mount points as shown
 in Backrest's UI, not the host's `/var/backups/the-sea`.
+
+The **LiteLLM Postgres** is on TB and holds virtual keys and spend logs — secrets
+material, hence critical rather than bulk, even though it sits in the same dumps directory
+the bulk plan sweeps wholesale. Its dump also covers Open-WebUI's pgvector store from
+Phase 4 onward: it is `pg_dumpall`, not a single database. **Open-WebUI's own SQLite
+volume is bulk** — chat history is not critical data.
 
 Deliberately **not** backed up: media (re-acquirable), VM metrics and Loki logs
 (retention-capped 90d/30d), plexautolanguages' `/config` (Plex episode cache, cheaply

@@ -47,6 +47,13 @@ find /etc/komodo /var/backups/the-sea -type f \
 - **Never `sops set` the `clients` path** in Authelia's `secrets.oidc.yml` — it holds every
   existing client and setting it replaces the array wholesale. Add a client by editing the
   file.
+- **Don't put YAML comments inside a list item in a sops file.** Adding an OIDC client with
+  `#` comments among its keys re-encrypted cleanly and then failed every decrypt with
+  `MAC mismatch` — sops encrypts comments as their own entries and mis-accounts for them
+  nested in a sequence. The same edit without comments round-trips fine. Symptom is
+  alarming and looks like key corruption; it isn't. Recovery is `git checkout` the file,
+  since the encrypted copy is committed. Explanatory comments belong in the plan or domain
+  doc, not inside the encrypted blob.
 
 ## Known cleartext, deliberately
 
