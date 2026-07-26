@@ -7,13 +7,15 @@ TB's Caddy.
 
 - **VictoriaMetrics** — metrics, 90d retention (VM flag).
 - **Loki** — logs, 30d retention (`loki.yaml`), `auth_enabled: false`.
+- **Tempo** — traces, 14d retention (`tempo.yaml`). Shorter than logs on purpose: traces
+  are bulkier. Monolithic single binary on the local filesystem, same shape as Loki.
 - **Alloy** — scrapes container and host metrics, tails logs. Discovers **all** containers
   via docker.sock with no allowlist, so a new service is collected automatically:
   logs land as `{container="<app>"}`, container metrics via cadvisor, both labelled
   `node=<node>`.
 
-Neither VM nor Loki is backed up (retention-capped by design); `grafana-data` is.
-Neither has authentication — they bind the mesh and rely on it being trusted, which is why
+None of VM, Loki or Tempo is backed up (retention-capped by design); `grafana-data` is.
+None has authentication — they bind the mesh and rely on it being trusted, which is why
 [containers must not reach the tailnet](networking.md).
 Alloy's privilege is the fleet's widest; the honest blast radius is in [secrets](secrets.md).
 
@@ -22,9 +24,13 @@ Alloy's privilege is the fleet's widest; the honest blast radius is in [secrets]
 Datasources, dashboards and alert rules are all provisioned from files bind-mounted into
 the Grafana container:
 
-- `provisioning/datasources/grafana-datasources.yaml` — VictoriaMetrics (default) and Loki.
-  They address each other by **compose service DNS**, not the mesh IP; the stack moves as a
-  unit, and service DNS sidesteps the hairpin-NAT problem.
+- `provisioning/datasources/grafana-datasources.yaml` — VictoriaMetrics (default), Loki and
+  Tempo. They address each other by **compose service DNS**, not the mesh IP; the stack
+  moves as a unit, and service DNS sidesteps the hairpin-NAT problem.
+  **Do not give VictoriaMetrics an explicit `uid`.** Grafana generated
+  `P4169E866C3094E38` and every rule in `alerting/rules.yaml` references it; pinning a
+  different one silently breaks all of them. Loki and Tempo have explicit uids because
+  they need to name each other for the trace↔log links, and nothing referenced them.
 - `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter)
   and `dashboards/containers.json` (14282, cadvisor).
 - `provisioning/alerting/rules.yaml` and `contact-points.yaml`.
@@ -32,6 +38,32 @@ the Grafana container:
 **Provisioned resources are read-only in the UI.** Edit the file and redeploy. Grafana
 matches by UID on startup, so it takes over previously UI-created resources rather than
 duplicating them. Dashboards re-poll every 30s; alert rules only re-read on container start.
+
+## Traces
+
+Apps never push to Tempo directly. The [mesh guard](networking.md) DROPs `172.16/12` →
+`100.64/10` in raw/PREROUTING, so a bridged container cannot reach GM at all. They send
+OTLP to **Alloy on their own node**, which is `network_mode: host` and whose traffic is
+therefore the host's — the same "one collector per node" shape as metrics and logs.
+
+`thriller-bark/alloy/config.alloy` binds the OTLP receiver on **`0.0.0.0`:4317/4318**, and
+that is the one place a listener is not loopback- or mesh-scoped. It has to be: the senders
+sit on two different bridges (`172.17.0.1`, `the-sea-internal` at `172.24.0.1`) and gateway
+IPs change when a network is recreated. The perimeter firewall is the gate — TB accepts
+80/443/22 inbound and nothing else. Alloy's own UI stays pinned to `127.0.0.1:12345`.
+
+Senders use `host.docker.internal` with `extra_hosts: host-gateway`, never a literal
+gateway IP, for the same reason.
+
+**Note against `networking.md`:** that page says the INPUT default REJECT gives containers
+`EHOSTUNREACH` to `172.x.0.1`, verified on ports 9120/27017/2019. On 2026-07-27 a connect
+from LiteLLM to both `172.17.0.1` and `172.24.0.1` returned `ECONNREFUSED` instead — the
+packet reached the host. The two claims are not consistent; the trace path depends on the
+observed behaviour, so re-check it if traces stop arriving.
+
+The Grafana links that make three panes into one are in `grafana-datasources.yaml`:
+`tracesToLogsV2` on Tempo, and a `TraceID` derived field on Loki. The Loki direction only
+works if the app actually logs a trace id — unproven per app.
 
 ## Alert rules
 
@@ -67,7 +99,10 @@ container resource usage is already covered.
 
 ## Known gaps, on purpose
 
-- **VM / Loki self-health** — neither is scraped as a Prometheus target, so
+- **No app emits traces yet.** Tempo and the ingest path exist; wiring LiteLLM,
+  Open-WebUI and n8n's own spans is Phase 3 of the AI platform plan. n8n is the only one
+  configured so far.
+- **VM / Loki / Tempo self-health** — none is scraped as a Prometheus target, so
   `up{job="victoriametrics"}` does not exist. Fixing it is a `prometheus.scrape` block in
   `going-merry/alloy/config.alloy`, not a Grafana change.
 - **Container crash-loop detection** — cadvisor doesn't track restart counts outside

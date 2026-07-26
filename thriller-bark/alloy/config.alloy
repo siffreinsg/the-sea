@@ -51,6 +51,32 @@ prometheus.scrape "caddy" {
   forward_to = [prometheus.relabel.add_node.receiver]
 }
 
+// ---- traces ----
+// Apps ship OTLP here, Alloy relays to Tempo on GM. They cannot push to Tempo directly:
+// the mesh guard DROPs 172.16/12 -> 100.64/10 in raw/PREROUTING, by design. Alloy is
+// network_mode: host, so its traffic is the host's and passes.
+//
+// 0.0.0.0, unlike the UI pinned to 127.0.0.1 above, because the senders are bridged
+// containers on two different networks (default bridge 172.17.0.1, the-sea-internal
+// 172.24.0.1) and gateway IPs change when a network is recreated. The gate is the
+// perimeter firewall — TB accepts 80/443/22 inbound and nothing else.
+otelcol.receiver.otlp "in" {
+  grpc { endpoint = "0.0.0.0:4317" }
+  http { endpoint = "0.0.0.0:4318" }
+  output { traces = [otelcol.processor.batch.traces.input] }
+}
+
+otelcol.processor.batch "traces" {
+  output { traces = [otelcol.exporter.otlp.tempo.input] }
+}
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "100.64.0.1:4317"
+    tls { insecure = true }   // mesh-only, WireGuard already encrypts it
+  }
+}
+
 // ---- docker logs ----
 discovery.docker "local" {
   host = "unix:///var/run/docker.sock"
