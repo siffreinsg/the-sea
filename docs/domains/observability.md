@@ -42,9 +42,10 @@ the Grafana container:
   The fix is a `deleteDatasources:` entry for that datasource; deletes run before inserts.
   Loki carries one. Never add VictoriaMetrics to that block.
 - `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter),
-  `dashboards/containers.json` (14282, cadvisor) and `dashboards/ai-platform.json`
+  `dashboards/containers.json` (14282, cadvisor), `dashboards/ai-platform.json`
   (hand-written: LiteLLM spend, tokens, latency, rate-limit headroom, plus the TraceQL
-  cheatsheet for per-call exploration).
+  cheatsheet for per-call exploration) and `dashboards/resources.json` (hand-written:
+  which container or volume is eating RAM, CPU and disk).
 - `provisioning/alerting/rules.yaml` and `contact-points.yaml`.
 
 **Provisioned resources are read-only in the UI.** Edit the file and redeploy. Grafana
