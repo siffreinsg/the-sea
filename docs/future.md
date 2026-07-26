@@ -43,6 +43,7 @@ Not part of the foundation. Revisit after the foundation is running.
   creation, Telegram bot.
 - **n8n automations for Radarr/Sonarr** — on Radarr, switch anime to the right quality
   profile; on Sonarr/Seerr, route anime requests to the correct Sonarr instance.
+- Explore s3drive as an alternative to reach Proton Drive. Useful for S3-compatible access too.
 
 ## Tool wishlist
 
@@ -74,4 +75,10 @@ Sunny. What's left:
   longer the answer; nothing replaces it yet. Pick the tool before writing a plan.
 - Static site — too underspecified to plan. Decide what the site *is* first.
 - Open Terminal for Open WebUI — needs Open-WebUI live first.
-- Proton Mail Bridge
+- **Proton Mail Bridge** — the fleet has no SMTP at all. Authelia writes password resets
+  and 2FA enrolment to `/config/notification.txt` (`notifier.filesystem`), which is why
+  those flows are hand-read today; Grafana alerting goes to Telegram and doesn't need it.
+  A headless bridge on **TB** beside Authelia would turn the file notifier into real mail.
+  **Decide first:** whether Authelia alone justifies it, and whether the bridge's
+  unattended-login problem (it wants an interactive `login` per restart, and holds a
+  full-mailbox credential) is acceptable versus a plain SMTP relay from another provider.

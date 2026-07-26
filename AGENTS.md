@@ -1,8 +1,9 @@
 # AGENTS.md
 
+Read the `docs/HANDOFF.md` document for context on the previous session.
+
 ## Working style
 
-- Be concise. I search docs myself — guide in broad steps, don't pre-explain; help when I'm stuck.
 - I have **no SSH access from here**. Hand me commands to run and I paste the output back.
 - Challenge plans against new facts. They're broad strokes written upfront, not truth. Say so when one is wrong.
 - Root-cause fixes, not symptom patches. Grep every caller before editing a shared path.
@@ -19,7 +20,7 @@
 ## Where docs go
 
 | Kind | Location |
-|---|---|
+| --- | --- |
 | **Why** a choice was made | `docs/decisions/YYYY-MM-DD-slug.md` + a row in its `README.md` |
 | **How** a layer works, and its rules | `docs/domains/<domain>.md` |
 | **What to type**, repeatable | `docs/runbooks/` |
@@ -37,6 +38,7 @@
 - **Test for anything written mid-session:** would a fresh clone need this? Yes → `domains/` or `decisions/`. No → HANDOFF.
 - Audit reports and reviews are session artifacts: triage, dispatch the durable parts, delete the report, merge the branch **squashed**.
 - Deleting beats adding. If a doc restates another, cut it.
+- Always keep the HANDOFF minimal, point at docs instead. The point is to jump back in at the next session, not document everything that has been done.
 
 ## Git
 
