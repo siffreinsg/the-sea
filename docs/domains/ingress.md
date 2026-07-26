@@ -72,7 +72,11 @@ Two notes on the newest entries:
   `the-sea-internal` or the `100.64.0.2` mesh bind and do not depend on the public name.
   Its client is `require_pkce: false` — fastapi-sso's generic provider sends a verifier but
   the flow isn't worth betting a login on — and `client_secret_basic`, which is what
-  fastapi-sso uses.
+  fastapi-sso uses. **SSO logins land as a second, non-admin user** — the UI_USERNAME
+  account's `user_id` is the username, an SSO login's is the email, so they never match.
+  `PROXY_ADMIN_ID` set to that email promotes the SSO user to `proxy_admin` on every login
+  and writes it back to the DB (`ui_sso.py:1723`), which is idempotent and survives a
+  restore. Promoting by hand in the UI would not.
 
 All OIDC clients are confidential (`public: false`), carry
 `authorization_policy: two_factor`, and have exact redirect URIs — none wildcarded.
