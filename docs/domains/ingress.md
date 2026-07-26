@@ -33,8 +33,8 @@ weaker policy and none without one.
 
 | Outcome | Services | Notes |
 |---|---|---|
-| **a — Authelia OIDC client** | dawarich, profilarr, cleanuparr, open-webui | Native login button, real identity. Caddy is a plain `reverse_proxy` |
-| **b — Caddy `forward_auth`** | your_spotify, litellm | `your_spotify` bypasses `/api/*` at the edge; `litellm` gates the whole host |
+| **a — Authelia OIDC client** | dawarich, profilarr, cleanuparr, open-webui, litellm | Native login button, real identity. Caddy is a plain `reverse_proxy` |
+| **b — Caddy `forward_auth`** | your_spotify | `/api/*` bypassed at the edge; the app enforces its own session |
 | **c — own login, judged sufficient** | komodo, grafana, backrest ×2, actualbudget, n8n | Recorded per app below, never left implicit |
 | **none, by design** | `up` (static string), headscale (control server, must be publicly reachable; its API returns 401) | |
 
@@ -49,20 +49,30 @@ Outcome (c), with the reason each time:
 
 Two notes on the newest entries:
 
-- **Open-WebUI is the fleet's first *same-node* OIDC client** — a container on TB dialling
-  TB's own public `auth.` name, which hairpins past the `INPUT` default REJECT. The other
-  three clients are on GM, so this path has no precedent here. If discovery fails, the fix
+- **Open-WebUI and LiteLLM are the fleet's first *same-node* OIDC clients** — containers
+  on TB dialling TB's own public `auth.` name, which hairpins past the `INPUT` default
+  REJECT. Every earlier client is on GM, so this path has no precedent here and both are
+  exposed to it. If discovery fails, the fix
   is **not** an internal `http://authelia:9091`: Authelia advertises the public URL as its
   issuer, so issuer validation breaks. Put Authelia on `the-sea-internal` instead and
   resolve the public name internally.
-- **LiteLLM's `ai.` host is the admin UI only, and `forward_auth` covers all of it.** No
-  path split: the UI is a shell that XHRs to root-level endpoints (`/model/info`,
-  `/key/list`, `/spend/logs`), so gating `/ui*` alone serves a page that loads and shows
-  nothing. `/v1/*` is deliberately unrouted — every consumer reaches the gateway privately,
-  on `the-sea-internal` by container name or the `100.64.0.2` mesh bind. **Publishing the
-  API would put the fleet's only provider key behind a single bearer token on the public
-  internet; that needs its own decision, not a Caddyfile edit.** Accepted friction: two
-  logins to reach the UI, Authelia then LiteLLM's own `UI_USERNAME`/`UI_PASSWORD`.
+- **LiteLLM started on `forward_auth` and was moved to its own OIDC client.** Its admin
+  UI has a mandatory login that cannot be disabled, so `forward_auth` meant two logins
+  every time. SSO is free below five users at v1.93.0 (`ui_sso.py:858`) — no
+  `LITELLM_LICENSE` needed — which makes Authelia the single door instead of an extra one.
+  `UI_USERNAME`/`UI_PASSWORD` stay as break-glass: `POST /login`
+  (`proxy_server.py:13232`) is a plain form handler with no SSO gate, so it keeps working
+  even when the UI redirects to Authelia. Unlike Open-WebUI, this app is not SSO-only.
+  **What that trades away, stated plainly:** LiteLLM's API surface is now publicly
+  reachable, protected by its own bearer keys rather than by the edge. Same posture as
+  Komodo and Grafana. A path allowlist blocking `/v1/*` was considered and rejected — the
+  UI calls root-level endpoints, so the list would be long and would break on upgrade.
+  The mitigations that must stay true: the master key is a long random, never shared with
+  a consumer, and every consumer holds a virtual key instead. Internal callers still use
+  `the-sea-internal` or the `100.64.0.2` mesh bind and do not depend on the public name.
+  Its client is `require_pkce: false` — fastapi-sso's generic provider sends a verifier but
+  the flow isn't worth betting a login on — and `client_secret_basic`, which is what
+  fastapi-sso uses.
 
 All OIDC clients are confidential (`public: false`), carry
 `authorization_policy: two_factor`, and have exact redirect URIs — none wildcarded.

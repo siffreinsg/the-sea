@@ -75,17 +75,16 @@
 		reverse_proxy 127.0.0.1:5678
 	}
 
-	# LiteLLM's admin UI only. forward_auth covers the whole host on purpose: the UI is a
-	# shell that XHRs to root-level endpoints (/model/info, /key/list, /spend/logs), so a
-	# `path /ui*` split would load a page that shows nothing. Nothing legitimate reaches
-	# this name but a browser — n8n and Open-WebUI dial litellm:4000 on the-sea-internal,
-	# Karakeep uses the 100.64.0.2 mesh bind. Exposing /v1/* here is a separate decision.
+	# LiteLLM has its own Authelia OIDC client, so no forward_auth — that was one login
+	# too many, since the admin UI has a mandatory login of its own that cannot be
+	# disabled. SSO is free below five users at v1.93.0 (ui_sso.py:858).
+	# The trade this makes: LiteLLM's API surface is now publicly reachable, protected by
+	# its own bearer keys rather than by the edge. That is the same posture as komodo and
+	# grafana, and the master key is a 43-char random. Blocking /v1/* here is possible but
+	# not free — the UI calls root-level endpoints and would need an allowlist that breaks
+	# on upgrade.
 	@litellm host ai.siffreinsigy.me
 	handle @litellm {
-		forward_auth 127.0.0.1:9091 {
-			uri /api/authz/forward-auth
-			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-		}
 		reverse_proxy 127.0.0.1:4000
 	}
 
