@@ -90,3 +90,27 @@ Sunny. What's left:
   **Decide first:** whether Authelia alone justifies it, and whether the bridge's
   unattended-login problem (it wants an interactive `login` per restart, and holds a
   full-mailbox credential) is acceptable versus a plain SMTP relay from another provider.
+
+## AI platform, deferred from the config review
+
+Landed in `docs/plans/2026-07-26-ai-platform-config-review.md`; these outlive it.
+
+- **Benchmark the chunking choice.** `RAG_TEXT_SPLITTER=token`, 800/100, markdown
+  header pre-pass — picked on reasoning, never measured. Re-chunking costs a full
+  re-embed at Scaleway's rate but no schema change, so this is revisable, unlike the
+  3584 vector dimension. Needs a real corpus and a retrieval-quality comparison first.
+- **tiktoken downloads at runtime on `-slim`.** `USE_SLIM=true` skips baking the
+  `cl100k_base` encoding, so the first document ingest fetches it from OpenAI's CDN and
+  caches into `TIKTOKEN_CACHE_DIR` inside the volume. Fine here; **a blocker for an
+  air-gapped company deployment**, which would have to pre-seed the cache or use the
+  character splitter.
+- **Reranker latency is unmeasured.** A CPU cross-encoder on GM's Xeon E5-2670, over
+  `RAG_TOP_K=40` pairs, on every RAG turn. `RAG_RERANKING_BATCH_SIZE` (default 32) and
+  `RAG_TOP_K` are the knobs.
+- **Free-tier exhaustion is handled by the 429, not by a rate limit.** Mistral's free
+  tier moves with global platform load, so no static `rpm`/`tpm` can track it. Fallback
+  to paid Scaleway is driven by `retry_policy.RateLimitErrorRetries: 1`. Because
+  `task-cheap` is a single-deployment group, `cooldown_time` does not apply
+  (`cooldown_handlers.py:178`) — every call during exhaustion pays one retry before
+  failing over. If that becomes noticeable, add a second deployment to the group to
+  re-enable cooldown rather than inventing a limit.
