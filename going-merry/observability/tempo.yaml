@@ -1,8 +1,15 @@
 # Monolithic Tempo — single binary, local filesystem, no object store. Same shape as
-# loki.yaml next door: one node, one replica, retention-capped, never backed up.
+# loki.yaml next door: one node, retention-capped, never backed up.
 #
 # Only the OTLP gRPC receiver is published (mesh-scoped, see compose.yaml). Grafana
 # queries over the compose network at http://tempo:3200, so 3200 stays unpublished.
+#
+# **This is a 3.0 config and 2.x examples will not work.** 3.0 removed the top-level
+# `ingester:` and `compactor:` blocks — the architecture is now live_store +
+# block_builder + backend_scheduler/worker — and a config carrying either fails to parse
+# outright. Reference: example/docker-compose/single-binary/tempo.yaml at the tag.
+
+stream_over_http_enabled: true   # Grafana's streaming search needs it
 
 server:
   http_listen_port: 3200
@@ -15,15 +22,6 @@ distributor:
         grpc:
           endpoint: 0.0.0.0:4317
 
-ingester:
-  # Traces are only queryable once a block is cut. The default is 30m, which means a
-  # trace you just produced is invisible for half an hour — useless while wiring this up.
-  max_block_duration: 5m
-
-compactor:
-  compaction:
-    block_retention: 336h   # 14d. Traces are bulkier than logs; Loki keeps 30d.
-
 storage:
   trace:
     backend: local
@@ -32,6 +30,13 @@ storage:
     local:
       path: /var/tempo/blocks
 
-# ponytail: no metrics_generator. Span metrics and service graphs need a Prometheus
-# remote-write target and roughly double the write path; add it if the Phase 5 dashboards
-# actually want RED metrics per service.
+usage_report:
+  reporting_enabled: false
+
+# Retention is left at the 336h (14d) default — deliberately, not by omission. Loki keeps
+# 30d; traces are bulkier, so shorter is the intent and the default already matches.
+# To change it you must set it in *two* places, backend_scheduler.provider.compaction
+# .compaction.block_retention and backend_worker.compaction.block_retention.
+#
+# ponytail: no metrics_generator. Span metrics and service graphs need a remote-write
+# target; add it if the Phase 5 dashboards actually want RED metrics per service.

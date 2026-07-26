@@ -1,4 +1,15 @@
 apiVersion: 1
+
+# Loki predates its explicit uid below. Grafana matches an existing datasource by uid, not
+# by name, so provisioning a new uid onto it fails with "data source not found" — and that
+# failure kills the whole provisioning module, so Grafana refuses to start. Deletes run
+# before inserts, so this recreates it with the right uid. Kept permanently: it is
+# idempotent, and a fresh clone hits the same path in reverse.
+# VictoriaMetrics is NOT listed here — deleting it would orphan every alert rule.
+deleteDatasources:
+  - name: Loki
+    orgId: 1
+
 datasources:
   - name: VictoriaMetrics
     type: prometheus

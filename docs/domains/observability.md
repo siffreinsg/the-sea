@@ -7,8 +7,12 @@ TB's Caddy.
 
 - **VictoriaMetrics** — metrics, 90d retention (VM flag).
 - **Loki** — logs, 30d retention (`loki.yaml`), `auth_enabled: false`.
-- **Tempo** — traces, 14d retention (`tempo.yaml`). Shorter than logs on purpose: traces
-  are bulkier. Monolithic single binary on the local filesystem, same shape as Loki.
+- **Tempo** — traces, 14d retention (the `block_retention` default). Shorter than logs on
+  purpose: traces are bulkier. Monolithic single binary on the local filesystem, same
+  shape as Loki. **Config is 3.0-only** — that release removed the top-level `ingester:`
+  and `compactor:` blocks in favour of live_store / block_builder / backend_scheduler, and
+  a 2.x config fails to parse rather than degrading. Copy from the tag's
+  `example/docker-compose/single-binary/`, never from an older tutorial.
 - **Alloy** — scrapes container and host metrics, tails logs. Discovers **all** containers
   via docker.sock with no allowlist, so a new service is collected automatically:
   logs land as `{container="<app>"}`, container metrics via cadvisor, both labelled
@@ -31,6 +35,12 @@ the Grafana container:
   `P4169E866C3094E38` and every rule in `alerting/rules.yaml` references it; pinning a
   different one silently breaks all of them. Loki and Tempo have explicit uids because
   they need to name each other for the trace↔log links, and nothing referenced them.
+
+  **Changing the uid of a datasource that already exists takes Grafana down.** Grafana
+  matches by uid, so it reports `Datasource provisioning error: data source not found`,
+  the provisioning module fails, and the container exits — not a degraded start, a crash.
+  The fix is a `deleteDatasources:` entry for that datasource; deletes run before inserts.
+  Loki carries one. Never add VictoriaMetrics to that block.
 - `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter)
   and `dashboards/containers.json` (14282, cadvisor).
 - `provisioning/alerting/rules.yaml` and `contact-points.yaml`.
