@@ -176,6 +176,13 @@ general_settings:
   # port.
   store_prompts_in_spend_logs: true
 
+  # Populates `end_user` on spend logs *and* on the Prometheus metrics, which is why the
+  # dashboard showed end_user="None": the X-OpenWebUI-* headers were arriving, but nothing
+  # told LiteLLM which one identifies the caller. `extra_spend_tag_headers` below only
+  # records them as tags; this is the one that sets identity.
+  # Email over Id: it is what you want to read on a dashboard, and there is one user.
+  user_header_name: X-OpenWebUI-User-Email
+
   # 6 months, pruned daily by the proxy itself — no cron, no prune script.
   maximum_spend_logs_retention_period: "180d"
   maximum_spend_logs_retention_interval: "1d"
@@ -202,3 +209,8 @@ litellm_settings:
   # not a new exception. **If the Caddy block is ever removed, this leaks spend, key
   # aliases and model names to the public internet.**
   require_auth_for_metrics_endpoint: false
+  extra_spend_tag_headers:
+    - x-openwebui-user-name
+    - x-openwebui-user-id
+    - x-openwebui-user-email
+    - x-openwebui-user-role
