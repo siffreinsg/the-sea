@@ -5,7 +5,35 @@ datasources:
     access: proxy
     url: http://victoriametrics:8428
     isDefault: true
+    # No explicit uid: Grafana generated P4169E866C3094E38 and every alert rule in
+    # provisioning/alerting/rules.yaml references it. Setting one here breaks them all.
+
   - name: Loki
     type: loki
     access: proxy
     url: http://loki:3100
+    uid: loki   # nothing referenced Loki by uid before this, so pinning it is free
+    jsonData:
+      derivedFields:
+        # Logs -> Trace. Only fires on lines that actually carry a trace id; the apps
+        # have to be emitting one, which is the open question in Phase 3. Matches the
+        # W3C 32-hex id after any of trace_id / traceId / traceID / trace-id.
+        - name: TraceID
+          matcherRegex: '[tT]race[_-]?[iI][dD]"?\s*[=:]\s*"?([a-f0-9]{32})'
+          url: '${__value.raw}'
+          datasourceUid: tempo
+
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    uid: tempo
+    jsonData:
+      # Trace -> Logs. The shifts widen the log window around the span; without them a
+      # span at the edge of a second finds nothing.
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: '-5m'
+        spanEndTimeShift: '5m'
+        filterByTraceID: true
+        filterBySpanID: false

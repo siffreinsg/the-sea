@@ -22,6 +22,18 @@ services:
       - ./loki.yaml:/etc/loki/loki.yaml:ro
       - loki-data:/loki
 
+  tempo:
+    image: grafana/tempo:3.0.2   # tag has no `v` prefix — `v3.0.2` does not exist
+    container_name: tempo
+    restart: unless-stopped
+    command: -config.file=/etc/tempo/tempo.yaml
+    ports:
+      # OTLP gRPC only. 3200 stays unpublished — Grafana reaches it over this network.
+      - "100.64.0.1:4317:4317"   # mesh ingest — needs tailscaled up; restart policy retries
+    volumes:
+      - ./tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo-data:/var/tempo
+
   grafana:
     image: grafana/grafana:13.1.1-slim
     container_name: grafana
@@ -42,4 +54,5 @@ services:
 volumes:
   vm-data:
   loki-data:
+  tempo-data:
   grafana-data:

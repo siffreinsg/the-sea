@@ -99,7 +99,8 @@ problem. **Decided 2026-07-26: install it.**
 **Add Grafana Tempo to the `observability` stack on GM** — same node as Grafana and Loki,
 same mesh bind pattern (`100.64.0.1`), same provisioned-datasource discipline.
 
-- Pin **`grafana/tempo:v3.0.2`** (released 2026-06-09; re-check on the day). GM is
+- Pin **`grafana/tempo:3.0.2`** — no `v` prefix, `v3.0.2` 404s. Confirmed current on
+  2026-07-27: 2.9.4 is newer by date but a patch on the old 2.9 line. GM is
   `x86_64`, so no ARM manifest question — unlike anything landing on TB.
 - Retention: match Loki's 30d, or shorter. Traces are bulkier than logs; **start at 7–14d**
   and raise it if you actually go looking. GM is the disk-excellent box, which is why this
