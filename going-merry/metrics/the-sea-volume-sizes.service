@@ -1,0 +1,7 @@
+[Unit]
+Description=Export Docker volume sizes for Prometheus
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/the-sea/going-merry/metrics/volume-sizes.sh

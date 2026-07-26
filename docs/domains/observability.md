@@ -80,6 +80,30 @@ Alloy drops spans that are never worth storing — healthchecks, static assets, 
 connection setup. Only leaf or self-contained spans are dropped; filtering a span with
 children would orphan them.
 
+## Docker volume sizes
+
+**cadvisor cannot see where the disk went.** It measures a container's writable layer;
+every byte that matters — Postgres, Loki, VictoriaMetrics, Tempo, chat history — is in a
+named volume it does not measure. A dashboard built on cadvisor alone names the wrong
+culprit for a full disk.
+
+`<node>/metrics/volume-sizes.sh` runs hourly, `du`s each volume and writes
+`docker_volume_size_bytes` into the node_exporter textfile directory, which Alloy's
+embedded unix exporter reads on every scrape (`enable_collectors = ["textfile"]`).
+
+Install per node, same pattern as the dump timers:
+
+```bash
+sudo ln -sf /opt/the-sea/<node>/metrics/the-sea-volume-sizes.service /etc/systemd/system/
+sudo ln -sf /opt/the-sea/<node>/metrics/the-sea-volume-sizes.timer   /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now the-sea-volume-sizes.timer
+sudo systemctl start the-sea-volume-sizes.service   # don't wait an hour for the first one
+```
+
+Hourly, not per-minute: `du` over every volume is the expensive part, and "what is eating
+the disk" changes over days.
+
 ## Alert rules
 
 Folder `Alerting`, rule group `infra`, evaluated every 60s.
@@ -90,6 +114,13 @@ Folder `Alerting`, rule group `infra`, evaluated every 60s.
 | Root disk space low | `node_filesystem_avail_bytes / node_filesystem_size_bytes * 100`, mountpoint `/` | < 10 for 10m | critical |
 | High memory usage | `node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100` | < 10 for 10m | warning |
 | Caddy config reload failed | `caddy_config_last_reload_successful` (TB only) | < 1 for 5m | critical |
+| LLM spend above threshold | `sum(increase(litellm_spend_metric_total[24h]))` | > EUR 2/day for 15m | warning |
+| LLM provider errors | `sum(rate(litellm_proxy_failed_requests_metric_total[15m]))` | sustained > 0 for 10m | warning |
+
+The two LLM rules use `noDataState: OK` — neither series exists before the first request
+or the first failure, and an idle gateway is not an incident. The spend threshold is set
+far above current usage (fractions of a cent/day): it catches a runaway loop or a leaked
+key, not normal chatting. Raise it deliberately if real usage approaches it.
 
 All route to a **Telegram** contact point — the Den Den Mushi bot
 ([why Telegram](../decisions/2026-07-25-telegram-not-ntfy.md)). Bot token and chat id come

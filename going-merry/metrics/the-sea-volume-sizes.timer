@@ -1,0 +1,12 @@
+# Hourly is plenty: this answers "what is eating the disk", a question that changes over
+# days. `du` over every volume is the one expensive thing in the metrics path.
+[Unit]
+Description=Hourly Docker volume size export
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -26,6 +26,13 @@ prometheus.exporter.unix "host" {
   procfs_path = "/host/proc"
   sysfs_path  = "/host/sys"
   rootfs_path = "/host/root"
+  // Picks up docker_volume_size_bytes from the hourly volume-sizes timer. cadvisor only
+  // measures a container's writable layer, so without this the dashboards cannot see
+  // where the disk actually went — every byte that matters is in a named volume.
+  enable_collectors = ["textfile"]
+  textfile {
+    directory = "/host/root/var/lib/node_exporter/textfile"
+  }
 }
 prometheus.scrape "host" {
   targets    = prometheus.exporter.unix.host.targets

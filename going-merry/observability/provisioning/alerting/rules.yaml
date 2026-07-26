@@ -161,3 +161,95 @@ groups:
           labels:
             severity: critical
           isPaused: false
+        # --- AI platform -------------------------------------------------------------
+        # Both read LiteLLM's own /metrics, scraped by TB's Alloy. Neither series exists
+        # before the first request or the first failure, so noDataState is OK — an idle
+        # gateway is not an incident.
+        - uid: aft0270aispnd0
+          title: LLM spend above threshold
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 86400
+                to: 0
+              datasourceUid: P4169E866C3094E38
+              model:
+                # EUR spent in the last 24h, all consumers and models.
+                expr: sum(increase(litellm_spend_metric_total[24h]))
+                instant: true
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 86400
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            # EUR/day. Current usage is fractions of a cent, so this fires
+                            # on a runaway loop or a leaked key, not on normal chatting.
+                            # Raise it deliberately if real usage ever approaches it.
+                            - 2
+                        type: gt
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: OK
+          execErrState: OK
+          # 15m, not 5m: the query is a 24h window, so a spike stays true for a while and
+          # a shorter `for` buys nothing.
+          for: 15m
+          annotations:
+            summary: LLM spend over the last 24h exceeded EUR 2
+          labels:
+            severity: warning
+          isPaused: false
+        - uid: bft0270jsperr0
+          title: LLM provider errors
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 900
+                to: 0
+              datasourceUid: P4169E866C3094E38
+              model:
+                # Failures per second at the provider, including 429s. `or vector(0)`
+                # keeps the rule evaluable before the metric first appears.
+                expr: sum(rate(litellm_proxy_failed_requests_metric_total[15m])) or vector(0)
+                instant: true
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 900
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            # ~1 failure per 15m window. A single transient 429 is noise;
+                            # a sustained rate means the chat is actually broken.
+                            - 0.0011
+                        type: gt
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: OK
+          execErrState: OK
+          for: 10m
+          annotations:
+            summary: LiteLLM is seeing sustained provider failures — check the AI platform dashboard
+          labels:
+            severity: warning
+          isPaused: false
