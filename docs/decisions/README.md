@@ -10,6 +10,8 @@ New decision = new dated file + one row here.
 
 | Date | Decision | Status |
 |---|---|---|
+| 2026-07-27 | [The fleet's Postgres runs on Thriller Bark, against the placement rule](2026-07-27-postgres-on-thriller-bark.md) | Accepted |
+| 2026-07-26 | [Open-WebUI is configured as code, not through its Admin UI](2026-07-26-open-webui-config-as-code.md) | Accepted |
 | 2026-07-26 | [Six wishlist tools dropped, one moved to Sunny](2026-07-26-wishlist-tools-dropped.md) | Accepted |
 | 2026-07-26 | [Syncthing gets a public port, the one exception to the bind rule](2026-07-26-syncthing-public-port.md) | Accepted |
 | 2026-07-25 | [Habit tracker: Beaverhabits, not Habitica](2026-07-25-beaverhabits-not-habitica.md) | **Reopened** 2026-07-26 |
