@@ -44,8 +44,12 @@ the Grafana container:
 - `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter),
   `dashboards/containers.json` (14282, cadvisor), `dashboards/ai-platform.json`
   (hand-written: LiteLLM spend, tokens, latency, rate-limit headroom, plus the TraceQL
-  cheatsheet for per-call exploration) and `dashboards/resources.json` (hand-written:
-  which container or volume is eating RAM, CPU and disk).
+  cheatsheet for per-call exploration) and `dashboards/resources-<node>.json`
+  (hand-written: which container or volume is eating RAM, CPU and disk).
+  **One resources dashboard per node, not one with a node filter.** Container names are
+  long enough that a `node — name` legend truncates in a bargauge to the point of being
+  unreadable, and you look at these one box at a time anyway. TB's copy omits the
+  writable-layer panel: cadvisor does not report `container_fs_usage_bytes` there.
 - `provisioning/alerting/rules.yaml` and `contact-points.yaml`.
 
 **Provisioned resources are read-only in the UI.** Edit the file and redeploy. Grafana
