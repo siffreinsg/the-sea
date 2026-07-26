@@ -77,6 +77,12 @@ Two notes on the newest entries:
   `PROXY_ADMIN_ID` set to that email promotes the SSO user to `proxy_admin` on every login
   and writes it back to the DB (`ui_sso.py:1723`), which is idempotent and survives a
   restore. Promoting by hand in the UI would not.
+  **`default_user_id` beside your account is not a stray user — leave it.** It is a
+  hardcoded constant (`constants.py:1406`, `LITELLM_PROXY_ADMIN_NAME`) that LiteLLM uses
+  as the proxy-level budget row, the global-spend cache key and the actor on config audit
+  logs. It is bookkeeping, not an identity, and there is nothing to merge it with;
+  deleting it or resetting the database to "clean it up" would break the global spend row
+  and the audit trail for no gain.
 
 All OIDC clients are confidential (`public: false`), carry
 `authorization_policy: two_factor`, and have exact redirect URIs — none wildcarded.
