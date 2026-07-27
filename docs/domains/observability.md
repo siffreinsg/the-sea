@@ -9,10 +9,8 @@ TB's Caddy.
 - **Loki** — logs, 30d retention (`loki.yaml`), `auth_enabled: false`.
 - **Tempo** — traces, 14d retention (the `block_retention` default). Shorter than logs on
   purpose: traces are bulkier. Monolithic single binary on the local filesystem, same
-  shape as Loki. **Config is 3.0-only** — that release removed the top-level `ingester:`
-  and `compactor:` blocks in favour of live_store / block_builder / backend_scheduler, and
-  a 2.x config fails to parse rather than degrading. Copy from the tag's
-  `example/docker-compose/single-binary/`, never from an older tutorial.
+  shape as Loki. **`tempo.yaml` is 3.0-only and a 2.x example will not parse** — the trap
+  and the reference config are in the file's own header.
 - **Alloy** — scrapes container and host metrics, tails logs. Discovers **all** containers
   via docker.sock with no allowlist, so a new service is collected automatically:
   logs land as `{container="<app>"}`, container metrics via cadvisor, both labelled
@@ -28,20 +26,13 @@ Alloy's privilege is the fleet's widest; the honest blast radius is in [secrets]
 Datasources, dashboards and alert rules are all provisioned from files bind-mounted into
 the Grafana container:
 
-- `grafana-datasources.yaml` (mounted to `provisioning/datasources/` in the container) —
-  VictoriaMetrics (default), Loki and
-  Tempo. They address each other by **compose service DNS**, not the mesh IP; the stack
-  moves as a unit, and service DNS sidesteps the hairpin-NAT problem.
-  **Do not give VictoriaMetrics an explicit `uid`.** Grafana generated
-  `P4169E866C3094E38` and every rule in `alerting/rules.yaml` references it; pinning a
-  different one silently breaks all of them. Loki and Tempo have explicit uids because
-  they need to name each other for the trace↔log links, and nothing referenced them.
-
-  **Changing the uid of a datasource that already exists takes Grafana down.** Grafana
-  matches by uid, so it reports `Datasource provisioning error: data source not found`,
-  the provisioning module fails, and the container exits — not a degraded start, a crash.
-  The fix is a `deleteDatasources:` entry for that datasource; deletes run before inserts.
-  Loki carries one. Never add VictoriaMetrics to that block.
+- `grafana-datasources.yaml` (→ `provisioning/datasources/`) — VictoriaMetrics (default),
+  Loki and Tempo. They address each other by **compose service DNS**, not the mesh IP; the
+  stack moves as a unit, and service DNS sidesteps the hairpin-NAT problem.
+  **Never give VictoriaMetrics an explicit `uid`, and never add it to `deleteDatasources:`**
+  — every alert rule references its generated uid. Changing the uid of an existing
+  datasource crashes Grafana on start rather than degrading; the mechanics are in the
+  file's header.
 - `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter),
   `dashboards/containers.json` (14282, cadvisor), `dashboards/ai-platform.json`
   (hand-written: LiteLLM spend, tokens, latency, rate-limit headroom, plus the TraceQL
@@ -71,10 +62,8 @@ IPs change when a network is recreated. The perimeter firewall is the gate — T
 80/443/22 inbound and nothing else. Alloy's own UI stays pinned to `127.0.0.1:12345`.
 
 Senders use `host.docker.internal` with `extra_hosts: host-gateway`, never a literal
-gateway IP, for the same reason.
-
-This works because containers *can* reach the host — proven by connect, not inferred, and
-[corrected on that page](networking.md) where it previously said otherwise.
+gateway IP, for the same reason. This works because [containers can reach the
+host](networking.md).
 
 The Grafana links that make three panes into one are in `grafana-datasources.yaml`:
 `tracesToLogsV2` on Tempo, and a `TraceID` derived field on Loki. **The Loki direction is
@@ -89,13 +78,14 @@ children would orphan them.
 ## Docker volume sizes
 
 **cadvisor cannot see where the disk went.** It measures a container's writable layer;
-every byte that matters — Postgres, Loki, VictoriaMetrics, Tempo, chat history — is in a
-named volume it does not measure. A dashboard built on cadvisor alone names the wrong
+every byte that matters — Postgres, Loki, VictoriaMetrics, Tempo, chat history — sits in a
+named volume it does not measure, so a dashboard built on cadvisor alone names the wrong
 culprit for a full disk.
 
 `<node>/metrics/volume-sizes.sh` runs hourly, `du`s each volume and writes
 `docker_volume_size_bytes` into the node_exporter textfile directory, which Alloy's
-embedded unix exporter reads on every scrape (`enable_collectors = ["textfile"]`).
+embedded unix exporter reads on every scrape (`enable_collectors = ["textfile"]`). Hourly
+because `du` over every volume is the expensive part, and disk pressure builds over days.
 
 Install per node, same pattern as the dump timers:
 
@@ -106,9 +96,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now the-sea-volume-sizes.timer
 sudo systemctl start the-sea-volume-sizes.service   # don't wait an hour for the first one
 ```
-
-Hourly, not per-minute: `du` over every volume is the expensive part, and "what is eating
-the disk" changes over days.
 
 ## Alert rules
 
@@ -137,8 +124,8 @@ provisioning file. `repeat_interval` is 24h. **The notification policy tree is r
 the UI** once provisioned: routing, grouping and timing changes go through
 `contact-points.yaml`.
 
-Komodo alerts to Discord separately and the two overlap — some alerts arrive twice, and
-nobody has narrowed either side yet.
+Komodo alerts to Discord separately and the two overlap: some alerts arrive twice
+([narrowing them](../future.md)).
 
 ## Extending
 

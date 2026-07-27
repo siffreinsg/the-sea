@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
 # Docker volume sizes, as Prometheus metrics.
 #
-# Why this exists: cadvisor measures a container's *writable layer* only. Every byte that
-# actually matters here — Postgres, Loki, VictoriaMetrics, Tempo, chat history — lives in
-# a named volume, which cadvisor does not see at all. Without this, the resources
-# dashboard would confidently point at the wrong culprit for a full disk.
-#
-# Written to the node_exporter textfile directory, which Alloy's embedded unix exporter
-# reads on every scrape. Install: see docs/runbooks/db-dumps.md, same pattern.
+# cadvisor measures a container's writable layer only, and never a named volume — see
+# docs/domains/observability.md. Written to the node_exporter textfile directory, which
+# Alloy's embedded unix exporter reads on every scrape.
 set -euo pipefail
 umask 022   # metrics are not secret; Alloy must read them
 

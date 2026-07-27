@@ -10,9 +10,8 @@ the age key is root-owned, 0600.
 **Everything sops writes on-node must be 0600.** `sops -d … > file` runs under root's
 default `022` umask, so the decrypted output lands world-readable while the age key itself
 is correctly 0600 — the decrypt step throws away exactly the protection the design exists
-to provide. On 2026-07-25 that meant Authelia's OIDC token-signing private key, the
-Cloudflare API token and the restic/rclone credentials were all readable by any local
-account, on both nodes.
+to provide — Authelia's OIDC token-signing private key, the Cloudflare API token and the
+restic/rclone credentials, readable by any local account on both nodes.
 
 - Every `pre_deploy.command` in `komodo/resources.toml` is prefixed `umask 077 &&`. Keep
   it there, including on any new stack.
@@ -73,8 +72,8 @@ find /etc/komodo /var/backups/the-sea -type f \
 **Alloy is the widest-privilege container in the fleet**: host netns, `/` mounted,
 docker.sock. `:ro` on a socket only protects the file — the Docker API is fully usable
 through it. It is necessary (cadvisor has no path-override args and needs `/rootfs`,
-`/sys`, `/var/lib/docker` and `/run/containerd/containerd.sock`; that last one was missing
-once and silently broke container-stats scraping on TB).
+`/sys`, `/var/lib/docker` and `/run/containerd/containerd.sock` — omit that last one and
+container-stats scraping breaks silently).
 
 The part that matters: `/:/rootfs:ro` lets Alloy read **`/etc/sops/age.key`**, so an Alloy
 compromise yields every secret on the node regardless of file modes. The file hygiene above

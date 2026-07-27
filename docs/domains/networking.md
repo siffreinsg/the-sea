@@ -39,12 +39,11 @@ Two properties worth keeping, both verified by connection rather than by reading
 
 - **Every Docker publish is loopback- or mesh-scoped**, so Docker's usual
   publish-past-the-firewall problem does not apply here.
-- **Containers reach the host, and that is load-bearing.** An earlier version of this page
-  claimed the INPUT default REJECT gave `EHOSTUNREACH` from a container to `172.x.0.1`,
-  verified on 9120 / 27017 / 2019. That generalised too far. On 2026-07-27, from LiteLLM:
-  `172.17.0.1` and `172.24.0.1` both returned `ECONNREFUSED` on a closed port, and a
-  **connect to `172.24.0.1:4318` succeeded** once Alloy was listening. The earlier result
-  was those three ports being closed, not the bridges being blocked.
+- **Containers reach the host, and that is load-bearing.** The INPUT default REJECT does not
+  block a bridge gateway: from LiteLLM, `172.17.0.1` and `172.24.0.1` both return
+  `ECONNREFUSED` on a closed port, and a **connect to `172.24.0.1:4318` succeeds** with
+  Alloy listening (2026-07-27). A closed port is not an unreachable bridge — don't read
+  `EHOSTUNREACH` on one port as the firewall blocking the whole range.
 
   The trace path depends on this — apps push OTLP to Alloy on the host
   ([observability](observability.md)). Anything binding a non-loopback address on TB is

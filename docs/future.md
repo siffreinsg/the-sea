@@ -6,14 +6,13 @@ Not part of the foundation. Revisit after the foundation is running.
 
 - **Sunny backups** — decide whether app configs/DBs on Ultra.cc are worth backing up (restic + rclone binaries in userspace) or nothing at all.
 - **Baratie** — join the mesh; fold HAOS backups into Backrest.
-- **Security — what the 2026-07 reviews left open.** Both nodes were reviewed (GM, then
-  TB on 2026-07-25); the perimeter was found sound on both and everything actionable was
-  fixed or dispatched into the runbooks. Still open, in rough priority order:
-  - **Narrow the `your_spotify` `/api/*` edge bypass** — still live; a plan exists, see
-    `docs/plans/2026-07-26-your-spotify-api-bypass.md`. Until it lands,
+- **Security — open from the 2026-07 node reviews**, in rough priority order:
+  - **Narrow the `your_spotify` `/api/*` edge bypass** (plan:
+    `docs/plans/2026-07-26-your-spotify-api-bypass.md`). Until it lands,
     `allowRegistrations: false` is the only thing stopping public account creation and
     **must stay off**.
-  - **Caddy admin API** — still live; a plan exists, see `docs/plans/2026-07-25-caddy-admin-off.md`.
+  - **Caddy admin API** is still open read/write on loopback (plan:
+    `docs/plans/2026-07-25-caddy-admin-off.md`).
   - **GM container least-privilege is capped by the OpenVZ kernel** — no AppArmor, no
     userns-remap, seccomp active. Accepted, not fixable there.
   - **`profilarr` OIDC client has `require_pkce: false`** (deliberate, confidential
@@ -58,15 +57,15 @@ Not part of the foundation. Revisit after the foundation is running.
 - **n8n automations for Radarr/Sonarr** — on Radarr, switch anime to the right quality
   profile; on Sonarr/Seerr, route anime requests to the correct Sonarr instance.
 - Explore s3drive as an alternative to reach Proton Drive. Useful for S3-compatible access too.
+- **Narrow the duplicate alerting.** Grafana (Telegram) and Komodo (Discord) overlap, so
+  some alerts arrive twice; neither side has been narrowed.
 
 ## Tool wishlist
 
-Concrete candidate in parens where decided. Anything with a live plan is in
-`docs/plans/`, not here. LangFuse dropped — Grafana/Loki covers LLM logging.
-
-Syncthing's "dropped for now" entry is gone — the exception it was waiting on was
-[made deliberately](decisions/2026-07-26-syncthing-public-port.md), and it has a plan.
-Karakeep, Wallos and Forgejo likewise.
+Concrete candidate in parens where decided. Anything with a live plan is in `docs/plans/`,
+not here; anything dropped is in
+[one decision](decisions/2026-07-26-wishlist-tools-dropped.md) — except LangFuse, dropped
+because Grafana/Loki already covers LLM logging.
 
 - **Forgejo Actions runner** — deferred out of the Forgejo plan, not dropped. It needs a
   registration token from a running instance, so it can never share that first deploy.
@@ -78,15 +77,11 @@ Karakeep, Wallos and Forgejo likewise.
   Dataview) pointed at the vault dir, which pins it to **TB** beside Syncthing.
   obsidian-remote gives real Obsidian at the cost of a whole VNC desktop.
 
-Six candidates were [dropped in one pass](decisions/2026-07-26-wishlist-tools-dropped.md)
-— configarr, huntarr, hedgedoc, it-tools, stirling-pdf, coolify — and maintainerr moved to
-Sunny. What's left:
-
-- PDF management (Paperless-ngx) — not built; a plan exists, see
-  `docs/plans/2026-07-26-paperless-ngx.md`. Blocked on Syncthing.
-- **Habit tracker — tool choice reopened.** Beaverhabits was
-  [chosen on 2026-07-25](decisions/2026-07-25-beaverhabits-not-habitica.md) and is no
-  longer the answer; nothing replaces it yet. Pick the tool before writing a plan.
+- PDF management (Paperless-ngx) — plan: `docs/plans/2026-07-26-paperless-ngx.md`.
+  Blocked on Syncthing.
+- **Habit tracker — no tool chosen.** Beaverhabits is out
+  ([the decision, reopened](decisions/2026-07-25-beaverhabits-not-habitica.md)) and nothing
+  replaces it. Pick the tool before writing a plan.
 - Static site — too underspecified to plan. Decide what the site *is* first.
 - Open Terminal for Open WebUI — needs Open-WebUI live first.
 - **Proton Mail Bridge** — the fleet has no SMTP at all. Authelia writes password resets

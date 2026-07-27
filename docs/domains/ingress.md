@@ -40,10 +40,9 @@ weaker policy and none without one.
 
 Outcome (c), with the reason each time:
 
-- **Actual Budget** — password-only. Actual enforces one active auth method server-side,
-  so OIDC and password cannot coexist; OIDC was tried and reverted.
-- **n8n** — own login plus enrolled 2FA. Double-login friction was not judged worth it, and
-  it now carries no edge bypass at all.
+- **Actual Budget** — password-only. Actual enforces one active auth method server-side, so
+  OIDC and password cannot coexist.
+- **n8n** — own login plus enrolled 2FA, and no edge bypass at all. Not worth a second login.
 - **Komodo, Grafana, Backrest** — own auth, all three confirmed to reject unauthenticated
   API calls.
 
@@ -55,22 +54,22 @@ Two notes on the newest entries:
   is **not** an internal `http://authelia:9091`, because Authelia advertises the public URL
   as its issuer and issuer validation would break. Put Authelia on `the-sea-internal`
   instead and resolve the public name internally.
-- **LiteLLM started on `forward_auth` and was moved to its own OIDC client.** Its admin
-  UI has a mandatory login that cannot be disabled, so `forward_auth` meant two logins
-  every time. SSO is free below five users at v1.93.0 (`ui_sso.py:858`) — no
+- **LiteLLM is an OIDC client, not `forward_auth`.** Its admin UI has a mandatory login
+  that cannot be disabled, so `forward_auth` would mean two logins every time.
+  SSO is free below five users at v1.93.0 (`ui_sso.py:858`) — no
   `LITELLM_LICENSE` needed — which makes Authelia the single door instead of an extra one.
   `UI_USERNAME`/`UI_PASSWORD` stay as break-glass: `POST /login`
   (`proxy_server.py:13232`) is a plain form handler with no SSO gate, so it keeps working
   even when the UI redirects to Authelia. Unlike Open-WebUI, this app is not SSO-only.
   **What that trades away, stated plainly:** LiteLLM's API surface is now publicly
   reachable, protected by its own bearer keys rather than by the edge. Same posture as
-  Komodo and Grafana. A path allowlist blocking `/v1/*` was considered and rejected — the
-  UI calls root-level endpoints, so the list would be long and would break on upgrade.
+  Komodo and Grafana. **No path allowlist on `/v1/*`** — the UI calls root-level endpoints,
+  so the list would be long and would break on upgrade.
   The mitigations that must stay true: the master key is a long random, never shared with
   a consumer, and every consumer holds a virtual key instead. Same-node callers use
   `the-sea-internal` (`http://litellm:4000`) and do not depend on the public name;
-  **cross-node callers do** — the mesh bind was removed, see
-  [the decision](../decisions/2026-07-27-cross-node-calls-use-the-public-edge.md).
+  **cross-node callers do**, there is no mesh bind
+  ([why](../decisions/2026-07-27-cross-node-calls-use-the-public-edge.md)).
   Its client is `require_pkce: false` — fastapi-sso's generic provider sends a verifier but
   the flow isn't worth betting a login on — and `client_secret_basic`, which is what
   fastapi-sso uses. **SSO logins land as a second, non-admin user** — the UI_USERNAME
