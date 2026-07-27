@@ -9,7 +9,7 @@ The constants. Everything here is looked up, not reasoned about.
 | Contact mail | `hello@siffreinsigy.me` (ACME + Authelia user) |
 | Mesh IPs | TB `100.64.0.2`, GM `100.64.0.1`. Base domain `mesh.siffreinsigy.me` |
 | Public IPs | TB `141.253.109.196`, GM `62.4.16.10` |
-| Open ports | TB 80/443/22 + 22000/tcp+udp (Syncthing, [the one exception](decisions/2026-07-26-syncthing-public-port.md)) · GM 4747 (SSH) · nothing else |
+| Open ports | TB 80/443/22 · GM 4747 (SSH) · nothing else. **Planned, not yet open:** TB 22000/tcp+udp for Syncthing ([the one exception](decisions/2026-07-26-syncthing-public-port.md)) — needs the Docker publish *and* an Oracle VCN security-list rule |
 | Container network | `the-sea-internal` on TB — hand-created (`docker network create`), `external: true` in every compose that joins it. For containers that must dial each other by name |
 | Repo on nodes | `/opt/the-sea` ← `git@github.com:siffreinsg/the-sea.git`, `main` |
 | age recipient | `age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md` |
@@ -40,6 +40,19 @@ the offset if you change these.
 | Backrest | `backrest-tb.siffreinsigy.me`, `backrest-gm.siffreinsigy.me` |
 | Headscale | `headscale.siffreinsigy.me` |
 | Health check | `up.siffreinsigy.me` → `the sea is up` |
+| Actual Budget | `actual.siffreinsigy.me` |
+| n8n | `n8n.siffreinsigy.me` |
+| LiteLLM | `ai.siffreinsigy.me` |
+| Open-WebUI | `chat.siffreinsigy.me` |
+| Dawarich | `dawarich.siffreinsigy.me` |
+| your_spotify | `spotify.siffreinsigy.me` |
+| Profilarr | `profilarr.siffreinsigy.me` |
+| Cleanuparr | `cleanuparr.siffreinsigy.me` |
+| Overseerr (legacy redirect) | `overseerr.blackpearl.siffreinsigy.me` |
+| Uptime-Kuma | on Sunny (`app-uptimekuma`), **not behind Caddy** — external node-liveness for TB and GM, the mitigation for observability living on a watched node ([ADR](decisions/2026-07-23-observability-on-going-merry.md)) |
+
+Every host in this table is a `@name host` matcher in `thriller-bark/caddy/Caddyfile`,
+except Uptime-Kuma. If you add a Caddy block, add a row.
 
 ## Restic repositories
 

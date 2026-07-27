@@ -30,6 +30,8 @@ What makes it acceptable, and what has to stay true:
 
 **Consequence:** TB's open ports become **80/443/22/22000**, which needs an Oracle VCN
 security-list rule as well as the Docker publish — `docs/reference.md` updated to match.
-The bind rule now has exactly one written exception; any second one needs its own record,
-not a reference to this one. Syncthing also lands on TB's slow disk against the placement
+This is the only *publicly reachable* exception to the bind rule. The bind rule's other
+written exception is Alloy's OTLP receiver on `0.0.0.0:4317/4318`, which is host-local
+behind the perimeter firewall — a different thing, listed in `AGENTS.md` alongside this
+one. A third needs its own record, not a reference to either. Syncthing also lands on TB's slow disk against the placement
 rule, accepted because the public port has to be here and the write pattern is bursty.

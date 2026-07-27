@@ -11,6 +11,9 @@ Read the `docs/HANDOFF.md` document for context on the previous session.
 ## Infra rules that bite
 
 - **Never bind `0.0.0.0`** — `127.0.0.1` on TB, `100.64.0.1` on GM. Docker publishes past the firewall.
+  Two written exceptions, both reasoned: TB's Alloy OTLP receiver ([why](docs/domains/observability.md)),
+  and Syncthing's 22000, the only *publicly reachable* one ([why](docs/decisions/2026-07-26-syncthing-public-port.md)).
+  A third needs its own record.
 - **Every `pre_deploy` and `backup.sh` starts with `umask 077`.** Decrypted secrets and dumps must be 0600.
 - **Never pass a secret as a CLI argument** (`~/.bash_history`, `ps`). Prompt instead.
 - **Pin every image** to a released tag, and prefer alpine/slim variants.

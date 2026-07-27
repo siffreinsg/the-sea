@@ -68,7 +68,7 @@ VictoriaMetrics and Loki on **GM**
 | TB | GM |
 |---|---|
 | Authelia, Actual Budget, n8n | Dawarich, your_spotify, Profilarr, Cleanuparr |
-| Open-WebUI, LiteLLM, Homepage | PlexAutoLanguages, Wizarr, bazarr2 |
+| Open-WebUI, LiteLLM, Homepage | PlexAutoLanguages, Wizarr, bazarr |
 | Wallos, Syncthing | Karakeep, Forgejo |
 
 Two of those go against the rule on purpose. **Syncthing** is on TB's slow disk because it
