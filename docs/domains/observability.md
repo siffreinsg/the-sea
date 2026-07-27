@@ -28,7 +28,8 @@ Alloy's privilege is the fleet's widest; the honest blast radius is in [secrets]
 Datasources, dashboards and alert rules are all provisioned from files bind-mounted into
 the Grafana container:
 
-- `provisioning/datasources/grafana-datasources.yaml` — VictoriaMetrics (default), Loki and
+- `grafana-datasources.yaml` (mounted to `provisioning/datasources/` in the container) —
+  VictoriaMetrics (default), Loki and
   Tempo. They address each other by **compose service DNS**, not the mesh IP; the stack
   moves as a unit, and service DNS sidesteps the hairpin-NAT problem.
   **Do not give VictoriaMetrics an explicit `uid`.** Grafana generated
@@ -122,8 +123,10 @@ Folder `Alerting`, rule group `infra`, evaluated every 60s.
 | LLM spend above threshold | `sum(increase(litellm_spend_metric_total[24h]))` | > EUR 2/day for 15m | warning |
 | LLM provider errors | `sum(rate(litellm_proxy_failed_requests_metric_total[15m]))` | sustained > 0 for 10m | warning |
 
-The two LLM rules use `noDataState: OK` — neither series exists before the first request
-or the first failure, and an idle gateway is not an incident. The spend threshold is set
+The two LLM rules — **and only those two** — use `noDataState: OK`: neither series exists
+before the first request or the first failure, and an idle gateway is not an incident.
+Everything else, Caddy included, uses `noDataState: Alerting`, because for those a missing
+series means the thing being watched is gone. The spend threshold is set
 far above current usage (fractions of a cent/day): it catches a runaway loop or a leaked
 key, not normal chatting. Raise it deliberately if real usage approaches it.
 

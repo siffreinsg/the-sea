@@ -153,11 +153,14 @@ groups:
                 maxDataPoints: 43200
                 refId: B
                 type: threshold
-          noDataState: OK
+          # Alerting, not OK: caddy_config_last_reload_successful exists whenever Caddy is
+          # up and Alloy is scraping it. No data means Caddy is down or its admin endpoint
+          # stopped answering — the one thing this rule must not swallow.
+          noDataState: Alerting
           execErrState: Alerting
           for: 5m
           annotations:
-            summary: Caddy on {{ $labels.node }} failed its last config reload
+            summary: Caddy on {{ $labels.node }} failed its last config reload or stopped reporting
           labels:
             severity: critical
           isPaused: false
