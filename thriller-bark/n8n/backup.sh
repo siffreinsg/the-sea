@@ -24,8 +24,9 @@ export_or_empty /tmp/n8n-workflows.json n8n export:workflow --all
 # --decrypted is a bare boolean flag; `--decrypted=true` makes the CLI print its
 # usage and exit 1. The encryption key lives in data/config, which this export
 # doesn't carry — an encrypted-only export would be unrestorable without it.
-# Plaintext sits briefly in dumps/ between runs; restic encrypts at rest, and
-# this file only ever leaves the critical (encrypted) plan.
+# Plaintext sits briefly in dumps/ between runs. Both plans sweep /userdata/backups as a
+# whole directory, so this leaves for Mega *and* Proton — fine, restic encrypts
+# client-side either way; the file is 0600 and never plaintext at a provider.
 export_or_empty /tmp/n8n-credentials.json n8n export:credentials --all --decrypted
 docker cp n8n:/tmp/n8n-workflows.json "$outdir/n8n-workflows.json.part"
 docker cp n8n:/tmp/n8n-credentials.json "$outdir/n8n-credentials.json.part"

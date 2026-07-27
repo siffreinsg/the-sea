@@ -14,7 +14,7 @@ record of the assignment** — keep it current.
 
 | Node | Critical (Mega) | Bulk (Proton) |
 |---|---|---|
-| TB | Authelia config + db, Actual Budget, n8n exports, LiteLLM Postgres dump, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping) | Komodo Mongo dump, headscale dump, Open-WebUI data, the whole `/userdata/backups` dumps dir |
+| TB | Authelia config + db, Actual Budget, n8n exports, LiteLLM Postgres dump, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping), `/userdata/headscale`, `/userdata/komodo-keys` | Komodo Mongo dump, headscale dump, Open-WebUI data, the whole `/userdata/backups` dumps dir, `/userdata/headscale`, `/userdata/komodo-keys` |
 | GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, Cleanuparr + Profilarr config |
 
 Both nodes' **bulk** plans include the dumps directory as a *directory* entry
@@ -27,6 +27,12 @@ material, hence critical rather than bulk, even though it sits in the same dumps
 the bulk plan sweeps wholesale. Its dump also covers Open-WebUI's pgvector store from
 Phase 4 onward: it is `pg_dumpall`, not a single database. **Open-WebUI's own SQLite
 volume is bulk** — chat history is not critical data.
+
+`/userdata/headscale` and `/userdata/komodo-keys` are **volume** sources, in both TB plans,
+not dumps. Headscale's is not redundant with `headscale/backup.sh`: the dump covers
+`db.sqlite`, but **`noise_private.key` — which the
+[mesh decision](../decisions/2026-07-18-headscale-mesh.md) calls DR-critical — exists only
+inside the volume.** Losing it means re-keying the control plane and every node.
 
 Deliberately **not** backed up: media (re-acquirable), VM metrics and Loki logs
 (retention-capped 90d/30d), plexautolanguages' `/config` (Plex episode cache, cheaply
@@ -52,11 +58,14 @@ rebuilt), Homepage (all config is in git).
 
 Clone the repo, drop in the age key, redeploy. What that does **not** restore, and must be
 rebuilt by hand: Backrest's repos and plans, the Komodo Discord alerter, three Komodo
-Procedures and one Tag.
+Procedures and one Tag, and **the `the-sea-internal` docker network on TB**
+(`docker network create the-sea-internal` — it is `external: true` in every compose that
+joins it, so `litellm` and `open-webui` will refuse to start until it exists).
 
-**Deploy order matters.** Backrest mounts `external: true` volumes on both nodes (TB: headscale, caddy, komodo;
-GM: observability, cleanuparr, profilarr) and will not start until those stacks have each been deployed once.
-Deploy the source stacks before `backrest-tb`.
+**Deploy order matters.** Backrest mounts `external: true` volumes on both nodes (TB:
+headscale, caddy, komodo, authelia, open-webui; GM: observability, cleanuparr, profilarr)
+and will not start until those stacks have each been deployed once. Deploy the source
+stacks before `backrest-tb`.
 
 Restore-relevant identifiers are in [reference](../reference.md) — full node names, never
 abbreviations.

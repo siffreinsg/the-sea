@@ -34,6 +34,10 @@ services:
 Services that must dial mesh addresses themselves use `network_mode: host` instead
 (like Caddy and Komodo Core) — most don't.
 
+Containers that must dial each other **by name** join `the-sea-internal` (TB only), which
+is `external: true` everywhere and hand-created — `docker network create the-sea-internal`
+if it is missing. Nothing recreates it, including DR.
+
 `secrets.env` (skip if the app has no secrets):
 ```bash
 cat > <node>/<app>/secrets.env <<'EOF'
