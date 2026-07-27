@@ -1,0 +1,14 @@
+services:
+  tika:
+    image: apache/tika:3.3.1.0-full
+    container_name: tika
+    restart: unless-stopped
+    networks:
+      - the-sea-internal
+
+# No published port and no Caddy block: Open-WebUI reaches it as http://tika:9998 on
+# the-sea-internal, and nothing off that network has any business talking to it.
+# No secrets.env, no volume — Tika is stateless.
+networks:
+  the-sea-internal:
+    external: true

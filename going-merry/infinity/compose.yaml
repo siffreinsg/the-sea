@@ -1,0 +1,30 @@
+services:
+  infinity:
+    image: michaelf34/infinity:0.0.77-cpu
+    container_name: infinity
+    restart: unless-stopped
+    # torch, not optimum: the ONNX engine would have to export BAAI/bge-reranker-v2-m3
+    # itself at boot, since upstream publishes no ONNX weights for it.
+    command:
+      - v2
+      - --model-id
+      - BAAI/bge-reranker-v2-m3
+      - --engine
+      - torch
+      - --device
+      - cpu
+      - --batch-size
+      - "32"
+      - --port
+      - "7997"
+    ports:
+      - "100.64.0.1:7997:7997"
+    volumes:
+      - cache:/app/.cache
+
+# On GM, not TB: the image is amd64-only. Bound to the mesh IP so TB's LiteLLM can
+# reach it; no public route, no Caddy block, no secrets.
+# The volume is the HF_HOME cache (~1.1 GB of weights, downloaded on first boot) —
+# re-downloadable, so not a backup source.
+volumes:
+  cache:

@@ -128,6 +128,15 @@ branch = "main"
 run_directory = "going-merry/cleanuparr"
 
 [[stack]]
+name = "infinity"
+[stack.config]
+server = "going-merry"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "going-merry/infinity"
+
+[[stack]]
 name = "caddy"
 [stack.config]
 server = "thriller-bark"
@@ -166,6 +175,15 @@ branch = "main"
 run_directory = "thriller-bark/litellm"
 pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 extra_args = ["--force-recreate"]   # config.yaml is bind-mounted
+
+[[stack]]
+name = "tika"
+[stack.config]
+server = "thriller-bark"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "thriller-bark/tika"
 
 [[stack]]
 name = "open-webui"
