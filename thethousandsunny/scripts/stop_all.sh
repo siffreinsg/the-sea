@@ -1,5 +1,6 @@
 app-bazarr stop
 app-filebrowser stop
+app-maintainerr stop
 app-overseerr stop
 app-seerr stop
 app-prowlarr stop

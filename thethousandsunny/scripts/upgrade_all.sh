@@ -12,4 +12,5 @@ app-sonarr2 upgrade
 app-syncthing upgrade
 app-tautulli upgrade
 app-uptimekuma upgrade
+app-nginx upgrade
 app-plex upgrade

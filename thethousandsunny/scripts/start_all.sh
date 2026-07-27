@@ -1,5 +1,6 @@
 app-bazarr start
 app-filebrowser start
+app-maintainerr start
 app-overseerr start
 app-seerr start
 app-prowlarr start
