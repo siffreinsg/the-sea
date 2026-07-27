@@ -43,6 +43,16 @@ Read the `docs/HANDOFF.md` document for context on the previous session.
 - Deleting beats adding. If a doc restates another, cut it.
 - Always keep the HANDOFF minimal, point at docs instead. The point is to jump back in at the next session, not document everything that has been done.
 
+## Keeping them short
+
+- **Every line is a rule, a constant, a command, or a link.** Nothing else has a home here — no overview, no background, no recap, no prose that exists to sound thorough. Past tense is the tell: what *happened* goes in a commit message or an ADR, never a domain doc.
+- **Every claim is checkable** against a config file, a command's output, or an ADR. If you can't point at what makes it true, cut it.
+- **Line caps**: decision ≤ 30, runbook ≤ 80, domain ≤ 150, this file ≤ 80. Pure lists (`reference.md`, `runbooks/commands.md`) and `docs/plans/` are exempt. `future.md` is uncapped too — an entry there says what to decide and what breaks if it's wrong, and once it says *how*, it's a plan and moves to `docs/plans/`. Over cap isn't forbidden, it's a trigger: split or prune, and say which in the commit message.
+- **Adding to a file means reading all of it first**, then deleting something stale in the same commit or stating that nothing was. Unbounded growth is append-without-read.
+- **Docs are today's state, git is the archive.** Delete what stopped being true; the commit message names what went and why, so `git log -p -- <path>` and `git log -S '<term>'` can find it again. A message like `docs: cleanup` is what makes a deletion lossy.
+- Two things never get deleted for brevity: superseded decisions (above), and constants — a port number costs one line, its absence costs a search.
+- Same rules in config files. A comment earns its place by recording a trap or a non-obvious *why*; `# set the port` restates the line under it. Prefer one comment on the surprising block over one per key.
+
 ## Git
 
 - **Work directly on `main`.** Solo repo, no PR flow. Don't branch, and don't open a PR, unless I ask or the work is a long audit/review (those get a branch and a **squashed** merge, per above).
