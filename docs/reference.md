@@ -51,8 +51,10 @@ the offset if you change these.
 | Overseerr (legacy redirect) | `overseerr.blackpearl.siffreinsigy.me` |
 | Uptime-Kuma | on Sunny (`app-uptimekuma`), **not behind Caddy** — external node-liveness for TB and GM, the mitigation for observability living on a watched node ([ADR](decisions/2026-07-23-observability-on-going-merry.md)) |
 
-Every host in this table is a `@name host` matcher in `thriller-bark/caddy/Caddyfile`,
-except Uptime-Kuma. If you add a Caddy block, add a row.
+This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 15 hosts,
+verified. All are `@name host` matchers inside the wildcard block except
+`overseerr.blackpearl`, which is its own site block (a `redir`, not a proxy), and
+Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block, add a row.
 
 ## Restic repositories
 
