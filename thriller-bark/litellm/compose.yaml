@@ -16,10 +16,10 @@ services:
       # The host, named stably. Bridge gateway IPs move when a network is recreated.
       - "host.docker.internal:host-gateway"
     ports:
-      # 127.0.0.1 for TB's own consumers, 100.64.0.2 for Karakeep on GM.
-      # Both are private; the public route is Caddy -> ai.siffreinsigy.me, admin UI only.
+      # 127.0.0.1 only. TB's own consumers dial it here; cross-node consumers go through
+      # Caddy -> ai.siffreinsigy.me like anything else, so the mesh guard can eventually
+      # be fleet-wide. See docs/decisions/2026-07-27-cross-node-calls-use-the-public-edge.md
       - "127.0.0.1:4000:4000"
-      - "100.64.0.2:4000:4000"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
     depends_on:

@@ -67,8 +67,10 @@ Two notes on the newest entries:
   Komodo and Grafana. A path allowlist blocking `/v1/*` was considered and rejected — the
   UI calls root-level endpoints, so the list would be long and would break on upgrade.
   The mitigations that must stay true: the master key is a long random, never shared with
-  a consumer, and every consumer holds a virtual key instead. Internal callers still use
-  `the-sea-internal` or the `100.64.0.2` mesh bind and do not depend on the public name.
+  a consumer, and every consumer holds a virtual key instead. Same-node callers use
+  `the-sea-internal` (`http://litellm:4000`) and do not depend on the public name;
+  **cross-node callers do** — the mesh bind was removed, see
+  [the decision](../decisions/2026-07-27-cross-node-calls-use-the-public-edge.md).
   Its client is `require_pkce: false` — fastapi-sso's generic provider sends a verifier but
   the flow isn't worth betting a login on — and `client_secret_basic`, which is what
   fastapi-sso uses. **SSO logins land as a second, non-admin user** — the UI_USERNAME

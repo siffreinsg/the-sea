@@ -62,6 +62,14 @@ Closed by `thriller-bark/firewall/the-sea-mesh-guard.service`, a oneshot that DR
 traffic in **raw/PREROUTING**. The chain choice is not incidental and neither is
 `PartOf=docker.service`: [see the decision](../decisions/2026-07-25-mesh-guard-in-raw-prerouting.md).
 
+**The guard is installed on TB only — GM has no `firewall/` dir and its bridged containers
+can still reach `100.64.0.0/10`.** That is a known gap, not an oversight: the threat is a
+user-code engine and the only one (n8n) is on TB. It stays fixable because
+[cross-node app calls go through the public edge](../decisions/2026-07-27-cross-node-calls-use-the-public-edge.md),
+so no GM container needs the mesh and a copy of the unit can land there whenever we want
+it. The mesh is for `network_mode: host` infrastructure — Alloy, Caddy, Komodo — which the
+guard does not touch.
+
 ## DNS
 
 Cloudflare, DNS-only. `*.siffreinsigy.me` points at TB, so a new service needs no DNS
