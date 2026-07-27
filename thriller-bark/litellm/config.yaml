@@ -376,9 +376,5 @@ router_settings:
   # different and weaker answer. `task-cheap` is the exception because both entries in the
   # group are the same model family and the fallback is triggered by an exhausted free
   # quota, not by a quality judgement.
-  #
-  # Note that a model group with two deployments already load-balances between them; the
-  # rpm/tpm caps on the free deployment are what push traffic to the paid one once the free
-  # quota is spent.
   fallbacks:
     - task-cheap: ["scw-mistral-small-3.2-24b"]
