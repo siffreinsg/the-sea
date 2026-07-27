@@ -9,11 +9,11 @@ Not part of the foundation. Revisit after the foundation is running.
 - **Security — what the 2026-07 reviews left open.** Both nodes were reviewed (GM, then
   TB on 2026-07-25); the perimeter was found sound on both and everything actionable was
   fixed or dispatched into the runbooks. Still open, in rough priority order:
-  - ~~**Narrow the `your_spotify` `/api/*` edge bypass**~~ — planned, see
+  - **Narrow the `your_spotify` `/api/*` edge bypass** — still live; a plan exists, see
     `docs/plans/2026-07-26-your-spotify-api-bypass.md`. Until it lands,
     `allowRegistrations: false` is the only thing stopping public account creation and
     **must stay off**.
-  - ~~**Caddy admin API**~~ — planned, see `docs/plans/2026-07-25-caddy-admin-off.md`.
+  - **Caddy admin API** — still live; a plan exists, see `docs/plans/2026-07-25-caddy-admin-off.md`.
   - **GM container least-privilege is capped by the OpenVZ kernel** — no AppArmor, no
     userns-remap, seccomp active. Accepted, not fixable there.
   - **`profilarr` OIDC client has `require_pkce: false`** (deliberate, confidential
@@ -39,6 +39,12 @@ Not part of the foundation. Revisit after the foundation is running.
   - **Still to do before this is plannable:** an exhaustive inventory of what has to
     migrate — automations, dashboards, config, every integration, and each manual
     modification made to the running instance.
+- **Wire n8n to LiteLLM — it isn't yet.** This is the reason LiteLLM exists; don't let n8n
+  hold provider keys directly. Give it its own virtual key, and note the URL: **not**
+  `http://127.0.0.1:4000/v1`. n8n is a bridged container, so that is its own loopback (the
+  same bug already fixed for Open-WebUI). n8n has to **join `the-sea-internal`** — its
+  compose has no `networks:` block today — and dial `http://litellm:4000/v1`. Same host, no
+  mesh hop.
 - **When the first n8n workflow calls LiteLLM, set a session header.** Nothing does this
   automatically. Open-WebUI gets session grouping for free because it sends the chat id;
   an n8n HTTP Request node must set `x-litellm-session-id` itself. The value has to match
@@ -76,7 +82,7 @@ Six candidates were [dropped in one pass](decisions/2026-07-26-wishlist-tools-dr
 — configarr, huntarr, hedgedoc, it-tools, stirling-pdf, coolify — and maintainerr moved to
 Sunny. What's left:
 
-- ~~PDF management (Paperless-ngx)~~ — planned, see
+- PDF management (Paperless-ngx) — not built; a plan exists, see
   `docs/plans/2026-07-26-paperless-ngx.md`. Blocked on Syncthing.
 - **Habit tracker — tool choice reopened.** Beaverhabits was
   [chosen on 2026-07-25](decisions/2026-07-25-beaverhabits-not-habitica.md) and is no

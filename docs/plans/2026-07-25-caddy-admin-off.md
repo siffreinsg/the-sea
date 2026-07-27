@@ -82,8 +82,7 @@ Not optional — [ingress](../domains/ingress.md) currently states the **opposit
 - `docs/domains/ingress.md`, the `127.0.0.1:2019` bullet: it says "`admin off` is not
   available because Alloy scrapes it". Replace with the new rule — admin API off,
   metrics served from `127.0.0.1:2020`, Alloy scrapes that.
-- `docs/future.md`: drop the struck-through Caddy-admin line from the open-security
-  list entirely.
+- `docs/future.md`: drop the Caddy-admin line from the open-security list entirely.
 - Delete this plan.
 
 ## Done when
@@ -91,6 +90,10 @@ Not optional — [ingress](../domains/ingress.md) currently states the **opposit
 `curl -s 127.0.0.1:2020/metrics | head` returns Prometheus text on TB,
 `curl -s 127.0.0.1:2019/config/` connection-refuses, the `caddy` job is `up` in
 Grafana, and a public site still serves.
+
+**The Caddy alert rule now uses `noDataState: Alerting`** (`fft01129bdvk0e`) — if
+`caddy_config_last_reload_successful` stops arriving because the scrape moved to 2020 and
+Alloy wasn't updated, it will fire, loudly and correctly. Don't silence it; fix the scrape.
 
 **Check the `job="caddy"` series didn't change identity** — same job label, same
 target semantics, so existing panels and any alert rules should carry over
