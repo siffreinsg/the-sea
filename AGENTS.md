@@ -1,67 +1,45 @@
 # AGENTS.md
 
-Read the `docs/HANDOFF.md` document for context on the previous session.
+Read the `docs/HANDOFF.md` document for context on the previous session conclusions.
 
 ## Working style
 
-- I have **no SSH access from here**. Hand me commands to run and I paste the output back.
-- Challenge plans against new facts. They're broad strokes written upfront, not truth. Say so when one is wrong.
+- No SSH access from here. Hand me commands to run, I paste the output back.
+- Always challenge plans, decisions, remarks, ... Say so when one is wrong.
 - Root-cause fixes, not symptom patches. Grep every caller before editing a shared path.
 
-## Infra rules that bite
+## Infrastructure
 
-- **Never bind `0.0.0.0`** — `127.0.0.1` on TB, `100.64.0.1` on GM. Docker publishes past the firewall.
-  Two written exceptions, both reasoned: TB's Alloy OTLP receiver ([why](docs/domains/observability.md)),
+- Never bind `0.0.0.0`, bind `127.0.0.1` on TB, `100.64.0.1` on GM.
+  Two exceptions: TB's Alloy OTLP receiver ([why](docs/domains/observability.md)),
   and Syncthing's 22000, the only *publicly reachable* one ([why](docs/ADR/2026-07-26-syncthing-public-port.md)).
-  A third needs its own record.
-- **Every `pre_deploy` and `backup.sh` starts with `umask 077`.** Decrypted secrets and dumps must be 0600.
-- **Never pass a secret as a CLI argument** (`~/.bash_history`, `ps`). Prompt instead.
-- **Pin every image** to a released tag, and prefer alpine/slim variants.
+- Every `pre_deploy` and `backup.sh` starts with `umask 077`. Decrypted secrets and dumps must be 0600.
+- Never pass a secret as a CLI argument (`~/.bash_history`, `ps`). Prompt instead.
+- Pin every image to a released tag, and prefer alpine/slim variants.
 - A new decrypt target needs a `.gitignore` entry in the same commit.
 - Read the docs before proposing infra changes — most traps are already written down.
 
-## Where docs go
+## Documentation
 
-| Kind | Location |
-| --- | --- |
-| **What's next**, all work on deck | `docs/TODO.md` — L0 phase / L1 domain / L2 task |
-| **How the pieces fit** | `docs/ARCHI.md` — diagram + link table, ≤ 80 lines |
-| **Why** a choice was made | `docs/ADR/YYYY-MM-DD-slug.md` + a row in its `README.md` |
-| **How** a layer works, and its rules | `docs/domains/<domain>.md` |
-| **What to type**, repeatable | `docs/runbooks/` |
-| **Constants** — addresses, ports, schedules | `docs/REFERENCE.md` |
-| A procedure that gets run again | `docs/runbooks/<verb-object>.md` |
-| In-flight work, picked up from TODO | `docs/plans/` — **delete when it lands** |
-| Idea, not now | `docs/FUTURE.md` — one line, promoted to TODO when it has a phase and a domain |
-| Session state, what's half-done | `docs/HANDOFF.md` — untracked, never committed |
+Always read the `docs-system` skill.
 
-## Maintaining them
-
-- **Rationale lives in the decision record only.** Domain docs state the rule and link to the ADR. Two copies drift — that's what this structure replaced.
-- **New decision** = new dated file (context, decision, consequences, ~10 lines) + one index row. Date = the day it was decided.
-- **Reversed a decision?** Mark the old one `Superseded by <link>`, never delete it. Why it was reversed is worth more than the original.
-- **Test for anything written mid-session:** would a fresh clone need this? Yes → `domains/` or `ADR/`. No → HANDOFF.
-- Audit reports and reviews are session artifacts: triage, dispatch the durable parts, delete the report, merge the branch **squashed**.
-- Deleting beats adding. If a doc restates another, cut it.
-- Always keep the HANDOFF minimal, point at docs instead. The point is to jump back in at the next session, not document everything that has been done.
-
-## Keeping them short
-
-- **Every line is a rule, a constant, a command, or a link.** Nothing else has a home here — no overview, no background, no recap, no prose that exists to sound thorough. Past tense is the tell: what *happened* goes in a commit message or an ADR, never a domain doc.
-- **Every claim is checkable** against a config file, a command's output, or an ADR. If you can't point at what makes it true, cut it.
-- **Line caps**: ADR ≤ 20, runbook ≤ 80, domain ≤ 150, ARCHI ≤ 80, HANDOFF ≤ 50, this file ≤ 80. Pure lists (`REFERENCE.md`) and `docs/plans/` are exempt. `FUTURE.md` is uncapped too — an entry there says what to decide and what breaks if it's wrong, and once it says *how*, it's a plan and moves to `docs/plans/`. Over cap isn't forbidden, it's a trigger: split or prune, and say which in the commit message.
-- **Adding to a file means reading all of it first**, then deleting something stale in the same commit or stating that nothing was. Unbounded growth is append-without-read.
-- **Docs are today's state, git is the archive.** Delete what stopped being true; the commit message names what went and why, so `git log -p -- <path>` and `git log -S '<term>'` can find it again. A message like `docs: cleanup` is what makes a deletion lossy.
-- Two things never get deleted for brevity: superseded ADRs (above), and constants — a port number costs one line, its absence costs a search.
-- Same rules in config files. A comment earns its place by recording a trap or a non-obvious *why*; `# set the port` restates the line under it. Prefer one comment on the surprising block over one per key.
+- Read `docs/TODO.md` first. It holds the answer to "What's next?"
+- **How** the pieces fit and their rules: `docs/ARCHI.md` and `docs/domains/*.md`
+- **Why** a choice was made: `docs/ADR/YYYY-MM-DD-slug.md`
+- **What** to type and repeated procedures: `docs/runbooks/`
+- **Constants** (addresses, ports, schedules, ...): `docs/REFERENCE.md`
+- In-flight work, picked up from TODO: `docs/plans/`, delete when it lands
+- Ideas, backlog: `docs/FUTURE.md`
+- Session state, what's half-done: `docs/HANDOFF.md`
 
 ## Git
 
-- **Work directly on `main`.** Solo repo, no PR flow. Don't branch, and don't open a PR, unless I ask or the work is a long audit/review (those get a branch and a **squashed** merge, per above).
-- **Commit and push only when I ask.** Never mid-task, never "to be safe".
-- **Split by concern, one commit per thing.** A runbook fix, a set of plans and a decision reversal are three commits, not one. If two concerns touch the same file, group them rather than surgically splitting the diff — but say in the message that you did.
-- **Commit messages are prose, not a changelog line.** Subject is `type(scope): imperative summary`; the body says *why*, names the trap found, and records what was rejected. A future clone reads these to understand a choice it can't see in the diff.
-- **Never add `Co-Authored-By` or session/tool trailers.** Plain messages.
-- **`docs/HANDOFF.md` stays out of git.** It's gitignored and it stays that way — session state, not history. If something in it is still true next month, it belongs in `domains/` or `ADR/` instead, and *that* gets committed.
-- **Nothing decrypted ever lands.** `.env`, `rclone.conf`, `users_database.yml`, `oidc.yml` are all gitignored; a new decrypt target gets its `.gitignore` entry **in the same commit** that introduces it. Check `git status` before committing, not after pushing.
-- Deleting a landed plan from `docs/plans/` is part of the commit that lands it, not a later tidy-up.
+- Work on `main`, no PR flow except when explicitly asked for.
+- Commit and push only when asked.
+- Split commits by concern. A runbook fix, a set of plans and a decision reversal are three commits, not one. If two concerns touch the same file, group them rather than surgically splitting the diff.
+- Commit subject: `type(scope): imperative summary`
+- Commit body: the *why*, names the trap found and records what was rejected.
+- Never add `Co-Authored-By` or session/tool trailers. Plain messages.
+- `docs/HANDOFF.md` stays out of git.
+- Nothing decrypted ever lands. New decrypt target gets its `.gitignore` entry **in the same commit** that introduces it. Check `git status` before committing, not after pushing.
+- Delete landed plans from `docs/plans/` in the same commit that lands it, not a later tidy-up.
