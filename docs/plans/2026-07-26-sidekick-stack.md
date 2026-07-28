@@ -100,16 +100,10 @@ stack, so there is no role to create by hand — the `open-webui-db` container c
 from `POSTGRES_USER`/`POSTGRES_DB` on first boot.
 
 1. Backrest snapshot of `open-webui-data` first, so the discard is reversible for a while.
-2. Four values into `open-webui/secrets.env` via sops. `POSTGRES_USER` and `POSTGRES_DB`
-   must both be `openwebui` or the healthcheck never passes and `depends_on` never
-   satisfies:
-
-   ```
-   POSTGRES_USER=openwebui
-   POSTGRES_DB=openwebui
-   POSTGRES_PASSWORD=<new>
-   DATABASE_URL=postgresql://openwebui:<same>@open-webui-db:5432/openwebui
-   ```
+2. `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` and `DATABASE_URL` are **already in
+   `open-webui/secrets.env`** — done. `POSTGRES_USER` and `POSTGRES_DB` are both
+   `openwebui` because the compose healthcheck hardcodes them; change one and
+   `depends_on: service_healthy` never satisfies.
 
 3. **Wipe and recreate the `open-webui-data` volume.** History is deliberately dropped —
    Open-WebUI does not migrate SQLite to Postgres, so pointing at an empty database is a
