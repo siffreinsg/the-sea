@@ -90,6 +90,13 @@ because Grafana/Loki already covers LLM logging.
 
 Landed in `docs/plans/2026-07-26-ai-platform-config-review.md`; these outlive it.
 
+- **[LangSearch](https://langsearch.com/) as a search provider, maybe as a reranker.**
+  Routing web search through LiteLLM rather than pointing Open-WebUI at one engine means
+  several providers can sit side by side, so SearXNG and a hosted API can be compared on
+  the same queries instead of swapped blind. Would also drop the scraping-reputation
+  problem SearXNG carries. Their reranker is the hosted option
+  [rejected on data exposure](ADR/2026-07-28-no-reranking.md); revisiting it means
+  superseding that ADR, not editing it.
 - **Benchmark the chunking choice.** `RAG_TEXT_SPLITTER=token`, 800/100, markdown
   header pre-pass — picked on reasoning, never measured. Re-chunking costs a full
   re-embed at Scaleway's rate but no schema change, so this is revisable, unlike the
