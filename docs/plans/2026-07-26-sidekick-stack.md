@@ -1,6 +1,7 @@
 # Sidekick stack — the six containers the config review needs
 
-**Status: planned, not built.** Delete this file once landed.
+**Status: steps 0-2 landed (Mistral key, Tika, Infinity); 3-6 open.** Delete this file once
+the rest lands. Open items are tracked in [`../TODO.md`](../TODO.md).
 
 Decisions and rationale are in
 [`2026-07-26-ai-platform-config-review.md`](2026-07-26-ai-platform-config-review.md).

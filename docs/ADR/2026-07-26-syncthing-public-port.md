@@ -2,7 +2,7 @@
 
 **2026-07-26 · Accepted**
 
-Supersedes the "dropped for now" Syncthing entry in [future](../future.md).
+Supersedes the "dropped for now" Syncthing entry in [future](../FUTURE.md).
 
 Syncthing was dropped because it needs peers to reach 22000, and every service here binds
 a private address — `127.0.0.1` on TB, `100.64.0.1` on GM
@@ -29,7 +29,7 @@ What makes it acceptable, and what has to stay true:
   not weakened by a non-HTTP listener beside it.
 
 **Consequence:** TB's open ports become **80/443/22/22000**, which needs an Oracle VCN
-security-list rule as well as the Docker publish — `docs/reference.md` updated to match.
+security-list rule as well as the Docker publish — `docs/REFERENCE.md` updated to match.
 This is the only *publicly reachable* exception to the bind rule. The bind rule's other
 written exception is Alloy's OTLP receiver on `0.0.0.0:4317/4318`, which is host-local
 behind the perimeter firewall — a different thing, listed in `AGENTS.md` alongside this

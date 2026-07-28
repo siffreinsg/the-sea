@@ -142,7 +142,7 @@ auth decision. GM mesh IP `100.64.0.1`, TB `100.64.0.2`.
 - Reranker latency at top-k 40 on GM's Xeon E5-2670 — measure, then tune `RAG_TOP_K` or
   `RAG_RERANKING_BATCH_SIZE`.
 
-## For `docs/future.md`
+## For `docs/FUTURE.md`
 
 - **Benchmark the chunking choice** (token, 800/100, markdown pre-pass) against a real
   corpus.

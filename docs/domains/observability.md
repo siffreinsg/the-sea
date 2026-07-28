@@ -1,7 +1,7 @@
 # Observability
 
 Grafana + VictoriaMetrics + Loki on **GM**
-([why GM](../decisions/2026-07-23-observability-on-going-merry.md)), one **Alloy**
+([why GM](../ADR/2026-07-23-observability-on-going-merry.md)), one **Alloy**
 collector per node pushing over the mesh. Reached at `grafana.siffreinsigy.me` through
 TB's Caddy.
 
@@ -87,15 +87,7 @@ culprit for a full disk.
 embedded unix exporter reads on every scrape (`enable_collectors = ["textfile"]`). Hourly
 because `du` over every volume is the expensive part, and disk pressure builds over days.
 
-Install per node, same pattern as the dump timers:
-
-```bash
-sudo ln -sf /opt/the-sea/<node>/metrics/the-sea-volume-sizes.service /etc/systemd/system/
-sudo ln -sf /opt/the-sea/<node>/metrics/the-sea-volume-sizes.timer   /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now the-sea-volume-sizes.timer
-sudo systemctl start the-sea-volume-sizes.service   # don't wait an hour for the first one
-```
+Install it per node with the [query-observability runbook](../runbooks/query-observability.md).
 
 ## Alert rules
 
@@ -112,20 +104,18 @@ Folder `Alerting`, rule group `infra`, evaluated every 60s.
 
 The two LLM rules — **and only those two** — use `noDataState: OK`: neither series exists
 before the first request or the first failure, and an idle gateway is not an incident.
-Everything else, Caddy included, uses `noDataState: Alerting`, because for those a missing
-series means the thing being watched is gone. The spend threshold is set
-far above current usage (fractions of a cent/day): it catches a runaway loop or a leaked
-key, not normal chatting. Raise it deliberately if real usage approaches it.
+Everything else, Caddy included, uses `noDataState: Alerting`, where a missing series means
+the watched thing is gone. The spend threshold sits far above current usage (fractions of a
+cent/day): it catches a runaway loop or a leaked key, not normal chatting.
 
 All route to a **Telegram** contact point — the Den Den Mushi bot
-([why Telegram](../decisions/2026-07-25-telegram-not-ntfy.md)). Bot token and chat id come
+([why Telegram](../ADR/2026-07-25-telegram-not-ntfy.md)). Bot token and chat id come
 from `secrets.env` via Grafana's `$VAR` provisioning interpolation, never from the
 provisioning file. `repeat_interval` is 24h. **The notification policy tree is read-only in
-the UI** once provisioned: routing, grouping and timing changes go through
-`contact-points.yaml`.
+the UI** once provisioned: routing and timing changes go through `contact-points.yaml`.
 
 Komodo alerts to Discord separately and the two overlap: some alerts arrive twice
-([narrowing them](../future.md)).
+([narrowing them](../FUTURE.md)).
 
 ## Extending
 
@@ -133,19 +123,17 @@ Add a rule: copy a block in `rules.yaml`, drop the `uid` key (Grafana assigns on
 `title` / `expr` / threshold `params` / `for`. Add a dashboard: drop a JSON file into
 `dashboards/`. Either way, commit and redeploy `observability` — it already carries
 `--force-recreate` for the bind mounts. Pulling live state back out of the UI needs a
-service-account token; the commands are in [commands](../runbooks/commands.md).
+service-account token; the commands are in [query-observability](../runbooks/query-observability.md).
 
 Only add a scrape target if the app exposes its **own** `/metrics` worth collecting —
 container resource usage is already covered. **LiteLLM is the one app that qualifies**
 (`prometheus.scrape "litellm"` on TB): spend, tokens, provider latency and rate-limit
-headroom per model and virtual key exist nowhere else. Its `/metrics` is unauthenticated
-so Alloy needs no key in a plaintext config, and Caddy 404s the path to keep it off the
-public internet — **if that Caddy block ever goes, spend and key aliases go public.**
+headroom per model and virtual key exist nowhere else. Its `/metrics` is unauthenticated,
+and Caddy 404s the path — **if that Caddy block ever goes, spend and key aliases go public.**
 
-**Panels on low-volume metrics must be range-scoped, not rate-scoped.** This fleet serves a
-handful of LLM requests a day, so `rate(...[$__rate_interval])` is zero almost always and
-the panel reads as broken rather than idle. The latency quantiles in `ai-platform.json` use
-`increase(...[$__range])` on stat panels for exactly this reason.
+**Panels on low-volume metrics must be range-scoped, not rate-scoped.** A handful of LLM
+requests a day makes `rate(...[$__rate_interval])` zero almost always, so the panel reads as
+broken rather than idle. `ai-platform.json`'s latency quantiles use `increase(...[$__range])`.
 
 ## Known gaps, on purpose
 

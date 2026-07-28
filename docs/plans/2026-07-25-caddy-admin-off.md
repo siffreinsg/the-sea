@@ -1,6 +1,6 @@
 # Plan — close Caddy's admin API (TB)
 
-Closes the `admin off` item in [future](../future.md) and the caveat in
+Closes the `admin off` item in [future](../FUTURE.md) and the caveat in
 [ingress](../domains/ingress.md). Delete this doc when it lands.
 
 **The problem.** `127.0.0.1:2019` is an unauthenticated **read/write config** endpoint
@@ -82,7 +82,7 @@ Not optional — [ingress](../domains/ingress.md) currently states the **opposit
 - `docs/domains/ingress.md`, the `127.0.0.1:2019` bullet: it says "`admin off` is not
   available because Alloy scrapes it". Replace with the new rule — admin API off,
   metrics served from `127.0.0.1:2020`, Alloy scrapes that.
-- `docs/future.md`: drop the Caddy-admin line from the open-security list entirely.
+- `docs/FUTURE.md`: drop the Caddy-admin line from the open-security list entirely.
 - Delete this plan.
 
 ## Done when

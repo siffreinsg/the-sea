@@ -7,13 +7,13 @@ One machine faces the internet. Everything else is reachable only over the mesh.
 Headscale runs on TB behind Caddy and is the control plane for a Tailscale mesh of
 exactly two members: TB `100.64.0.2` and GM `100.64.0.1`. All inter-node traffic —
 Komodo, metrics, logs, backups, reverse-proxying — goes over it.
-([Why Headscale](../decisions/2026-07-18-headscale-mesh.md).)
+([Why Headscale](../ADR/2026-07-18-headscale-mesh.md).)
 
 - GM runs **kernel mode** (its OpenVZ host exposes `/dev/net/tun`).
 - **GM's `100.64.0.1` is a procedural pin** — DB-persisted and stable across reboots, but
   it changes if the node is deleted and re-added. **Never delete that node**, re-register
   the existing one. The Caddyfile targets this address directly.
-- Sunny is [not on the mesh](../decisions/2026-07-25-sunny-stays-off-the-mesh.md) and does
+- Sunny is [not on the mesh](../ADR/2026-07-25-sunny-stays-off-the-mesh.md) and does
   not need to be.
 - Headscale has **no ACL policy** — the tailnet is allow-all between members. That is
   tolerable only because membership is two trusted nodes; see the container trap below.
@@ -23,7 +23,7 @@ Komodo, metrics, logs, backups, reverse-proxying — goes over it.
 Every published port binds a private address: `127.0.0.1` on TB, `100.64.0.1` on GM.
 **Never `0.0.0.0`** — and don't "fix" a bind to a bridge network to make something
 reachable. Only Caddy and Komodo Core use `network_mode: host`, because they dial mesh
-addresses themselves. ([The rule and why](../decisions/2026-07-19-services-bind-private-addresses.md).)
+addresses themselves. ([The rule and why](../ADR/2026-07-19-services-bind-private-addresses.md).)
 
 Anything on GM binding `100.64.0.1` must be ordered `After=tailscaled` — the address does
 not exist until the mesh is up.
@@ -59,12 +59,12 @@ which pulled unauthenticated 200s from both.
 
 Closed by `thriller-bark/firewall/the-sea-mesh-guard.service`, a oneshot that DROPs the
 traffic in **raw/PREROUTING**. The chain choice is not incidental and neither is
-`PartOf=docker.service`: [see the decision](../decisions/2026-07-25-mesh-guard-in-raw-prerouting.md).
+`PartOf=docker.service`: [see the decision](../ADR/2026-07-25-mesh-guard-in-raw-prerouting.md).
 
 **The guard is installed on TB only — GM has no `firewall/` dir and its bridged containers
 can still reach `100.64.0.0/10`.** That is a known gap, not an oversight: the threat is a
 user-code engine and the only one (n8n) is on TB. It stays fixable because
-[cross-node app calls go through the public edge](../decisions/2026-07-27-cross-node-calls-use-the-public-edge.md),
+[cross-node app calls go through the public edge](../ADR/2026-07-27-cross-node-calls-use-the-public-edge.md),
 so no GM container needs the mesh and a copy of the unit can land there whenever we want
 it. The mesh is for `network_mode: host` infrastructure — Alloy, Caddy, Komodo — which the
 guard does not touch.

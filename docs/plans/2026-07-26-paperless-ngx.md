@@ -62,7 +62,7 @@ ports published for Tika at all; nothing about this crosses the host or the mesh
 This is why the LLM stack already joins `the-sea-internal` — Open-WebUI dials LiteLLM by
 container name, not `127.0.0.1:4000`, which would not work from a bridged container. It
 does not affect Karakeep, which reaches LiteLLM over
-[the public edge](../decisions/2026-07-27-cross-node-calls-use-the-public-edge.md) from
+[the public edge](../ADR/2026-07-27-cross-node-calls-use-the-public-edge.md) from
 another node.
 
 ## 1. Tika — `thriller-bark/tika/`

@@ -14,7 +14,7 @@ the benchmarks below, not by the names.
 that speaks for this infrastructure. The transponder snail carries messages.
 
 Sunny and Baratie are outside Komodo; this repo versions only helper scripts and docs for
-them. Sunny is [deliberately off the mesh](../decisions/2026-07-25-sunny-stays-off-the-mesh.md).
+them. Sunny is [deliberately off the mesh](../ADR/2026-07-25-sunny-stays-off-the-mesh.md).
 
 ## Hardware and benchmarks
 
@@ -41,7 +41,7 @@ Benchmarked 2026-07-22 — sysbench cpu/mem, fio 4k randrw direct, vmstat steal,
 
 TB's slow disk is hidden by RAM cache for small, warm, single-user working sets. GM's only
 real weakness is per-core CPU, so avoid single-thread-latency-critical work there.
-Rationale: [placement follows the benchmarks](../decisions/2026-07-22-placement-follows-benchmarks.md).
+Rationale: [placement follows the benchmarks](../ADR/2026-07-22-placement-follows-benchmarks.md).
 
 ## Per-node caveats
 
@@ -63,7 +63,7 @@ Rationale: [placement follows the benchmarks](../decisions/2026-07-22-placement-
 
 Control plane: Headscale, Komodo Core, Caddy and Backrest on **TB**; Grafana,
 VictoriaMetrics and Loki on **GM**
-([why](../decisions/2026-07-23-observability-on-going-merry.md)); Alloy on both.
+([why](../ADR/2026-07-23-observability-on-going-merry.md)); Alloy on both.
 
 | TB | GM |
 |---|---|
@@ -73,10 +73,10 @@ VictoriaMetrics and Loki on **GM**
 
 Two of those go against the rule on purpose. **Syncthing** is on TB's slow disk because it
 is the only node that can hold a
-[public listener](../decisions/2026-07-26-syncthing-public-port.md). **Wallos** is on TB
+[public listener](../ADR/2026-07-26-syncthing-public-port.md). **Wallos** is on TB
 because it is financial data, not because of its load.
 
 Placement intent, not deployment status — what is live is in `docs/HANDOFF.md` and
 [`docs/plans/`](../plans/). **Code-Server is
-[dropped](../decisions/2026-07-23-code-server-dropped.md)**, not deferred.
+[dropped](../ADR/2026-07-23-code-server-dropped.md)**, not deferred.
 nginx-proxy-manager, portainer and diun are superseded by Caddy and Komodo.

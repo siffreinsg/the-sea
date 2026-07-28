@@ -1,7 +1,7 @@
 # Plan — narrow the your_spotify `/api/*` edge bypass
 
 Not a deployment. Closes the top open item from the 2026-07 security reviews
-(`docs/future.md`). One Caddyfile edit, no compose change, no downtime. Delete this doc
+(`docs/FUTURE.md`). One Caddyfile edit, no compose change, no downtime. Delete this doc
 when it lands.
 
 ## What's wrong today
@@ -96,4 +96,4 @@ Deploy is the usual `up -d --force-recreate` on the caddy stack via Komodo Sync,
 
 `/api/global/preferences` and `/api/me` answer with a redirect to Authelia from
 off-session, the Spotify link flow completes, the dashboard works logged in, and
-`docs/future.md`'s first open security item is deleted along with this file.
+`docs/FUTURE.md`'s first open security item is deleted along with this file.

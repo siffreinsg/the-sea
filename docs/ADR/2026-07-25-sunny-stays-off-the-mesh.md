@@ -12,4 +12,4 @@ membership.
 **Consequence:** the Bazarr plan's blocking "Task 0" was deleted outright. The one case
 that would justify revisiting is shipping Sunny's own logs and metrics to the
 observability stack, which binds a mesh-only address — tracked in
-[future](../future.md).
+[future](../FUTURE.md).

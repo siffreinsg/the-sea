@@ -24,5 +24,6 @@ Infrastructure-as-code for a self-hosted homelab across four nodes.
 
 Top-level dirs are per-ship (map onto Komodo server targets). Cross-cutting concerns live at root: `komodo/`, `docs/`, `.sops.yaml`.
 
-Start at [`docs/`](docs/) — it indexes the decision record, the per-domain docs and the
-runbooks. [`docs/reference.md`](docs/reference.md) has the addresses and schedules.
+Start at [`docs/TODO.md`](docs/TODO.md) for what is next and [`docs/ARCHI.md`](docs/ARCHI.md)
+for how it fits together. [`docs/`](docs/) indexes the rest; [`docs/REFERENCE.md`](docs/REFERENCE.md)
+has the addresses and schedules.

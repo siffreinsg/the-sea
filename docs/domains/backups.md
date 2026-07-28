@@ -1,7 +1,7 @@
 # Backups
 
 Two layers: a logical **dump** of every live database, then **Backrest/restic** shipping
-files to two cloud remotes ([the design](../decisions/2026-07-21-backrest-restic-proton-mega.md)).
+files to two cloud remotes ([the design](../ADR/2026-07-21-backrest-restic-proton-mega.md)).
 Nothing reaches a provider unencrypted.
 
 **Every stateful service gets a dump plus a plan entry** — mechanics in
@@ -31,7 +31,7 @@ volume is bulk** — chat history is not critical data.
 `/userdata/headscale` and `/userdata/komodo-keys` are **volume** sources, in both TB plans,
 not dumps. Headscale's is not redundant with `headscale/backup.sh`: the dump covers
 `db.sqlite`, but **`noise_private.key` — which the
-[mesh decision](../decisions/2026-07-18-headscale-mesh.md) calls DR-critical — exists only
+[mesh decision](../ADR/2026-07-18-headscale-mesh.md) calls DR-critical — exists only
 inside the volume.** Losing it means re-keying the control plane and every node.
 
 Deliberately **not** backed up: media (re-acquirable), VM metrics and Loki logs
@@ -67,5 +67,5 @@ headscale, caddy, komodo, authelia, open-webui; GM: observability, cleanuparr, p
 and will not start until those stacks have each been deployed once. Deploy the source
 stacks before `backrest-tb`.
 
-Restore-relevant identifiers are in [reference](../reference.md) — full node names, never
+Restore-relevant identifiers are in [reference](../REFERENCE.md) — full node names, never
 abbreviations.

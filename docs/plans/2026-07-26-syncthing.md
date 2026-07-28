@@ -4,7 +4,7 @@ File sync hub for the Obsidian vault and project folders. Follows
 `docs/runbooks/add-a-service.md`; deltas only. Delete this doc when it lands.
 
 **This is the one service that breaks the bind rule**, deliberately and in exactly one
-place. Read [the decision](../decisions/2026-07-26-syncthing-public-port.md) before
+place. Read [the decision](../ADR/2026-07-26-syncthing-public-port.md) before
 touching the compose file — the `0.0.0.0` on 22000 is not a mistake to be tidied up.
 
 **Node TB.** Not because TB is the right disk — it isn't, ~2.4k write IOPS against GM's
@@ -50,7 +50,7 @@ volumes:
 No `secrets.env`, so **no `pre_deploy`** on the stack entry. Device IDs and folder
 layout are runtime state in the config volume, not config-as-code — Syncthing has no
 declarative config file worth versioning, and its GUI writes the same file it reads.
-Same call as [Backrest and the alerters](../decisions/2026-07-25-backrest-and-alerters-stay-ui-managed.md).
+Same call as [Backrest and the alerters](../ADR/2026-07-25-backrest-and-alerters-stay-ui-managed.md).
 
 **21027/udp (local discovery) is not published.** Broadcast discovery is meaningless on
 a VPS and would only answer the local subnet.
@@ -59,7 +59,7 @@ a VPS and would only answer the local subnet.
 
 Docker's publish rule opens the host path by itself, so the host firewall needs nothing.
 **Oracle's VCN security list does**, and it is the layer most likely to be forgotten —
-`docs/future.md` already records that the VCN rules have never been read.
+`docs/FUTURE.md` already records that the VCN rules have never been read.
 
 Add ingress on the VCN subnet's security list: `0.0.0.0/0` → TCP 22000 and UDP 22000.
 Then verify from off-network, not from the host:
@@ -68,7 +68,7 @@ Then verify from off-network, not from the host:
 nc -vz 141.253.109.196 22000
 ```
 
-Afterwards `docs/reference.md`'s "Open ports" row reads **TB 80/443/22/22000**. Update it
+Afterwards `docs/REFERENCE.md`'s "Open ports" row reads **TB 80/443/22/22000**. Update it
 in the same commit.
 
 ## 3. Settings — do these in the GUI on first boot, before adding any folder
@@ -112,7 +112,7 @@ mesh address on the TB side and then debug the silence.
 ## 4. Caddy — GUI only, `forward_auth`
 
 Syncthing's GUI has basic auth and no OIDC, so outcome **(b)** per
-[the three auth outcomes](../decisions/2026-07-23-three-auth-outcomes.md). The sync
+[the three auth outcomes](../ADR/2026-07-23-three-auth-outcomes.md). The sync
 protocol does not go through Caddy at all — it is its own TLS on 22000.
 
 ```caddyfile

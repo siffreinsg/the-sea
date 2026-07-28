@@ -28,6 +28,6 @@ around them changed. Reviewed in one pass; most of them stopped making sense.
 
 **Consequence:** `docs/domains/nodes.md` loses four names from the GM column and the
 wishlist shrinks to Paperless-ngx, a habit tracker and a static site. Maintainerr on Sunny
-makes the [deferred Sunny backup question](../future.md) concrete rather than theoretical
+makes the [deferred Sunny backup question](../FUTURE.md) concrete rather than theoretical
 — there is now app state there that only Sunny holds, and Sunny is
 [off the mesh](2026-07-25-sunny-stays-off-the-mesh.md) with no root and no Docker.

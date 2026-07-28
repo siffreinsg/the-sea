@@ -1,7 +1,7 @@
 # Deploys
 
 Komodo Core on TB drives Compose stacks from this repo, over the mesh, onto both Docker
-nodes ([why Komodo and not Kubernetes](../decisions/2026-07-18-komodo-compose-not-kubernetes.md)).
+nodes ([why Komodo and not Kubernetes](../ADR/2026-07-18-komodo-compose-not-kubernetes.md)).
 
 ## Resource sync
 
@@ -62,7 +62,7 @@ sudo chmod 600 .env
 
 ## Updating the control plane
 
-The `komodo` stack is [deliberately not managed by Komodo](../decisions/2026-07-25-komodo-stack-hand-managed.md),
+The `komodo` stack is [deliberately not managed by Komodo](../ADR/2026-07-25-komodo-stack-hand-managed.md),
 so it is the one thing you update by hand, on TB:
 
 ```bash

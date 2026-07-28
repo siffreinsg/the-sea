@@ -1,7 +1,7 @@
 # Ingress and authentication
 
 Caddy on TB is the only process terminating public TLS
-([why](../decisions/2026-07-19-caddy-single-public-edge.md)). Config is a static
+([why](../ADR/2026-07-19-caddy-single-public-edge.md)). Config is a static
 `Caddyfile` in the repo; wildcard certificate via Let's Encrypt DNS-01 against the
 Cloudflare API.
 
@@ -22,12 +22,12 @@ Cloudflare API.
   happened.
 - **The admin API on `127.0.0.1:2019` is unauthenticated read/write config** for any local
   user. `admin off` is not available because Alloy scrapes it; closing it needs a
-  dedicated loopback metrics site first. Tracked in [future](../future.md).
+  dedicated loopback metrics site first. Tracked in [future](../FUTURE.md).
 
 ## Auth outcomes
 
 Every service lands in one of three outcomes, picked by capability
-([the rule](../decisions/2026-07-23-three-auth-outcomes.md)). Authelia's
+([the rule](../ADR/2026-07-23-three-auth-outcomes.md)). Authelia's
 `default_policy` is `two_factor` with **no** per-host rules, so there is no host with a
 weaker policy and none without one.
 
@@ -69,7 +69,7 @@ Two notes on the newest entries:
   a consumer, and every consumer holds a virtual key instead. Same-node callers use
   `the-sea-internal` (`http://litellm:4000`) and do not depend on the public name;
   **cross-node callers do**, there is no mesh bind
-  ([why](../decisions/2026-07-27-cross-node-calls-use-the-public-edge.md)).
+  ([why](../ADR/2026-07-27-cross-node-calls-use-the-public-edge.md)).
   Its client is `require_pkce: false` — fastapi-sso's generic provider sends a verifier but
   the flow isn't worth betting a login on — and `client_secret_basic`, which is what
   fastapi-sso uses. **SSO logins land as a second, non-admin user** — the UI_USERNAME

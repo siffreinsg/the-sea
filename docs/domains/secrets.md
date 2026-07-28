@@ -2,7 +2,7 @@
 
 Encrypted `secrets.*` files are committed; each stack's Komodo `pre_deploy` hook decrypts
 them into place on-node, where the output is gitignored
-([the model](../decisions/2026-07-18-sops-age-secrets-in-git.md)). Decryption needs sudo —
+([the model](../ADR/2026-07-18-sops-age-secrets-in-git.md)). Decryption needs sudo —
 the age key is root-owned, 0600.
 
 ## The rule that keeps the model honest
@@ -65,7 +65,7 @@ find /etc/komodo /var/backups/the-sea -type f \
   Komodo works — meaning **Komodo Core's own authentication is load-bearing for root on
   both nodes**.
 - **Backrest's `config.json` and Komodo's alerters** are deliberately not in git at all —
-  [why, and what that costs at DR time](../decisions/2026-07-25-backrest-and-alerters-stay-ui-managed.md).
+  [why, and what that costs at DR time](../ADR/2026-07-25-backrest-and-alerters-stay-ui-managed.md).
 
 ## Blast radius worth knowing
 

@@ -1,25 +1,17 @@
-# The Sea — Future / Deferred
+# Future
 
-Not part of the foundation. Revisit after the foundation is running.
+Ideas and deferred questions, not on deck. Anything with a named phase and domain lives in
+[TODO.md](TODO.md); anything with a *how* is a plan in [plans/](plans/).
 
 ## Deferred decisions
 
+- Rework the Claude Code setup — Superpowers burns all the tokens. Rewrite the skills by hand.
 - **Sunny backups** — decide whether app configs/DBs on Ultra.cc are worth backing up (restic + rclone binaries in userspace) or nothing at all.
 - **Baratie** — join the mesh; fold HAOS backups into Backrest.
-- **Security — open from the 2026-07 node reviews**, in rough priority order:
-  - **Narrow the `your_spotify` `/api/*` edge bypass** (plan:
-    `docs/plans/2026-07-26-your-spotify-api-bypass.md`). Until it lands,
-    `allowRegistrations: false` is the only thing stopping public account creation and
-    **must stay off**.
-  - **Caddy admin API** is still open read/write on loopback (plan:
-    `docs/plans/2026-07-25-caddy-admin-off.md`).
-  - **GM container least-privilege is capped by the OpenVZ kernel** — no AppArmor, no
-    userns-remap, seccomp active. Accepted, not fixable there.
-  - **`profilarr` OIDC client has `require_pkce: false`** (deliberate, confidential
-    client, `client_secret_post`); revisit if Profilarr gains support.
-  - **Never scanned from off-network.** Hairpin NAT against `141.253.109.196` showed only
-    80/443/22, and GM only 4747, but a source-conditional rule wouldn't show up that way.
-    Also unread: the Oracle VCN security list, so it's unknown which layer closes what.
+- **Security, accepted rather than fixed:** GM container least-privilege is capped by the
+  OpenVZ kernel (no AppArmor, no userns-remap, seccomp active); `profilarr`'s OIDC client
+  has `require_pkce: false` (deliberate, confidential client, `client_secret_post`) —
+  revisit if Profilarr gains support.
 - **Sunny / Baratie collectors** — a userspace Alloy binary on Sunny, HAOS
   Prometheus add-on or mesh scrape for Baratie; both push to VM/Loki on **GM**
   (`100.64.0.1`). **This is the only thing that would justify putting Sunny on the
@@ -56,6 +48,10 @@ Not part of the foundation. Revisit after the foundation is running.
   creation, Telegram bot.
 - **n8n automations for Radarr/Sonarr** — on Radarr, switch anime to the right quality
   profile; on Sonarr/Seerr, route anime requests to the correct Sonarr instance.
+- **Grafana access to the conversation archive.** 180 days of conversations sit in
+  `LiteLLM_SpendLogs`; Tempo only covers 14. Reading them from Grafana needs a mesh-published
+  port on a Postgres that deliberately has none, plus a read-only role. Security decision,
+  not a slip-in.
 - Explore s3drive as an alternative to reach Proton Drive. Useful for S3-compatible access too.
 - **Narrow the duplicate alerting.** Grafana (Telegram) and Komodo (Discord) overlap, so
   some alerts arrive twice; neither side has been narrowed.
@@ -64,7 +60,7 @@ Not part of the foundation. Revisit after the foundation is running.
 
 Concrete candidate in parens where decided. Anything with a live plan is in `docs/plans/`,
 not here; anything dropped is in
-[one decision](decisions/2026-07-26-wishlist-tools-dropped.md) — except LangFuse, dropped
+[one decision](ADR/2026-07-26-wishlist-tools-dropped.md) — except LangFuse, dropped
 because Grafana/Loki already covers LLM logging.
 
 - **Forgejo Actions runner** — deferred out of the Forgejo plan, not dropped. It needs a
@@ -77,10 +73,8 @@ because Grafana/Loki already covers LLM logging.
   Dataview) pointed at the vault dir, which pins it to **TB** beside Syncthing.
   obsidian-remote gives real Obsidian at the cost of a whole VNC desktop.
 
-- PDF management (Paperless-ngx) — plan: `docs/plans/2026-07-26-paperless-ngx.md`.
-  Blocked on Syncthing.
 - **Habit tracker — no tool chosen.** Beaverhabits is out
-  ([the decision, reopened](decisions/2026-07-25-beaverhabits-not-habitica.md)) and nothing
+  ([the decision, reopened](ADR/2026-07-25-beaverhabits-not-habitica.md)) and nothing
   replaces it. Pick the tool before writing a plan.
 - Static site — too underspecified to plan. Decide what the site *is* first.
 - Open Terminal for Open WebUI — needs Open-WebUI live first.
