@@ -2,7 +2,7 @@
 
 Consistent logical dumps of every live database, feeding the Backrest plans. A host
 systemd timer per node rather than an in-stack sidecar
-([why](../decisions/2026-07-21-dumps-via-host-systemd-timer.md)).
+([why](../ADR/2026-07-21-dumps-via-host-systemd-timer.md)).
 
 **Each service owns its dump.** `run.sh` globs `<node>/*/backup.sh` and runs each, so
 adding a stateful service means dropping a `backup.sh` in its directory — nothing here to
@@ -40,6 +40,7 @@ sudo systemctl start the-sea-dumps.service
 systemctl status the-sea-dumps.service --no-pager   # want inactive (dead), status=0
 ls -l /var/backups/the-sea/dumps/                   # all files present, non-trivial, 0600
 systemctl list-timers the-sea-dumps.timer           # next run 03:00 UTC
+sudo journalctl -u the-sea-dumps.service -n 30
 ```
 
 `run.sh` exits non-zero if any single dump fails, so the unit's state is the signal. Keep
