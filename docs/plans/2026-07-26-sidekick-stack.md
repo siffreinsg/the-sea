@@ -1,6 +1,6 @@
 # Sidekick stack — the six containers the config review needs
 
-**Status: steps 0-1 landed (Mistral key, Tika), step 2 dropped; 3-6 open.** Delete this file once
+**Status: steps 0, 1, 5 landed; step 2 dropped; 3, 4, 6 open.** Delete this file once
 the rest lands. Open items are tracked in [`../TODO.md`](../TODO.md).
 
 Decisions and rationale are in

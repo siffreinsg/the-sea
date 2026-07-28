@@ -10,7 +10,7 @@ its plan in [plans/](plans/) once work starts.
 Build order and verification commands: [plan](plans/2026-07-26-sidekick-stack.md)
 
 - [x] Tika (TB). Reranking dropped after measurement — [why](ADR/2026-07-28-no-reranking.md)
-- [ ] Postgres cutover — **Open-WebUI is down until this lands**, do first
+- [x] Postgres cutover, one database per app, Open-WebUI on v0.11.0
 - [ ] SearXNG on GM — `json` must be in `settings.yml` `search.formats`
 - [ ] Firecrawl (API + Redis + Playwright) on GM — must answer `/v2/scrape`
 - [ ] Per-key budgets on the LiteLLM keys
