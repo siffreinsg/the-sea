@@ -76,7 +76,4 @@ is the only node that can hold a
 [public listener](../ADR/2026-07-26-syncthing-public-port.md). **Wallos** is on TB
 because it is financial data, not because of its load.
 
-Placement intent, not deployment status — what is live is in `docs/HANDOFF.md` and
-[`docs/plans/`](../plans/). **Code-Server is
-[dropped](../ADR/2026-07-23-code-server-dropped.md)**, not deferred.
-nginx-proxy-manager, portainer and diun are superseded by Caddy and Komodo.
+Placement intent, not deployment status.
