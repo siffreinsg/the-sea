@@ -16,7 +16,8 @@ by **who consumes the service**, not by how many containers it takes.
   it, and it is per-node.
 - **Databases are always private**, one per app, inside the app's stack
   ([why](../ADR/2026-07-28-one-database-per-app.md)). No `the-sea-internal`, no host port.
-  Never name a second one `postgres` — the short name is taken on that network.
+  Name it `<app>-db`, never `postgres` — several stacks would otherwise publish the same
+  short name and DNS on a shared network becomes ambiguous.
 
 The point is blast radius. Redeploying Open-WebUI must not restart the model proxy that
 n8n is using; nothing is gained by restarting Loki without Grafana.

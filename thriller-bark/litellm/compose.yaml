@@ -23,7 +23,7 @@ services:
     volumes:
       - ./config.yaml:/app/config.yaml:ro
     depends_on:
-      postgres:
+      litellm-db:
         condition: service_healthy
     networks:
       - default
@@ -44,9 +44,12 @@ services:
   # in its own stack now. Left as-is deliberately: swapping to a plain postgres image means
   # a glibc-to-musl move on an already-initialised data directory, which changes collation.
   # A smaller pull is not worth a dump and restore.
-  postgres:
+  #
+  # The volume keeps the `litellm_postgres-data` name from when this service was called
+  # `postgres`. Renaming it would mean a dump and restore for cosmetics.
+  litellm-db:
     image: pgvector/pgvector:0.8.5-pg17
-    container_name: postgres
+    container_name: litellm-db
     restart: unless-stopped
     # One .env for both services, so this container also sees LITELLM_SALT_KEY and the
     # Scaleway key. Deliberate — a second secrets file to keep in sync is worse than a

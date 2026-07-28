@@ -22,5 +22,5 @@ Consequences:
 - Two `pg_dump` targets rather than one. `backups/run.sh` currently has neither.
 - LiteLLM's database keeps the pgvector image and the `litellm_` volume prefix. Historical,
   and not worth a dump to rename.
-- A second database name must never be `postgres`; the short name is already taken on
-  `the-sea-internal`.
+- Databases are named `<app>-db`, never `postgres`, so no two stacks publish the same short
+  name. Renaming LiteLLM's means its `DATABASE_URL` host changes with it.
