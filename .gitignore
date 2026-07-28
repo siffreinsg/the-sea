@@ -2,6 +2,10 @@
 *.dec
 *.env.plain
 .env
+# On-the-fly sops decryption from the editor, written next to the encrypted file.
+# No leading slash, so both match at any depth.
+.decrypted~*
+*.decrypted
 rclone.conf
 users_database.yml
 oidc.yml
