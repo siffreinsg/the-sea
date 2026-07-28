@@ -114,7 +114,7 @@ layer, not feature exploration.
 | `ui_access_mode` | `admin_only` | **defaults `"all"`** on a publicly-resolvable UI |
 | `allowed_routes` / `enable_public_model_hub` | left open | every consumer is ours; narrowing breaks new ones with confusing 404s |
 | `json_logs` | `true` | Loki can query by field instead of grepping |
-| `database_connection_pool_limit` | set, sized alongside Open-WebUI's 10+5 | shared Postgres |
+| `database_connection_pool_limit` | set | its own Postgres now, not shared |
 | `turn_off_message_logging` | stays `False` | the conversation archive depends on it |
 | `redact_user_api_key_info` | stays `False` | per-key attribution is the point of virtual keys |
 

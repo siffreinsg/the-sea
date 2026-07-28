@@ -14,11 +14,40 @@ services:
       - "127.0.0.1:3020:8080"
     volumes:
       - open-webui-data:/app/backend/data
+    depends_on:
+      open-webui-db:
+        condition: service_healthy
     networks:
+      - default
       - the-sea-internal
+
+  # Open-WebUI's own database, private to this stack: one database per app
+  # ([why](../../docs/ADR/2026-07-28-one-database-per-app.md)). pgvector because this is
+  # also the vector store — PGVECTOR_DB_URL is unset in config.env so it inherits
+  # DATABASE_URL, which points here.
+  #
+  # Not named `postgres`: LiteLLM's database answers to that name and this container is on
+  # `the-sea-internal` too, so the short name would be ambiguous. No `ports:` — the only
+  # consumer is in this stack, on its default network.
+  open-webui-db:
+    image: pgvector/pgvector:0.8.5-pg17
+    container_name: open-webui-db
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - open-webui-db-data:/var/lib/postgresql/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openwebui -d openwebui"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   open-webui-data:
+  open-webui-db-data:
 
 networks:
   the-sea-internal:

@@ -3,6 +3,24 @@
 Komodo Core on TB drives Compose stacks from this repo, over the mesh, onto both Docker
 nodes ([why Komodo and not Kubernetes](../ADR/2026-07-18-komodo-compose-not-kubernetes.md)).
 
+## What belongs in one stack
+
+A stack is one ship dir, one `compose.yaml`, one redeploy. What goes inside it is decided
+by **who consumes the service**, not by how many containers it takes.
+
+- **Private dependency → same stack.** A database, cache or worker that exists only to
+  serve one app ships with it. Dawarich's Postgres, Redis and Sidekiq; your_spotify's
+  Mongo; Grafana with VictoriaMetrics, Loki and Tempo.
+- **Consumed by more than one app → own stack**, joined by `the-sea-internal` and reached
+  by service name. LiteLLM, Tika. Alloy is separate for the same reason: every stack feeds
+  it, and it is per-node.
+- **Databases are always private**, one per app, inside the app's stack
+  ([why](../ADR/2026-07-28-one-database-per-app.md)). No `the-sea-internal`, no host port.
+  Never name a second one `postgres` — the short name is taken on that network.
+
+The point is blast radius. Redeploying Open-WebUI must not restart the model proxy that
+n8n is using; nothing is gained by restarting Loki without Grafana.
+
 ## Resource sync
 
 - The sync declares **stacks and repos, not servers** — servers come from Periphery

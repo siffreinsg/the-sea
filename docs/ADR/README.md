@@ -10,9 +10,10 @@ New decision = new dated file + one row here.
 
 | Date | Decision | Status |
 |---|---|---|
+| 2026-07-28 | [One database per app, inside the app's stack](2026-07-28-one-database-per-app.md) | Accepted |
 | 2026-07-28 | [RAG uses no reranker](2026-07-28-no-reranking.md) | Accepted |
 | 2026-07-27 | [GM→TB service calls go through the public edge, not the mesh](2026-07-27-cross-node-calls-use-the-public-edge.md) | Accepted |
-| 2026-07-27 | [The fleet's Postgres runs on Thriller Bark, against the placement rule](2026-07-27-postgres-on-thriller-bark.md) | Accepted |
+| 2026-07-27 | [The fleet's Postgres runs on Thriller Bark, against the placement rule](2026-07-27-postgres-on-thriller-bark.md) | Superseded |
 | 2026-07-26 | [Open-WebUI is configured as code, not through its Admin UI](2026-07-26-open-webui-config-as-code.md) | Accepted |
 | 2026-07-26 | [Six wishlist tools dropped, one moved to Sunny](2026-07-26-wishlist-tools-dropped.md) | Accepted |
 | 2026-07-26 | [Syncthing gets a public port, the one exception to the bind rule](2026-07-26-syncthing-public-port.md) | Accepted |

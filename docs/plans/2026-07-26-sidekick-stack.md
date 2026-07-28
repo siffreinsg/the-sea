@@ -7,8 +7,9 @@ Decisions and rationale are in
 [`2026-07-26-ai-platform-config-review.md`](2026-07-26-ai-platform-config-review.md).
 This file is the build order. `thriller-bark/open-webui/config.env` and
 `thriller-bark/litellm/config.yaml` are already written and reference these services, so
-**Open-WebUI will boot but RAG and web search will fail until they exist**. Build in this
-order; nothing here depends on a later step.
+**web search fails until they exist** — and Open-WebUI does not boot at all until step 5,
+because its `VECTOR_DB=pgvector` landed ahead of its `DATABASE_URL`. Step 5 first, then the
+rest in any order.
 
 Mesh IPs: TB `100.64.0.2`, GM `100.64.0.1`. Follow
 [`add-a-service`](../runbooks/add-a-service.md) for each ship dir.
@@ -89,23 +90,44 @@ retrieval is hybrid search alone and `RAG_TOP_K` is 8 rather than 40:
 
 ## 5. Postgres cutover — TB
 
-Do this **last**: it is the only destructive step.
+**No longer last, and no longer optional.** `VECTOR_DB=pgvector` is already in `config.env`
+while `DATABASE_URL` was deferred to this step, so Open-WebUI raises at import
+(`config.py:640`) and will not boot until this lands. Any restart since that config landed
+would have hit it.
+
+Open-WebUI now has [its own database](../ADR/2026-07-28-one-database-per-app.md) in its own
+stack, so there is no role to create by hand — the `open-webui-db` container creates them
+from `POSTGRES_USER`/`POSTGRES_DB` on first boot.
 
 1. Backrest snapshot of `open-webui-data` first, so the discard is reversible for a while.
-2. Create role and database (`openwebui`), and confirm `CREATE EXTENSION vector` works —
-   the image is already `pgvector/pgvector:0.8.5-pg17`.
-3. `DATABASE_URL` into `open-webui/secrets.env` via sops.
-4. **Wipe and recreate the `open-webui-data` volume.** History is deliberately dropped;
-   conversations survive as raw prompt/response in `LiteLLM_SpendLogs` for 180 days.
-5. `ENABLE_OAUTH_SIGNUP=True`, redeploy, log in once through Authelia — the first user is
+2. Four values into `open-webui/secrets.env` via sops. `POSTGRES_USER` and `POSTGRES_DB`
+   must both be `openwebui` or the healthcheck never passes and `depends_on` never
+   satisfies:
+
+   ```
+   POSTGRES_USER=openwebui
+   POSTGRES_DB=openwebui
+   POSTGRES_PASSWORD=<new>
+   DATABASE_URL=postgresql://openwebui:<same>@open-webui-db:5432/openwebui
+   ```
+
+3. **Wipe and recreate the `open-webui-data` volume.** History is deliberately dropped —
+   Open-WebUI does not migrate SQLite to Postgres, so pointing at an empty database is a
+   fresh install either way and the old SQLite file would just sit there orphaned.
+   Conversations survive as raw prompt/response in `LiteLLM_SpendLogs` for 180 days.
+4. `ENABLE_OAUTH_SIGNUP=True`, redeploy, log in once through Authelia — the first user is
    promoted to admin (`utils/oauth.py:1923`) — then set it back to `False` and redeploy.
-6. Confirm `PGVECTOR_INITIALIZE_MAX_VECTOR_LENGTH=3584` and `PGVECTOR_USE_HALFVEC=True` are
-   live **before uploading a single document**. Wrong here means dropping the index and
-   re-embedding the whole corpus at Scaleway's rate. A wrong length cannot boot silently —
-   `config.py:647` raises — but a missing `halfvec` with a *lower* length would index
-   happily and mismatch bge.
-7. Verify the index type actually chosen:
+5. Confirm `PGVECTOR_INITIALIZE_MAX_VECTOR_LENGTH=3584` and `PGVECTOR_USE_HALFVEC=True` are
+   live **before uploading a single document**. This boot is what creates the vector
+   tables, so it is the moment the choice is committed. Wrong here means dropping the index
+   and re-embedding the whole corpus at Scaleway's rate. A wrong length cannot boot
+   silently — `config.py:647` raises — but a missing `halfvec` with a *lower* length would
+   index happily and mismatch bge.
+6. Verify the index type actually chosen:
    `\d+ document_chunk` in psql should show an **hnsw** index on a `halfvec` column.
+7. Then upload one PDF and ask a question against it. That is the only check that Tika
+   parses end to end and that hybrid search returns results with no reranker in the chain.
+   If it comes back empty, `ENABLE_RAG_HYBRID_SEARCH=False`.
 
 ## 6. Virtual keys — per-key budgets
 
@@ -130,7 +152,7 @@ symptom is a user seeing errors.
 | Secret | File | Needed by |
 |---|---|---|
 | `MISTRAL_API_KEY` | `litellm/secrets.env` | step 0, the `task-cheap` free tier |
-| `DATABASE_URL` | `open-webui/secrets.env` | step 5, Postgres cutover |
+| `POSTGRES_USER` / `POSTGRES_DB` / `POSTGRES_PASSWORD` / `DATABASE_URL` | `open-webui/secrets.env` | step 5 — Open-WebUI is down until these land |
 | `FIRECRAWL_API_KEY` | `open-webui/secrets.env` | step 4 — whatever the self-hosted instance is configured with |
 
 `FIRECRAWL_API_KEY` is referenced by a comment in `config.env` and is easy to skip; it

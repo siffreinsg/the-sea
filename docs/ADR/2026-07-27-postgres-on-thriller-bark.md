@@ -1,6 +1,9 @@
 # The fleet's Postgres runs on Thriller Bark, against the placement rule
 
-**2026-07-27 · Accepted**
+**2026-07-27 · Superseded by [one database per app](2026-07-28-one-database-per-app.md)**
+
+The placement half stands: databases run on TB, with their consumers. Only the single
+shared server is reversed.
 
 Reverses the "no database" half of the LiteLLM plan, and the "Postgres belongs on GM"
 assumption in the AI-platform roadmap.

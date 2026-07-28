@@ -35,10 +35,15 @@ services:
       retries: 3
       start_period: 60s
 
-  # Not just LiteLLM's: this is the fleet's Postgres, and Phase 4's pgvector store.
-  # The pgvector image from day one so Open-WebUI's vector store needs no migration.
-  # No `ports:` on purpose — every consumer is on the-sea-internal, so there is
-  # nothing to bind and the bind rule is satisfied by having no host port at all.
+  # LiteLLM's own database and nothing else's: virtual keys and the spend log. One database
+  # per app ([why](../../docs/ADR/2026-07-28-one-database-per-app.md)), so this is off
+  # `the-sea-internal` — the only consumer is `litellm`, on this stack's default network.
+  # No `ports:`, so the bind rule is satisfied by having no host port at all.
+  #
+  # The pgvector image is historical — nothing here stores vectors, Open-WebUI's store is
+  # in its own stack now. Left as-is deliberately: swapping to a plain postgres image means
+  # a glibc-to-musl move on an already-initialised data directory, which changes collation.
+  # A smaller pull is not worth a dump and restore.
   postgres:
     image: pgvector/pgvector:0.8.5-pg17
     container_name: postgres
@@ -51,7 +56,6 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - default
-      - the-sea-internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
       interval: 10s
