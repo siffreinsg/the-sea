@@ -26,15 +26,6 @@ credential_list:
     credential_info:
       description: Mistral La Plateforme, free tier
 
-  # Self-hosted cross-encoder on GM. No api_key that means anything — Infinity has no auth
-  # — but LiteLLM requires the field, so it carries a placeholder.
-  - credential_name: infinity
-    credential_values:
-      api_key: none
-      api_base: http://100.64.0.1:7997/v1
-    credential_info:
-      description: Infinity reranker on Going Merry
-
 model_list:
   # --- chat ---------------------------------------------------------------------------
   # Cheap and fast. This is also Open-WebUI's TASK_MODEL_EXTERNAL.
@@ -176,27 +167,8 @@ model_list:
   # the task calls to Scaleway while free quota was still available. One deployment plus a
   # fallback is what actually means "free first, paid only when the quota is spent".
 
-  # --- reranking ------------------------------------------------------------------------
-  # Infinity on GM serving BAAI/bge-reranker-v2-m3, a real cross-encoder. Open-WebUI points
-  # RAG_EXTERNAL_RERANKER_URL at this proxy rather than at Infinity directly, so reranking
-  # inherits the same virtual key, spend log and trace as every other call.
-  #
-  # Not Scaleway's /v1/rerank: that serves qwen3-embedding-8b, and Scaleway's own docs state
-  # it is equivalent to cosine similarity on normalised vectors — which is exactly what
-  # Open-WebUI already does with no reranker at all. It would have been a network hop and a
-  # bill for nothing.
-  #
-  # LiteLLM's `infinity/` provider appends /rerank to api_base
-  # (llms/infinity/rerank/transformation.py:38). **Curl this before trusting it** — the
-  # response-shape transformation is unverified against a real Infinity build.
-  - model_name: bge-reranker-v2-m3
-    litellm_params:
-      model: infinity/BAAI/bge-reranker-v2-m3
-      litellm_credential_name: infinity
-    model_info:
-      mode: rerank
-      input_cost_per_token: 0.0
-      output_cost_per_token: 0.0
+  # No reranking model: retrieval is cosine + BM25 only
+  # ([why](../../docs/ADR/2026-07-28-no-reranking.md)).
 
   # --- audio --------------------------------------------------------------------------
   # Whisper, not voxtral: this is the /v1/audio/transcriptions model, which is what

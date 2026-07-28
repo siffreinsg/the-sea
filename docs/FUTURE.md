@@ -99,9 +99,6 @@ Landed in `docs/plans/2026-07-26-ai-platform-config-review.md`; these outlive it
   caches into `TIKTOKEN_CACHE_DIR` inside the volume. Fine here; **a blocker for an
   air-gapped company deployment**, which would have to pre-seed the cache or use the
   character splitter.
-- **Reranker latency is unmeasured.** A CPU cross-encoder on GM's Xeon E5-2670, over
-  `RAG_TOP_K=40` pairs, on every RAG turn. `RAG_RERANKING_BATCH_SIZE` (default 32) and
-  `RAG_TOP_K` are the knobs.
 - **Free-tier exhaustion is handled by the 429, not by a rate limit.** Mistral's free
   tier moves with global platform load, so no static `rpm`/`tpm` can track it. Fallback
   to paid Scaleway is driven by `retry_policy.RateLimitErrorRetries: 1`. Because

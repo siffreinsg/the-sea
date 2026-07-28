@@ -1,6 +1,6 @@
 # Sidekick stack — the six containers the config review needs
 
-**Status: steps 0-2 landed (Mistral key, Tika, Infinity); 3-6 open.** Delete this file once
+**Status: steps 0-1 landed (Mistral key, Tika), step 2 dropped; 3-6 open.** Delete this file once
 the rest lands. Open items are tracked in [`../TODO.md`](../TODO.md).
 
 Decisions and rationale are in
@@ -49,33 +49,11 @@ and why main chat has no free-tier fallback.
 - Verify: `docker exec open-webui curl -fsS http://tika:9998/tika` returns the version
   banner, then upload a PDF and confirm text lands in `document_chunk`.
 
-## 2. Infinity reranker — GM
+## 2. Reranker — dropped
 
-- Serves `BAAI/bge-reranker-v2-m3` — a real cross-encoder, unlike Scaleway's `/v1/rerank`.
-- Ship dir `going-merry/infinity/`, bound to `100.64.0.1:7997` so TB's LiteLLM can reach it
-  over the mesh. No public route.
-- x86 only in practice, which is why it is on GM rather than TB.
-- **Verify before trusting the LiteLLM entry** — this is the exact failure the last session
-  recorded (config written from a type file, not live output):
-
-  ```
-  # against Infinity directly
-  curl -s http://100.64.0.1:7997/v1/rerank \
-    -H 'Content-Type: application/json' \
-    -d '{"model":"BAAI/bge-reranker-v2-m3","query":"capital of France",
-         "documents":["Paris is the capital.","Bananas are yellow."]}' | jq
-
-  # then through LiteLLM, which must return the same ordering
-  curl -s http://127.0.0.1:4000/v1/rerank \
-    -H "Authorization: Bearer $VIRTUAL_KEY" -H 'Content-Type: application/json' \
-    -d '{"model":"bge-reranker-v2-m3","query":"capital of France",
-         "documents":["Paris is the capital.","Bananas are yellow."]}' | jq
-  ```
-
-- Then measure latency at `RAG_TOP_K=40`. GM's Xeon E5-2670 is weak per core and this is a
-  CPU cross-encoder over 40 pairs of ~800-token chunks on **every** RAG turn. If it hurts,
-  turn `RAG_RERANKING_BATCH_SIZE` (default 32) or drop `RAG_TOP_K` — both are cheap to
-  change, unlike the vector dimension.
+Deployed, measured, removed. A CPU cross-encoder is far too slow on this hardware, so
+retrieval is hybrid search alone and `RAG_TOP_K` is 8 rather than 40:
+[why](../ADR/2026-07-28-no-reranking.md). Nothing left to build.
 
 ## 3. SearXNG — GM
 
@@ -153,11 +131,10 @@ symptom is a user seeing errors.
 |---|---|---|
 | `MISTRAL_API_KEY` | `litellm/secrets.env` | step 0, the `task-cheap` free tier |
 | `DATABASE_URL` | `open-webui/secrets.env` | step 5, Postgres cutover |
-| `RAG_EXTERNAL_RERANKER_API_KEY` | `open-webui/secrets.env` | step 2 — the same LiteLLM virtual key as `OPENAI_API_KEY` |
 | `FIRECRAWL_API_KEY` | `open-webui/secrets.env` | step 4 — whatever the self-hosted instance is configured with |
 
-The last two are referenced by comments in `config.env` and are easy to skip; both fail at
-first use as an auth error rather than at boot.
+`FIRECRAWL_API_KEY` is referenced by a comment in `config.env` and is easy to skip; it
+fails at first use as an auth error rather than at boot.
 
 ## After it all lands
 
@@ -166,6 +143,5 @@ first use as an auth error rather than at boot.
   SQLite file into every snapshot.
 - Alloy: `otelcol.processor.filter "noise"` still has untuned Open-WebUI browser polling —
   read the routes off a real trace now that there is traffic worth tracing.
-- Grafana: nothing new is required, but the reranker and Tika are two more things whose
-  failure is currently invisible.
+- Grafana: nothing new is required, but Tika's failure is currently invisible.
 - Delete this file and the config-review plan once both are done.
