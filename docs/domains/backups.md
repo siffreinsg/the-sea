@@ -24,9 +24,13 @@ in Backrest's UI, not the host's `/var/backups/the-sea`.
 
 The **LiteLLM Postgres** is on TB and holds virtual keys and spend logs — secrets
 material, hence critical rather than bulk, even though it sits in the same dumps directory
-the bulk plan sweeps wholesale. Its dump also covers Open-WebUI's pgvector store from
-Phase 4 onward: it is `pg_dumpall`, not a single database. **Open-WebUI's own SQLite
-volume is bulk** — chat history is not critical data.
+the bulk plan sweeps wholesale. It covers LiteLLM only; databases are
+[one per app](../ADR/2026-07-28-one-database-per-app.md), so **Open-WebUI dumps its own**
+(`open-webui-postgres.sql.gz`) and that one is bulk — chat history is not secrets material.
+Nothing to add in Backrest for it: the bulk plan sweeps the dumps directory wholesale.
+
+Since the Postgres cutover, Open-WebUI's `open-webui-data` volume no longer holds the chat
+history — it is uploaded files only, and the database dump is what matters.
 
 `/userdata/headscale` and `/userdata/komodo-keys` are **volume** sources, in both TB plans,
 not dumps. Headscale's is not redundant with `headscale/backup.sh`: the dump covers
