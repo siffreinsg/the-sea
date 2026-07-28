@@ -3,27 +3,39 @@
 Four ships, one repo. Komodo pulls this repo onto each node and runs the compose stacks;
 Caddy on Thriller Bark is the only public door.
 
+**Request path** — one door, two backends. TB is loopback, GM is over the mesh.
+
 ```mermaid
 flowchart LR
   user([Internet]) -->|443| caddy[Caddy · TB]
-  caddy --> authelia[Authelia · TB]
-  caddy --> tb_apps[TB stacks]
-  caddy --> gm_apps[GM stacks]
-  caddy --> sunny[Sunny apps · Ultra.cc]
-  baratie[Baratie · HAOS] -.->|off the mesh, LAN only| user
-
-  repo[(this repo)] --> komodo[Komodo Core · TB]
-  komodo -->|Periphery| tb_apps
-  komodo -->|Periphery over mesh| gm_apps
-
-  tb_apps --> alloy_tb[Alloy · TB]
-  gm_apps --> alloy_gm[Alloy · GM]
-  alloy_tb & alloy_gm -->|mesh| obs[VM · Loki · Tempo · Grafana · GM]
-  tb_apps & gm_apps --> backrest[Backrest → restic → Proton/Mega]
+  caddy <-->|forward_auth · OIDC| authelia[Authelia · TB]
+  caddy -->|127.0.0.1| tb[TB stacks]
+  caddy -->|mesh| gm[GM stacks]
 ```
 
-Sunny and Baratie run no Docker and no collector; they are reached over their own public
-HTTPS/SSH and are outside the mesh.
+**Deploy path** — the repo is the source, Komodo Core the only thing that acts on it.
+
+```mermaid
+flowchart LR
+  repo[(this repo)] --> komodo[Komodo Core · TB]
+  komodo -->|Periphery| tb[TB stacks]
+  komodo -->|Periphery over mesh| gm[GM stacks]
+```
+
+**Telemetry and backups** — apps are passive in both, they are read and scraped.
+
+```mermaid
+flowchart LR
+  tb[TB stacks] --> alloy_tb[Alloy · TB]
+  gm[GM stacks] --> alloy_gm[Alloy · GM]
+  alloy_tb & alloy_gm -->|mesh| obs[Observability · GM]
+  backrest[Backrest] -->|reads volumes| tb & gm
+  backrest -->|restic| off[Proton · Mega]
+```
+
+Sunny and Baratie appear in none of the three. They run no Docker and no collector and are
+outside the mesh; Sunny's apps serve on their own Ultra.cc hostnames, and the edge holds
+one 302 redirect to them. Sunny joins the diagrams when it joins the infra.
 
 | Layer | Doc | What it owns |
 |---|---|---|
@@ -42,9 +54,10 @@ Constants live in [REFERENCE.md](REFERENCE.md), decisions in [ADR/](ADR/), proce
 
 - Services bind `127.0.0.1` on TB and `100.64.0.1` on GM, never `0.0.0.0`
   ([why](ADR/2026-07-19-services-bind-private-addresses.md)).
-- Cross-node service calls go through the public edge, not the mesh
-  ([why](ADR/2026-07-27-cross-node-calls-use-the-public-edge.md)).
-- The mesh carries Komodo Periphery and observability only; Sunny is not on it
+- Cross-node calls **between apps** go through the public edge, not the mesh
+  ([why](ADR/2026-07-27-cross-node-calls-use-the-public-edge.md)). Infrastructure is the
+  exception and uses the mesh directly: Caddy reverse-proxying GM, Komodo Periphery, Alloy.
+- The mesh carries that infrastructure only, never app traffic; Sunny is not on it at all
   ([why](ADR/2026-07-25-sunny-stays-off-the-mesh.md)).
 - Placement follows the benchmarks: TB is the workhorse, GM is light and legacy
   ([why](ADR/2026-07-22-placement-follows-benchmarks.md)).
