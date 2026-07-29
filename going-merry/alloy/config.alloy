@@ -48,6 +48,25 @@ prometheus.scrape "containers" {
   forward_to = [prometheus.relabel.add_node.receiver]
 }
 
+// ---- searxng engine health ----
+// Per-engine reliability and latency. cadvisor cannot see this: an engine that gets
+// Cloudflare-banned keeps the container healthy and just stops returning results.
+//
+// The target is the mesh IP, not 127.0.0.1 as the add-a-service template shows — SearXNG
+// publishes on 100.64.0.1 only, per the bind rule. Alloy is network_mode: host so it
+// reaches it directly.
+//
+// /metrics needs HTTP basic auth (webapp.py:1163 compares the password and 401s), and
+// SearXNG ignores the username. There is no unauthenticated mode: no password means 404.
+prometheus.scrape "searxng" {
+  targets    = [{ __address__ = "100.64.0.1:8080", job = "searxng" }]
+  forward_to = [prometheus.relabel.add_node.receiver]
+  basic_auth {
+    username = "alloy"
+    password = sys.env("SEARXNG_OPEN_METRICS_PASSWORD")
+  }
+}
+
 // ---- docker logs ----
 discovery.docker "local" {
   host = "unix:///var/run/docker.sock"
