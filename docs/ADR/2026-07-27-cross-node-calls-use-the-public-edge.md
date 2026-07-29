@@ -1,6 +1,10 @@
 # GM→TB service calls go through the public edge, not the mesh
 
-**2026-07-27 · Accepted**
+**2026-07-27 · Superseded by [2026-07-29](2026-07-29-caddy-relays-mesh-services-to-containers.md)**
+
+The public edge is still one of the two sanctioned paths, and everything below still
+describes why. What changed: it only applies when the callee authenticates itself. A callee
+with no auth of its own is reached through a non-public Caddy listener instead.
 
 `networking.md` states *"containers must not reach the tailnet"* as a fleet property, but
 `the-sea-mesh-guard.service` runs on **TB only**. GM's bridged containers can reach

@@ -63,11 +63,30 @@ traffic in **raw/PREROUTING**. The chain choice is not incidental and neither is
 
 **The guard is installed on TB only — GM has no `firewall/` dir and its bridged containers
 can still reach `100.64.0.0/10`.** That is a known gap, not an oversight: the threat is a
-user-code engine and the only one (n8n) is on TB. It stays fixable because
-[cross-node app calls go through the public edge](../ADR/2026-07-27-cross-node-calls-use-the-public-edge.md),
-so no GM container needs the mesh and a copy of the unit can land there whenever we want
-it. The mesh is for `network_mode: host` infrastructure — Alloy, Caddy, Komodo — which the
-guard does not touch.
+user-code engine and the only one (n8n) is on TB. It stays fixable because no GM container
+needs the mesh, so a copy of the unit can land there whenever we want it. The mesh is for
+`network_mode: host` infrastructure — Alloy, Caddy, Komodo — which the guard does not touch.
+
+### Reaching a GM service from a TB container
+
+The guard means a bridged container cannot dial `100.64.0.1` at all. Two sanctioned paths,
+picked by whether the callee can authenticate itself
+([decision](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)):
+
+| Callee | Path |
+|---|---|
+| Has its own auth (LiteLLM virtual keys) | public edge, `https://<app>.siffreinsigy.me` |
+| Has none (SearXNG, Firecrawl) | Caddy relay listener, outside the wildcard site |
+
+The relay is a plain `reverse_proxy` on its own port in `thriller-bark/caddy/Caddyfile`:
+`:8090` → SearXNG, `:8091` → Firecrawl (reserved). Callers use
+`http://host.docker.internal:<port>` with `extra_hosts: host-gateway`, never a literal
+gateway IP. Caddy is `network_mode: host`, so the hop to GM is the host's traffic and the
+guard never sees it — the same shape as [OTLP to Alloy](observability.md).
+
+These listeners bind `0.0.0.0`, the **third** exception to the bind rule, for the reason
+Alloy's OTLP receiver has the same one: senders sit on two different bridges and gateway
+IPs change when a network is recreated. The perimeter firewall is the gate.
 
 ## DNS
 

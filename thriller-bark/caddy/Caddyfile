@@ -123,3 +123,27 @@
 overseerr.blackpearl.siffreinsigy.me {
 	redir https://seerr-thousandsunny.fox.usbx.me{uri} 302
 }
+
+# --- mesh relay ---------------------------------------------------------------------
+# Not a public site. Bridged containers on TB cannot dial 100.64.0.1 — the mesh guard
+# DROPs 172.16.0.0/12 -> 100.64.0.0/10 in raw/PREROUTING — so a GM service with no auth
+# of its own is reached through Caddy, which is network_mode: host and whose traffic is
+# therefore the host's:
+# docs/ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md
+#
+# Binds 0.0.0.0 because senders sit on two different bridges and gateway IPs move when a
+# network is recreated. That is the third exception to the bind rule; the perimeter
+# firewall (80/443/22 inbound, nothing else) is the gate. Callers use
+# host.docker.internal, never a literal 172.x.
+:8090 {
+	# This one logs the query string, unlike the public site's own log and unlike
+	# Open-WebUI's audit path, which excludes chat bodies on purpose. Deliberate: single
+	# user, own searches, and it is the only view of what the model actually asked for.
+	log {
+		output stdout
+		format json
+	}
+	reverse_proxy 100.64.0.1:8080
+}
+
+# :8091 is reserved for Firecrawl and lands with it (sidekick stack, step 4).

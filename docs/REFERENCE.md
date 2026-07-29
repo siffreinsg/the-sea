@@ -54,7 +54,19 @@ the offset if you change these.
 This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 15 hosts,
 verified. All are `@name host` matchers inside the wildcard block except
 `overseerr.blackpearl`, which is its own site block (a `redir`, not a proxy), and
-Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block, add a row.
+Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block for a hostname,
+add a row. The relay listeners below are the one part of the Caddyfile with no hostname.
+
+## Caddy mesh relay
+
+Not public, no hostname, no TLS. How a bridged TB container reaches a GM service that has
+no auth of its own ([why](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)).
+Callers use `http://host.docker.internal:<port>`.
+
+| Port | Backend |
+|---|---|
+| `8090` | SearXNG, `100.64.0.1:8080` |
+| `8091` | Firecrawl, `100.64.0.1:3002` — reserved, lands with the service |
 
 ## Restic repositories
 
