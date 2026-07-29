@@ -9,6 +9,8 @@
 rclone.conf
 users_database.yml
 oidc.yml
+# Rendered from secrets.settings.yml by the searxng stack's pre_deploy.
+going-merry/searxng/config/settings.yml
 
 # age private keys
 keys.txt

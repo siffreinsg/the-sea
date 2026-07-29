@@ -1,7 +1,7 @@
 # Sidekick stack — the six containers the config review needs
 
-**Status: steps 0, 1, 5 landed; step 2 dropped; 3, 4, 6 open.** Delete this file once
-the rest lands. Open items are tracked in [`../TODO.md`](../TODO.md).
+**Status: steps 0, 1, 5 landed; step 2 dropped; 3 written but not deployed; 4, 6 open.**
+Delete this file once the rest lands. Open items are tracked in [`../TODO.md`](../TODO.md).
 
 Decisions and rationale are in
 [`2026-07-26-ai-platform-config-review.md`](2026-07-26-ai-platform-config-review.md).
@@ -58,18 +58,45 @@ retrieval is hybrid search alone and `RAG_TOP_K` is 8 rather than 40:
 
 ## 3. SearXNG — GM
 
-- Ship dir `going-merry/searxng/`, bound `100.64.0.1:8080`.
-- **`json` must be in `settings.yml` under `search.formats`** — it is not there by default,
-  and without it Open-WebUI receives HTML and web search fails in a way that looks like a
-  parsing bug.
-- Set a `server.secret_key`, and expect to revisit when upstream engines rate-limit GM's IP.
-- Verify: `curl 'http://100.64.0.1:8080/search?q=test&format=json' | jq '.results|length'`.
+Built. Every setting and why: `going-merry/searxng/secrets.settings.yml`, which is readable
+in a diff apart from one password.
+
+**Open-WebUI does not reach it on the mesh.** It is bridged, and the mesh guard DROPs
+`172.16.0.0/12 → 100.64.0.0/10`, so the original `SEARXNG_QUERY_URL=http://100.64.0.1:8080`
+could never have worked. It goes through a Caddy relay on `:8090`
+([decision](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)). Step 4 inherits
+this: Firecrawl gets `:8091`, not a public hostname.
+
+Verify in order, on GM unless noted:
+
+1. `docker exec searxng printenv SEARXNG_SECRET` — non-empty. Upstream's file sets the
+   literal `ultrasecretkey` and the entrypoint's `sed` only fires when `settings.yml` is
+   *absent*, so this env var is the only thing replacing it. Fails silently.
+2. `curl 'http://100.64.0.1:8080/search?q=test&format=json' | jq '[.results[].engine]|unique'`
+   — the only check that `search.formats` took, and it also shows which of the 7 engines
+   actually answered.
+3. Run step 2 a dozen times, *then*
+   `curl -s -u alloy:"$PW" http://100.64.0.1:8080/metrics | grep -c searxng_engines_reliability`
+   — expect **7**. Order matters: `get_engines_stats` skips any engine with zero requests,
+   so a freshly restarted instance exports no engine metrics at all. That is why the
+   drift alert is guarded on request count rather than counting alone.
+4. `docker logs searxng | head -50` — check whether granian logs the query string. If it
+   does, searches land in Loki from GM regardless of the relay's own log.
+5. **On TB**, from inside the consumer:
+   `docker exec open-webui curl -fsS -o /dev/null -w '%{http_code}\n' 'http://host.docker.internal:8090/healthz'`
+   — this is the one that proves the relay works and the guard is not in the way.
+6. Then a real web search in the chat UI.
 
 ## 4. Firecrawl — GM (3 containers)
 
 - API + Redis + Playwright service. The Redis here is Firecrawl-internal and does not
   reopen the Redis question, which is out of scope for Open-WebUI.
 - Ship dir `going-merry/firecrawl/`, API bound `100.64.0.1:3002`.
+- **Reached through the Caddy relay on `:8091`**, already reserved, not a public hostname —
+  same reasoning as step 3. `FIRECRAWL_API_BASE_URL` becomes
+  `http://host.docker.internal:8091` in the same commit that adds the listener. Firecrawl
+  does have an API key, so the public edge would also have been legitimate here; the relay
+  is chosen so both services answer the question the same way.
 - **Blocking check — Open-WebUI v0.10.2 speaks the v2 API** (`firecrawl.py:24-27`,
   `/v2/scrape`, `formats: ['markdown']`) and carries a v1/v2 response-shape shim
   (upstream issue #23966). If the self-hosted image only answers v1, web search breaks and

@@ -5,5 +5,12 @@
 # (docs/decisions/2026-07-26-open-webui-config-as-code.md). sops only encrypts when you
 # run `sops -e` on a file, so never run it on that one.
 creation_rules:
+  # First match wins, so this must stay ABOVE the catch-all below.
+  # SearXNG's `open_metrics` password has no SEARXNG_* env override (settings_defaults.py:190)
+  # and the endpoint 404s without it, so it has to live inside settings.yml. encrypted_regex
+  # ciphers that one value and leaves the rest of the file — and its comments — diffable.
+  - path_regex: going-merry/searxng/secrets\.settings\.yml$
+    encrypted_regex: '^open_metrics$'
+    age: age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md
   - path_regex: (.*\.env|.*/secrets\..*)$
     age: age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md
