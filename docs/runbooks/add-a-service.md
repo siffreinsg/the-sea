@@ -129,6 +129,26 @@ block for the working shape.
 **c) App has its own login + 2FA judged sufficient** → neither. n8n went this way;
 double-login friction wasn't worth it. Record the decision, don't leave it implicit.
 
+**d) No humans at all — a GM service consumed by a TB container.** Then it gets no
+hostname, no Caddy `handle` block and no auth, and §3 above does not apply. It cannot be
+dialled directly either: the mesh guard DROPs `172.16.0.0/12 → 100.64.0.0/10`, so a bridged
+container on TB reaching `100.64.0.1` times out. Add a relay listener instead
+([why](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)):
+
+```caddyfile
+:<relay-port> {
+	reverse_proxy 100.64.0.1:<P>
+}
+```
+
+Outside the `*.siffreinsigy.me` block, at the bottom of the Caddyfile with the other
+relays. The consumer uses `http://host.docker.internal:<relay-port>` and needs
+`extra_hosts: - "host.docker.internal:host-gateway"`, never a literal `172.x`. Allocate the
+port in [REFERENCE](../REFERENCE.md#caddy-mesh-relay) and add a row.
+
+If the callee *does* authenticate itself (LiteLLM's virtual keys, an API key), the public
+edge is the other sanctioned path — same ADR.
+
 ## 3c. Backups — mandatory if stateful
 
 - **Live DB** → drop a `backup.sh` in the service dir writing to
@@ -183,6 +203,12 @@ prometheus.scrape "<app>" {
   forward_to = [prometheus.relabel.add_node.receiver]
 }
 ```
+
+**On GM the address is `100.64.0.1:<metrics-port>`, not `127.0.0.1`** — GM services bind
+the mesh address per the bind rule, and Alloy is `network_mode: host` so it reaches them
+directly. If the endpoint needs credentials, add `basic_auth` with
+`password = sys.env("...")`, give the stack a `secrets.env` and a `pre_deploy`, and add
+`env_file: .env` to its compose (`going-merry/alloy` is the worked example).
 
 Commit, push, Komodo Sync → Deploy `alloy-tb`/`alloy-gm`.
 
