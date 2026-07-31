@@ -129,15 +129,6 @@ branch = "main"
 run_directory = "going-merry/cleanuparr"
 
 [[stack]]
-name = "infinity"
-[stack.config]
-server = "going-merry"
-git_account = "siffreinsg"
-repo = "siffreinsg/the-sea"
-branch = "main"
-run_directory = "going-merry/infinity"
-
-[[stack]]
 name = "caddy"
 [stack.config]
 server = "thriller-bark"
