@@ -267,10 +267,14 @@ groups:
               datasourceUid: P4169E866C3094E38
               model:
                 # Reliability is a percentage over recent requests. The request_count guard
-                # is not optional: metrics/__init__.py sets reliability to None when an
-                # engine has had no requests and the exporter coerces that to 0, so an
-                # unguarded rule fires for every engine after each restart and on any quiet
-                # day — and then gets muted, which is worse than not having it.
+                # is there because the percentage is meaningless on a tiny sample:
+                # get_reliabilities computes `100 - sum(error percentages)`, so a single
+                # transient error on an engine with two requests reads as 0% and fires.
+                #
+                # It is NOT protecting against zero-request engines — those emit no row at
+                # all. openmetrics() builds data_info from engine_stats['time'], and
+                # get_engines_stats `continue`s on sent_count == 0, so an idle engine is
+                # absent rather than 0. The `or 0` coercion in the exporter is unreachable.
                 #
                 # The `< 50` comparison lives in B, not here. A bare `<` in PromQL filters
                 # and keeps the *original* value, so `reliability < 50` passes 0 through to
@@ -357,4 +361,13 @@ groups:
             summary: SearXNG is running fewer than 7 engines — an upgrade probably renamed or removed one from the keep_only list
           labels:
             severity: warning
-          isPaused: false
+          # PAUSED, and not silently. wikidata has been failing init since the first deploy
+          # (2026-07-31): query.wikidata.org 403s the SPARQL call it makes at worker boot,
+          # and a failed init is never retried — register_processor drops the engine for the
+          # process lifetime. So the count is 6 and this rule would fire forever and get
+          # muted, which is the failure mode its own threshold was designed to avoid.
+          #
+          # Unpause when wikidata inits cleanly, or drop it from keep_only and retune to 6.
+          # Tracked in docs/TODO.md. Leaving it paused is a decision with an owner; a muted
+          # alert is not.
+          isPaused: true

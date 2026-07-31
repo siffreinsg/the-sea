@@ -82,12 +82,18 @@ Verify in order, on GM unless noted:
      `401` = the password in `alloy/secrets.env` and the one in `secrets.settings.yml`
      have diverged. `404` = `open_metrics` never took. The empty-is-normal trap below
      makes 401 easy to misread, so check the code, not the body.
-   - 7 `searxng_engines_reliability` lines. `get_engines_stats` skips any engine with zero
-     requests, so a freshly restarted instance exports nothing at all. That is why the
-     drift alert is guarded on request count rather than counting alone.
-   - the names carry `_total` and the label is literally `engine_name`. Both are hardcoded
-     in the rules; a wrong label renders the alert summary empty.
-   - reliability is 0-100, not 0-1. On a 0-1 scale the `< 50` threshold matches forever.
+   - **6** `searxng_engines_reliability` lines, not 7, until wikidata initialises. It 403s
+     on the SPARQL call it makes at worker boot and a failed init is never retried, so it
+     serves nothing and therefore reports nothing. `get_engines_stats` skips any engine
+     with zero requests, so a freshly restarted instance exports nothing at all either.
+     That is why the drift alert is guarded on request count rather than counting alone —
+     and why it is currently paused.
+
+   Names, labels and scale no longer need checking here: read off the pinned source
+   (`searx/metrics/__init__.py` at `c01178d03`), the names carry `_total`, the only label
+   is `engine_name`, reliability is `100 - sum(error percentages)` so 0-100, and
+   `openmetrics()` builds its rows from `engine_stats['time']` — which means a zero-request
+   engine is absent rather than 0, and the exporter's `or 0` coercion is unreachable.
 4. `docker logs searxng | head -50` — check whether granian logs the query string. If it
    does, searches land in Loki from GM regardless of the relay's own log.
 5. **On TB**, from inside the consumer:

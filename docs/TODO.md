@@ -11,8 +11,14 @@ Build order and verification commands: [plan](plans/2026-07-26-sidekick-stack.md
 
 - [x] Tika (TB). Reranking dropped after measurement — [why](ADR/2026-07-28-no-reranking.md)
 - [x] Postgres cutover, one database per app, Open-WebUI on v0.11.0
-- [ ] SearXNG on GM — written, not deployed. Reached through Caddy's `:8090` relay, not the
-      mesh ([why](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md))
+- [x] SearXNG on GM, through Caddy's `:8090` relay rather than the mesh
+      ([why](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md))
+- [ ] **wikidata 403s on init**, so SearXNG runs 6 engines and the drift alert is paused.
+      `query.wikidata.org` rejects the SPARQL call the engine makes at worker boot, and a
+      failed init is never retried — the engine is gone until a restart. Either get it
+      initialising (WDQS blocks datacenter IPs and generic user agents, so start by
+      confirming which) or drop it from `keep_only` and retune the alert to 6. Unpause
+      `cft0290searxng2` either way.
 - [ ] Firecrawl (API + Redis + Playwright) on GM — must answer `/v2/scrape`, relay on `:8091`
 - [ ] Per-key budgets on the LiteLLM keys
 - [ ] Config review, read when a value looks wrong — [plan](plans/2026-07-26-ai-platform-config-review.md)
