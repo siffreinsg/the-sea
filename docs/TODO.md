@@ -15,10 +15,10 @@ Build order and verification commands: [plan](plans/2026-07-26-sidekick-stack.md
       ([why](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md))
 - [ ] **wikidata 403s on init**, so SearXNG runs 6 engines and the drift alert is paused.
       `query.wikidata.org` rejects the SPARQL call the engine makes at worker boot, and a
-      failed init is never retried — the engine is gone until a restart. Either get it
-      initialising (WDQS blocks datacenter IPs and generic user agents, so start by
-      confirming which) or drop it from `keep_only` and retune the alert to 6. Unpause
-      `cft0290searxng2` either way.
+      failed init is never retried — the engine is gone until a restart. **Waiting on an
+      upstream fix**, so the action here is an image bump, not a config change. When it
+      lands: bump the pin, restart, confirm 7 engines report, unpause `cft0290searxng2`.
+      If upstream drops the engine instead, remove it from `keep_only` and retune to 6.
 - [ ] Firecrawl (API + Redis + Playwright) on GM — must answer `/v2/scrape`, relay on `:8091`
 - [ ] Per-key budgets on the LiteLLM keys
 - [ ] Config review, read when a value looks wrong — [plan](plans/2026-07-26-ai-platform-config-review.md)
