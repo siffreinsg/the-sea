@@ -271,7 +271,12 @@ groups:
                 # engine has had no requests and the exporter coerces that to 0, so an
                 # unguarded rule fires for every engine after each restart and on any quiet
                 # day — and then gets muted, which is worse than not having it.
-                expr: searxng_engines_reliability_total < 50 and searxng_engines_request_count_total > 10
+                #
+                # The `< 50` comparison lives in B, not here. A bare `<` in PromQL filters
+                # and keeps the *original* value, so `reliability < 50` passes 0 through to
+                # a `> 0` threshold and the rule goes silent on a fully banned engine —
+                # exactly the case the summary describes. A carries the raw percentage.
+                expr: searxng_engines_reliability_total and searxng_engines_request_count_total > 10
                 instant: true
                 intervalMs: 1000
                 maxDataPoints: 43200
@@ -284,9 +289,11 @@ groups:
               model:
                 conditions:
                     - evaluator:
+                        # Percentage, 0-100. Verify that against a real /metrics dump
+                        # before trusting it: a 0-1 scale would match every engine forever.
                         params:
-                            - 0
-                        type: gt
+                            - 50
+                        type: lt
                 expression: A
                 intervalMs: 1000
                 maxDataPoints: 43200

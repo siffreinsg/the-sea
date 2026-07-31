@@ -133,8 +133,8 @@ overseerr.blackpearl.siffreinsigy.me {
 #
 # Binds 0.0.0.0 because senders sit on two different bridges and gateway IPs move when a
 # network is recreated. That is the third exception to the bind rule; the perimeter
-# firewall (80/443/22 inbound, nothing else) is the gate. Callers use
-# host.docker.internal, never a literal 172.x.
+# firewall (80/443/22 inbound, nothing else) plus the tailnet ACL are the gate — this also
+# listens on tailscale0. Callers use host.docker.internal, never a literal 172.x.
 :8090 {
 	# This one logs the query string, unlike the public site's own log and unlike
 	# Open-WebUI's audit path, which excludes chat bodies on purpose. Deliberate: single

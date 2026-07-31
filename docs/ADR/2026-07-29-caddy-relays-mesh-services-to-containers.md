@@ -24,7 +24,9 @@ that stopped n8n reading GM's unauthenticated VictoriaMetrics and Loki.
 - Caddy binds `0.0.0.0:8090` (SearXNG) and `:8091` (Firecrawl, reserved). Senders sit on
   two different bridges and gateway IPs move when a network is recreated, so a literal
   gateway address is not an option. **Third exception to never-bind-`0.0.0.0`**; the
-  perimeter firewall is the gate, exactly as for Alloy's OTLP receiver.
+  perimeter firewall and the tailnet ACL are the gate, exactly as for Alloy's OTLP
+  receiver. The perimeter alone is not enough — `0.0.0.0` is on `tailscale0` too, so every
+  tailnet peer can reach the relay. Own devices, accepted.
 - Bridged containers still never touch the tailnet, so the guard can still be copied to GM.
 - Every TB container can reach the relay, and therefore SearXNG. Not VictoriaMetrics, not
   Loki: the relay is an allowlist of one backend per port.
