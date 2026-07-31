@@ -310,7 +310,16 @@ groups:
             summary: 'SearXNG engine {{ $labels.engine_name }} is failing most requests — check for a CAPTCHA ban, then whether a newer image already fixes it'
           labels:
             severity: warning
-          isPaused: false
+          # PAUSED with its sibling, and for a cause neither rule was designed for. brave,
+          # duckduckgo, qwant and startpage all CAPTCHA'd on first real use (2026-07-31).
+          # All four front Google or Bing, and both nodes are on datacenter IPs — GM
+          # 62.4.16.10, TB 141.253.109.196 — which those engines block by range. That is
+          # the steady state, not an incident, so this rule would sit firing on four
+          # engines until the engine set changes.
+          #
+          # Unpause when web search is rebuilt on something that works from a datacenter
+          # IP. Tracked in docs/TODO.md. The rule itself is correct and untouched.
+          isPaused: true
         - uid: cft0290searxng2
           title: SearXNG lost an engine
           condition: B
