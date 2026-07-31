@@ -32,7 +32,12 @@ services:
     healthcheck:
       # /healthz, not a search: a search healthcheck fans out to every engine every 30s
       # and earns GM's IP a rate-limit for nothing.
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:8080/healthz || exit 1"]
+      #
+      # The X-Forwarded-For is for the log, not for botdetection (limiter is off). Without
+      # it every probe logs `ERROR:searx.botdetection: X-Forwarded-For nor X-Real-IP header
+      # is set!`, which is an ERROR line into Loki twice a minute forever. Requests through
+      # the Caddy relay carry the header already; only direct ones need this.
+      test: ["CMD-SHELL", "wget -q --header='X-Forwarded-For: 127.0.0.1' -O /dev/null http://127.0.0.1:8080/healthz || exit 1"]
       interval: 30s
       retries: 5
       start_period: 30s

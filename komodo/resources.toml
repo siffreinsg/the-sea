@@ -196,16 +196,16 @@ repo = "siffreinsg/the-sea"
 branch = "main"
 run_directory = "going-merry/searxng"
 # settings.yml is rendered here rather than committed: it carries the open_metrics
-# password, which has no env override. umask 077 leaves it 0600 owned by root, and the
-# container runs as the image's searxng uid — hence the chown. 977 must match `user:` in
-# the compose.
+# password, which has no env override. 977 must match `user:` in the compose.
 #
-# The chmod on the *directory* is not decoration. umask 077 applies to mkdir too, so
-# config/ lands 0700 root and uid 977 cannot traverse it to reach the file it owns. The
-# entrypoint's `[ ! -f settings.yml ]` then reads false, it tries to seed the file from its
-# template into a :ro mount, and exits 127 in a restart loop. The directory holds no
-# secret; the file's own 0600 does the protecting.
-pre_deploy.command = "umask 077 && sops -d secrets.env > .env && mkdir -p config && chmod 755 config && sops -d secrets.settings.yml > config/settings.yml && chown 977:977 config/settings.yml"
+# The chown is recursive on purpose. umask 077 applies to mkdir too, so config/ lands 0700
+# and the container user must own the directory, not just the file, or it cannot traverse
+# to reach it — the entrypoint's `[ ! -f settings.yml ]` then reads false, it tries to seed
+# the file from its template into a :ro mount, and exits 127 in a restart loop. An earlier
+# version chmod 755'd a root-owned directory instead; that worked, but it made the dir
+# world-traversable and left the entrypoint warning on every boot that /etc/searxng is
+# root:root. Owning both is tighter and quieter.
+pre_deploy.command = "umask 077 && sops -d secrets.env > .env && mkdir -p config && sops -d secrets.settings.yml > config/settings.yml && chown -R 977:977 config"
 
 # These keep /opt/the-sea — the path every backup.sh, systemd unit and runbook
 # uses — in sync with main, so nobody has to `git pull` by hand on the nodes.
