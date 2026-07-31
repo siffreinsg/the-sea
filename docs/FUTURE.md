@@ -53,8 +53,6 @@ Ideas and deferred questions, not on deck. Anything with a named phase and domai
   port on a Postgres that deliberately has none, plus a read-only role. Security decision,
   not a slip-in.
 - Explore s3drive as an alternative to reach Proton Drive. Useful for S3-compatible access too.
-- **Narrow the duplicate alerting.** Grafana (Telegram) and Komodo (Discord) overlap, so
-  some alerts arrive twice; neither side has been narrowed.
 
 ## Tool wishlist
 
