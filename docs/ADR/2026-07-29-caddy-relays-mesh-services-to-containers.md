@@ -1,5 +1,7 @@
 # Caddy relays GM services to TB containers, on a non-public listener
 
+**Superseded by [2026-08-01](2026-08-01-per-stack-networks-and-headscale-acl.md)** — the relay pattern moved into its own `gm-relay` stack; this ADR's `:8090`/`:8091` listeners on main Caddy no longer exist.
+
 **2026-07-29 · Accepted · supersedes [2026-07-27](2026-07-27-cross-node-calls-use-the-public-edge.md)**
 
 That ADR said cross-node app→app calls use the public edge. It holds when the callee

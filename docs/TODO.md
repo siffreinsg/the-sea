@@ -3,6 +3,12 @@
 What's next. Ideas that aren't thought out yet are in [FUTURE.md](FUTURE.md); a task links
 its plan in [plans/](plans/) once work starts.
 
+## Misc
+
+- [ ] Configure Uptime Kuma to monitor The Sea
+- [ ] Collect traces from Komodo
+- [ ] Remove noise from Grafana logs, metrics and traces
+
 ## AI platform
 
 ### Sidekick stack
@@ -41,7 +47,5 @@ its plan in [plans/](plans/) once work starts.
 
 ### Networking
 
-- [ ] Redesign container/mesh/host networking: per-stack Docker networks, Caddy
-      edge/GM-relay split, port-level Headscale ACL — [plan](plans/2026-08-01-network-architecture-redesign.md)
 - [ ] Host hardening against bots — not yet planned
 - [ ] Grafana IP tracking + anomaly alerts — not yet planned
