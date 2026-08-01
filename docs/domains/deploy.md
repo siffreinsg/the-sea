@@ -11,11 +11,11 @@ by **who consumes the service**, not by how many containers it takes.
 - **Private dependency → same stack.** A database, cache or worker that exists only to
   serve one app ships with it. Dawarich's Postgres, Redis and Sidekiq; your_spotify's
   Mongo; Grafana with VictoriaMetrics, Loki and Tempo.
-- **Consumed by more than one app → own stack**, joined by `the-sea-internal` and reached
-  by service name. LiteLLM, Tika. Alloy is separate for the same reason: every stack feeds
-  it, and it is per-node.
+- **Consumed by more than one app → own stack**, joined by `ai-backends` (or `edge` if
+  Caddy needs it too) and reached by service name. LiteLLM, Tika. Alloy is separate for
+  the same reason: every stack feeds it, and it is per-node.
 - **Databases are always private**, one per app, inside the app's stack
-  ([why](../ADR/2026-07-28-one-database-per-app.md)). No `the-sea-internal`, no host port.
+  ([why](../ADR/2026-07-28-one-database-per-app.md)). No shared network, no host port.
   Name it `<app>-db`, never `postgres` — several stacks would otherwise publish the same
   short name and DNS on a shared network becomes ambiguous.
 

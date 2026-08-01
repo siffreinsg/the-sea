@@ -10,7 +10,8 @@ New decision = new dated file + one row here.
 
 | Date | Decision | Status |
 |---|---|---|
-| 2026-07-29 | [Caddy relays GM services to TB containers, on a non-public listener](2026-07-29-caddy-relays-mesh-services-to-containers.md) | Accepted |
+| 2026-08-01 | [Per-stack Docker networks, bridge-mode Caddy, Headscale ACL](2026-08-01-per-stack-networks-and-headscale-acl.md) | Accepted |
+| 2026-07-29 | [Caddy relays GM services to TB containers, on a non-public listener](2026-07-29-caddy-relays-mesh-services-to-containers.md) | Superseded |
 | 2026-07-28 | [One database per app, inside the app's stack](2026-07-28-one-database-per-app.md) | Accepted |
 | 2026-07-28 | [RAG uses no reranker](2026-07-28-no-reranking.md) | Accepted |
 | 2026-07-27 | [GM→TB service calls go through the public edge, not the mesh](2026-07-27-cross-node-calls-use-the-public-edge.md) | Superseded |
@@ -34,7 +35,7 @@ New decision = new dated file + one row here.
 | 2026-07-21 | [Database dumps run from a host systemd timer](2026-07-21-dumps-via-host-systemd-timer.md) | Accepted |
 | 2026-07-21 | [Backups: Backrest → restic → Proton Drive + Mega](2026-07-21-backrest-restic-proton-mega.md) | Accepted |
 | 2026-07-19 | [Services bind a private address, never 0.0.0.0](2026-07-19-services-bind-private-addresses.md) | Accepted |
-| 2026-07-19 | [One public edge: Caddy on Thriller Bark](2026-07-19-caddy-single-public-edge.md) | Accepted |
+| 2026-07-19 | [One public edge: Caddy on Thriller Bark](2026-07-19-caddy-single-public-edge.md) | Superseded |
 | 2026-07-18 | [Secrets live in git, encrypted with SOPS + age](2026-07-18-sops-age-secrets-in-git.md) | Accepted |
 | 2026-07-18 | [Headscale for the mesh](2026-07-18-headscale-mesh.md) | Accepted |
 | 2026-07-18 | [Komodo + Compose, not Kubernetes](2026-07-18-komodo-compose-not-kubernetes.md) | Accepted |

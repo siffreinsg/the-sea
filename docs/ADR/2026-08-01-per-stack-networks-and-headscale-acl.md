@@ -16,8 +16,9 @@ can't do the guard's job (see the correction below).
 The prior model accreted one exception at a time (`the-sea-internal`, three separate
 `0.0.0.0` binds, a TB-only iptables guard) until the set no longer read as one coherent
 design. Explicit and standard first; the security improvement (generalizing the
-mesh-guard to both nodes, keeping the `0.0.0.0` exception list to exactly the two cases
-that need it) follows from that, not chased separately.
+mesh-guard to both nodes) follows from that, not chased separately. The `0.0.0.0`
+exception count stays at three — Alloy, `gm-relay`, Syncthing — same as before this
+redesign, just renamed where the mesh-relay pattern became its own stack.
 
 ## Correction found in final review
 

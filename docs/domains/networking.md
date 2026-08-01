@@ -20,12 +20,15 @@ Komodo, metrics, logs, backups, reverse-proxying — goes over it.
 ## Binds
 
 Every published port binds a private address: `127.0.0.1` on TB, `100.64.0.1` on GM.
-**Never `0.0.0.0`**, with two exceptions, both because a bridged sender's gateway IP is
-not a fixed, predictable address to bind instead: Alloy's OTLP receiver
+**Never `0.0.0.0`**, with three exceptions (`AGENTS.md`): Alloy's OTLP receiver
 (`thriller-bark/alloy/config.alloy`, `0.0.0.0:4317/4318`) and `gm-relay`'s eight loopback
-proxies (`thriller-bark/gm-relay/Caddyfile`). Don't "fix" a bind to a bridge network to
-make something reachable — that only works when a stack has exactly one, permanent
-gateway IP, which most don't.
+proxies (`thriller-bark/gm-relay/Caddyfile`) — both because a bridged sender's gateway IP
+is not a fixed, predictable address to bind instead — plus Syncthing's `22000`, the only
+*publicly reachable* one, unrelated reasoning
+([why](../ADR/2026-07-26-syncthing-public-port.md)). Don't "fix" a bind to a bridge
+network to make something reachable — that only works when a stack has exactly one,
+permanent gateway IP, which most don't. Caddy's own `80`/`443` isn't in this count: it's
+the public edge, not an exception to a private-bind rule.
 Only `gm-relay` and Komodo Core use `network_mode: host` on TB, because they dial mesh
 addresses themselves — main Caddy is bridge-networked and reaches both over
 `host.docker.internal` instead.

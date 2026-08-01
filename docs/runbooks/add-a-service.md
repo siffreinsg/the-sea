@@ -154,7 +154,7 @@ container on TB reaching `100.64.0.1` times out. Add a listener to `gm-relay` in
 In `thriller-bark/gm-relay/Caddyfile`, with the other GM relay listeners — not the main
 Caddyfile. The consumer uses `http://host.docker.internal:<relay-port>` and needs
 `extra_hosts: - "host.docker.internal:host-gateway"`, never a literal `172.x`. Allocate the
-port in [REFERENCE](../REFERENCE.md#caddy-mesh-relay) and add a row.
+port in [REFERENCE](../REFERENCE.md#gm-relay) and add a row.
 
 If the callee *does* authenticate itself (LiteLLM's virtual keys, an API key), the public
 edge is the other sanctioned path — same ADR.

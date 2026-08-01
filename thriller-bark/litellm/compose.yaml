@@ -38,7 +38,7 @@ services:
 
   # LiteLLM's own database and nothing else's: virtual keys and the spend log. One database
   # per app ([why](../../docs/ADR/2026-07-28-one-database-per-app.md)), so this is off
-  # `the-sea-internal` — the only consumer is `litellm`, on this stack's default network.
+  # `edge`/`ai-backends` — the only consumer is `litellm`, on this stack's default network.
   # No `ports:`, so the bind rule is satisfied by having no host port at all.
   #
   # The pgvector image is historical — nothing here stores vectors, Open-WebUI's store is
