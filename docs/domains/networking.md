@@ -21,8 +21,8 @@ Komodo, metrics, logs, backups, reverse-proxying — goes over it.
 
 Every published port binds a private address: `127.0.0.1` on TB, `100.64.0.1` on GM.
 **Never `0.0.0.0`**, with three exceptions (`AGENTS.md`): Alloy's OTLP receiver
-(`thriller-bark/alloy/config.alloy`, `0.0.0.0:4317/4318`) and `gm-relay`'s eight loopback
-proxies (`thriller-bark/gm-relay/Caddyfile`) — both because a bridged sender's gateway IP
+(`thriller-bark/alloy/config.alloy`, `0.0.0.0:4317/4318`) and `gm-relay`'s eight proxy
+ports (`thriller-bark/gm-relay/Caddyfile`) — both because a bridged sender's gateway IP
 is not a fixed, predictable address to bind instead — plus Syncthing's `22000`, the only
 *publicly reachable* one, unrelated reasoning
 ([why](../ADR/2026-07-26-syncthing-public-port.md)). Don't "fix" a bind to a bridge
@@ -83,9 +83,9 @@ default-deny, which would otherwise silently kill the metrics pipeline. Verify w
 
 Main Caddy is bridge-networked and can't dial the mesh itself. GM-bound calls go through
 `thriller-bark/gm-relay/`, a second host-mode Caddy instance on TB that reverse-proxies a
-loopback port to each GM service's `100.64.0.1:<port>`
+`0.0.0.0`-bound port to each GM service's `100.64.0.1:<port>`
 ([why](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)). Callers reach it
-via `host.docker.internal:<loopback port>`, never a literal gateway IP — see
+via `host.docker.internal:<relay port>`, never a literal gateway IP — see
 `docs/REFERENCE.md` § GM relay for the port table.
 
 ## DNS

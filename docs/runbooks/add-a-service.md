@@ -78,10 +78,18 @@ Inside `*.siffreinsigy.me`, above the final `handle { abort }`:
 ```caddyfile
 	@<app> host <app>.siffreinsigy.me
 	handle @<app> {
-		reverse_proxy <bind>:<P>
+		reverse_proxy <app>:<container-port>
 	}
 ```
-`<bind>` matches the compose bind: `127.0.0.1` for a TB app, `100.64.0.1` for a GM app.
+For a TB app on `edge`, `<app>` is the container name and `<container-port>` its internal
+port. For a GM app, there's no container to dial directly — see §3d: the block instead
+reads `reverse_proxy host.docker.internal:<relay-port>`, dialing gm-relay. A GM app routed
+through Caddy this way needs the same three additions §3d lists for the no-humans case:
+a gm-relay listener, a row in [REFERENCE](../REFERENCE.md#gm-relay), and `tag:gm:<P>` in
+`acl.hujson` — auth still applies per §3b, gm-relay only removes the mesh hop.
+
+Whatever node the app lands on, add it to REFERENCE's [Web UIs
+table](../REFERENCE.md) and, if it joins `ai-backends`, to that network's member list.
 
 ## 3b. Auth — pick one of three
 

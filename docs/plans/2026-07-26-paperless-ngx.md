@@ -31,7 +31,7 @@ app.
 | Postgres | `postgres:17-alpine` | same as the pattern elsewhere |
 | Redis | `redis:7-alpine` | required — it's the task broker, not a cache |
 | Gotenberg | `gotenberg/gotenberg:8.34.0` | Paperless-only |
-| Tika | `apache/tika:3.2.3.0-full` | own stack, shared with Open-WebUI |
+| Tika | already deployed, `apache/tika:3.3.1.0-full` — check `thriller-bark/tika/compose.yaml` for the current pin on deploy day | shared stack, don't redeploy at an older tag |
 
 ## 0. Reaching Tika: join `ai-backends`, not a host port
 
@@ -63,11 +63,12 @@ It is a JVM and will sit around 1 GB resident.
 
 ## 2. Paperless — `thriller-bark/paperless/`
 
-No host port — reached over `edge` by container name, container port 8000.
+No host port. `webserver` needs `container_name: paperless-webserver` set explicitly —
+compose's default name for a service named `webserver` in project `paperless` doesn't
+match, and both `edge`'s reverse_proxy target and the `docker exec` below assume it.
 
-Four services: `webserver`, `db`, `broker`, `gotenberg`. Only `webserver` publishes a
-port; `db`, `broker` and `gotenberg` are private to the stack. `webserver` also joins
-`ai-backends` to reach Tika.
+Four services: `webserver`, `db`, `broker`, `gotenberg`; only `webserver` joins networks
+outside the stack's own — `edge` to be reached by Caddy, `ai-backends` to reach Tika.
 
 Volumes: `data`, `media` (the documents — this is the one that matters), `pgdata`, and a
 **bind mount** for consume:

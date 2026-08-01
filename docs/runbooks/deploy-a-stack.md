@@ -50,7 +50,7 @@ Order matters — later steps depend on earlier ones being live.
    hops) dies until tagging completes. Expect `headscale.siffreinsigy.me` itself to 502
    for this window — old Caddy still dials its now-removed `127.0.0.1:8080` publish, new
    Caddy isn't deployed yet. Harmless: no client needs the control plane mid-cutover.
-4. Deploy `gm-relay` before main Caddy — Caddy's Caddyfile already points at its loopback
+4. Deploy `gm-relay` before main Caddy — Caddy's Caddyfile already points at its proxy
    ports, so Caddy fails every GM-bound hostname until gm-relay is actually up.
 5. Redeploy every remaining stack that joined `edge`/`ai-backends`/`n8n-edge`, then Caddy
    last.
