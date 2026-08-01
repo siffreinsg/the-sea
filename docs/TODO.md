@@ -5,6 +5,7 @@ its plan in [plans/](plans/) once work starts.
 
 ## Misc
 
+- [ ] Run the network redesign cutover — [runbook](runbooks/deploy-a-stack.md#one-time-cutover-the-network-redesign-why)
 - [ ] Configure Uptime Kuma to monitor The Sea
 - [ ] Collect traces from Komodo
 - [ ] Remove noise from Grafana logs, metrics and traces

@@ -103,7 +103,9 @@ unknown device that connects to 22000 gets rejected and only shows up as a pendi
 request. That allowlist is the actual security boundary of the open port.
 
 Peers pointed at this node use `tcp://141.253.109.196:22000`. A mesh-capable peer may use
-`tcp://100.64.0.2:22000` instead and skip the public path — **that direction only.**
+`tcp://100.64.0.2:22000` instead and skip the public path — **that direction only.** Note:
+the Headscale ACL (`thriller-bark/headscale/acl.hujson`) only allows TB→GM, so a GM peer
+dialing TB this way needs a `tag:tb:22000` rule added first.
 Syncthing here is a bridged container on TB, so anything *it* dials on `100.64.0.0/10` is
 DROPped by `the-sea-mesh-guard.service` in raw/PREROUTING. It works because peers connect
 inbound to a listener that is always up, never because TB reaches out. Don't configure a

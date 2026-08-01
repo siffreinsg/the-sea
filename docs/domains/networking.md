@@ -71,8 +71,8 @@ Installed on **both** nodes as of this redesign — previously TB-only, which le
 bridged containers able to reach the full mesh.
 
 **The Headscale ACL** (`thriller-bark/headscale/acl.hujson`) is a port-level TB→GM
-allowlist for genuinely mesh-native (host-originated) traffic — Alloy, gm-relay, Komodo,
-backups — see `docs/REFERENCE.md` for the exact port table. It does not, and cannot,
+allowlist for genuinely mesh-native (host-originated) traffic — Alloy and gm-relay only —
+see `docs/REFERENCE.md` for the exact port table. It does not, and cannot,
 replace the guard: it only sees packets after MASQUERADE, so it has no way to
 distinguish a container's traffic from the host's. Both nodes' hosts must be tagged
 (`headscale nodes tag`) before this allowlist takes effect — an untagged node is

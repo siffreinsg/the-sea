@@ -156,6 +156,9 @@ Caddyfile. The consumer uses `http://host.docker.internal:<relay-port>` and need
 `extra_hosts: - "host.docker.internal:host-gateway"`, never a literal `172.x`. Allocate the
 port in [REFERENCE](../REFERENCE.md#gm-relay) and add a row.
 
+The ACL is default-deny: add `tag:gm:<P>` to the TB→GM allowlist in
+`thriller-bark/headscale/acl.hujson` for the port gm-relay dials, or the listener times out.
+
 If the callee *does* authenticate itself (LiteLLM's virtual keys, an API key), the public
 edge is the other sanctioned path — same ADR.
 
