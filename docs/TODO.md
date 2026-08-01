@@ -6,6 +6,10 @@ its plan in [plans/](plans/) once work starts.
 ## Misc
 
 - [ ] Run the network redesign cutover — [runbook](runbooks/deploy-a-stack.md#one-time-cutover-the-network-redesign-why)
+- [ ] Fix `/opt/the-sea`'s git-triggered pull on TB — `main` was stuck at `ffdff9e`
+      (pre-redesign) despite the two `[[repo]]` webhook resources in
+      `komodo/resources.toml`; found while restoring litellm-db, worked around with a
+      manual `git pull`
 - [ ] Configure Uptime Kuma to monitor The Sea
 - [ ] Collect traces from Komodo
 - [ ] Remove noise from Grafana logs, metrics and traces
