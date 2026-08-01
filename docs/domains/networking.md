@@ -87,7 +87,10 @@ Main Caddy is bridge-networked and can't dial the mesh itself. GM-bound calls go
 `0.0.0.0`-bound port to each GM service's `100.64.0.1:<port>`
 ([why](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)). Callers reach it
 via `host.docker.internal:<relay port>`, never a literal gateway IP — see
-`docs/REFERENCE.md` § GM relay for the port table.
+`docs/REFERENCE.md` § GM relay for the port table. Every gm-relay proxy block pins
+`header_up X-Forwarded-Proto https`: gm-relay itself speaks plain HTTP, so `reverse_proxy`'s
+default would overwrite the `https` the public Caddy already set, and a backend that
+redirects on that header (Dawarich did) loops forever.
 
 ## DNS
 
