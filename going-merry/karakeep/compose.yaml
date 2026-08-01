@@ -13,7 +13,7 @@ services:
       OAUTH_WELLKNOWN_URL: https://auth.siffreinsigy.me/.well-known/openid-configuration
       OAUTH_PROVIDER_NAME: Authelia
       DISABLE_PASSWORD_AUTH: "true"
-      # DISABLE_SIGNUPS: "true"   # flip on after the first OIDC login creates the account
+      DISABLE_SIGNUPS: "true"
     ports:
       - "100.64.0.1:3050:3000"
     volumes:
