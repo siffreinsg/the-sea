@@ -38,7 +38,7 @@ both nodes** (previously TB-only, which is the asymmetry this redesign closes); 
 is additive defense-in-depth, not a substitute.
 
 Similarly, the design's first draft tried to close the `0.0.0.0` exception list down to
-zero by binding Alloy's OTLP receiver and `gm-relay`'s loopback listeners to fixed
+zero by binding Alloy's OTLP receiver and `gm-relay`'s listeners to fixed
 per-sender addresses. This doesn't work: `host.docker.internal` resolves to one address
 per container regardless of which bridge network it's on, so a fixed-address-per-sender
 scheme has no way for every sender to actually reach it. Both keep `0.0.0.0`, same
@@ -62,6 +62,6 @@ mesh guard are the compensating control, not the bind address.
 - `docs/ADR/2026-07-25-mesh-guard-in-raw-prerouting.md` — still the live mechanism and
   still the reason it lives in `raw/PREROUTING`; this redesign only adds the GM copy.
 - `docs/ADR/2026-07-19-services-bind-private-addresses.md` — still true, exception list
-  unchanged in count (Alloy, gm-relay's loopback proxies, Syncthing), gm-relay is the new
+  unchanged in count (Alloy, gm-relay's proxy ports, Syncthing), gm-relay is the new
   name for what was "Caddy's relay listeners."
 </content>

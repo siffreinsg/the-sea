@@ -65,7 +65,7 @@ per node" shape as metrics and logs.
 containers on different bridges, and `host.docker.internal` resolves to one address
 regardless of which bridge a container is on, so there's no single non-catch-all bind
 every sender's gateway can reach. The mesh guard and perimeter firewall are the
-compensating control, same reasoning as `gm-relay`'s loopback proxies. Alloy's own UI
+compensating control, same reasoning as `gm-relay`'s proxy ports. Alloy's own UI
 stays `127.0.0.1:12345`.
 
 Senders use `host.docker.internal` with `extra_hosts: host-gateway`, never a literal

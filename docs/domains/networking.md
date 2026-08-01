@@ -46,8 +46,9 @@ would not have been.
 
 Two properties worth keeping, both verified by connection rather than by reading rules:
 
-- **Every Docker publish is loopback- or mesh-scoped**, so Docker's usual
-  publish-past-the-firewall problem does not apply here.
+- **Every Docker publish is loopback-, mesh-, or firewall-scoped**, so Docker's usual
+  publish-past-the-firewall problem does not apply here. The two `0.0.0.0` exceptions
+  (Alloy's OTLP receiver, gm-relay) are covered instead by TB's `INPUT` default REJECT.
 - **Containers reach the host, and that is load-bearing.** The INPUT default REJECT does not
   block a bridge gateway: from LiteLLM, `172.17.0.1` and `172.24.0.1` both return
   `ECONNREFUSED` on a closed port, and a **connect to `172.24.0.1:4318` succeeds** with
