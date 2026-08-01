@@ -11,7 +11,6 @@ Read the `docs/HANDOFF.md` document for context on the previous session conclusi
 ## Working style
 
 - No SSH access from here. Hand me commands to run, I paste the output back.
-- No `gh` command here. Instruct the user instead.
 - Always challenge plans, decisions, remarks, ... Say so when one is wrong.
 - Root-cause fixes, not symptom patches. Grep every caller before editing a shared path.
 
