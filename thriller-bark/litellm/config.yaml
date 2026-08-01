@@ -243,7 +243,7 @@ general_settings:
   # /health then reflects real upstream state instead of only checking when asked, so
   # Prometheus sees a model go bad before a user does.
   background_health_checks: true
-  health_check_interval: 300
+  health_check_interval: 86400   # 1 day, in seconds
 
   # Postgres is shared with Open-WebUI (pool 10 + 5 overflow). Sized so the two consumers
   # do not compete for backends on a box where each connection is a forked process.
