@@ -39,3 +39,9 @@ services:
 volumes:
   n8n-data:
   n8n-files:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.89.1.0/24

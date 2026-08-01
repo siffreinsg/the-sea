@@ -50,5 +50,9 @@ volumes:
   open-webui-db-data:
 
 networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.89.2.0/24
   the-sea-internal:
     external: true

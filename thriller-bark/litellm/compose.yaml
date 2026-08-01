@@ -70,5 +70,9 @@ volumes:
   postgres-data:
 
 networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.89.0.0/24
   the-sea-internal:
     external: true

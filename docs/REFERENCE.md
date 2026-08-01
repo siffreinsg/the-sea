@@ -57,6 +57,18 @@ verified. All are `@name host` matchers inside the wildcard block except
 Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block for a hostname,
 add a row. The relay listeners below are the one part of the Caddyfile with no hostname.
 
+## Docker subnets
+
+Reserved only where a host-bound listener (Alloy's OTLP receiver) must accept from
+multiple different bridge gateways. Everything else stays on Docker's dynamic per-stack
+pool — do not add a row here for a stack that doesn't need a fixed gateway IP.
+
+| Stack | Subnet | Gateway |
+|---|---|---|
+| litellm | `10.89.0.0/24` | `10.89.0.1` |
+| n8n | `10.89.1.0/24` | `10.89.1.1` |
+| open-webui | `10.89.2.0/24` | `10.89.2.1` |
+
 ## Caddy mesh relay
 
 Not public, no hostname, no TLS. How a bridged TB container reaches a GM service that has
