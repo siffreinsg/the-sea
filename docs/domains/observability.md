@@ -61,11 +61,10 @@ Apps never push to Tempo directly. The [mesh guard](networking.md) DROPs `172.16
 OTLP to **Alloy on their own node**, which is `network_mode: host` and whose traffic is
 therefore the host's — the same "one collector per node" shape as metrics and logs.
 
-`thriller-bark/alloy/config.alloy` binds the OTLP receiver on **`0.0.0.0`:4317/4318**, and
-that is the one place a listener is not loopback- or mesh-scoped. It has to be: the senders
-sit on two different bridges (`172.17.0.1`, `the-sea-internal` at `172.24.0.1`) and gateway
-IPs change when a network is recreated. The perimeter firewall is the gate — TB accepts
-80/443/22 inbound and nothing else. Alloy's own UI stays pinned to `127.0.0.1:12345`.
+`thriller-bark/alloy/config.alloy` binds three sender-specific addresses —
+`10.89.0.1:4317/4318` (litellm), `10.89.1.1:4317/4318` (n8n), `10.89.2.1:4317/4318`
+(open-webui) — one per fixed subnet gateway (`docs/REFERENCE.md` § Docker subnets), not
+`0.0.0.0`. Alloy's own UI stays `127.0.0.1:12345`.
 
 Senders use `host.docker.internal` with `extra_hosts: host-gateway`, never a literal
 gateway IP, for the same reason. This works because [containers can reach the
