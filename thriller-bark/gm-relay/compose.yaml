@@ -1,0 +1,14 @@
+services:
+  gm-relay:
+    image: caddy:2.11.4-alpine
+    container_name: gm-relay
+    network_mode: host   # dials 100.64.0.1 directly, the one job that needs it now
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - gm-relay-data:/data
+      - gm-relay-config:/config
+
+volumes:
+  gm-relay-data:
+  gm-relay-config:
