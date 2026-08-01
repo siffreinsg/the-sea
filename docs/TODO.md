@@ -34,10 +34,6 @@ its plan in [plans/](plans/) once work starts.
 
 ## Security
 
-### Edge
-
-- [ ] Close the Caddy admin API — [plan](plans/2026-07-25-caddy-admin-off.md)
-
 ### Audit
 
 - [ ] Scan the edge from off-network, and read the Oracle VCN security list — hairpin NAT

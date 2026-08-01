@@ -20,9 +20,8 @@ Cloudflare API.
 - Access logging is on (`log { output stdout / format json }`). Alloy ships it to Loki as
   `container="caddy"`, 30-day retention. It is the only record that a public request
   happened.
-- **The admin API on `127.0.0.1:2019` is unauthenticated read/write config** for any local
-  user. `admin off` is not available because Alloy scrapes it; closing it needs a
-  dedicated loopback metrics site first. Tracked in [future](../FUTURE.md).
+- **The admin API is off.** Metrics are served from a dedicated loopback site,
+  `http://127.0.0.1:2020/metrics`, which Alloy scrapes instead of `:2019`.
 
 ## Auth outcomes
 
