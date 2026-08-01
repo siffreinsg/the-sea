@@ -1,6 +1,6 @@
 # Sidekick stack — the six containers the config review needs
 
-**Status: steps 0, 1, 3, 5 landed; step 2 dropped; 4 written, not deployed; 6 open.**
+**Status: steps 0, 1, 3, 4, 5 landed; step 2 dropped; 6 open.**
 Delete this file once the rest lands. Open items are tracked in [`../TODO.md`](../TODO.md).
 
 Decisions and rationale are in
@@ -177,10 +177,6 @@ symptom is a user seeing errors.
 |---|---|---|
 | `MISTRAL_API_KEY` | `litellm/secrets.env` | step 0, the `task-cheap` free tier |
 | `POSTGRES_USER` / `POSTGRES_DB` / `POSTGRES_PASSWORD` / `DATABASE_URL` | `open-webui/secrets.env` | step 5 — Open-WebUI is down until these land |
-| `FIRECRAWL_API_KEY` | `open-webui/secrets.env` | step 4 — whatever the self-hosted instance is configured with |
-
-`FIRECRAWL_API_KEY` is referenced by a comment in `config.env` and is easy to skip; it
-fails at first use as an auth error rather than at boot.
 
 ## After it all lands
 
