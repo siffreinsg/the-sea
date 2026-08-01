@@ -92,6 +92,19 @@ via `host.docker.internal:<relay port>`, never a literal gateway IP — see
 default would overwrite the `https` the public Caddy already set, and a backend that
 redirects on that header (Dawarich did) loops forever.
 
+## Bot mitigation
+
+`docs/ADR/2026-08-02-fail2ban-and-caddy-ratelimit-not-crowdsec.md` has the reasoning.
+fail2ban (SSH on both nodes, plus a Caddy-access-log jail on TB) and `caddy-ratelimit`
+(per-IP request cap, edge-wide) — install via
+[install-fail2ban](../runbooks/install-fail2ban.md). Neither is a container; both are
+host-level, tracked in-repo and symlinked, same pattern as `the-sea-mesh-guard.service`.
+sshd hardening is one shared file (`ssh/hardening.conf`, identical on both nodes) plus a
+per-node `<node>/ssh/local.conf` for what has to differ — port, bind address, login user.
+TB's sshd now binds its public IP only, not every interface, closing the one place that
+still defaulted to `0.0.0.0` against the bind rule above. Bans and rejections show up on
+the Grafana `infra-services` dashboard's "Bot mitigation" row.
+
 ## DNS
 
 Cloudflare, DNS-only. `*.siffreinsigy.me` points at TB, so a new service needs no DNS

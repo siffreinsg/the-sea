@@ -57,5 +57,6 @@ its plan in [plans/](plans/) once work starts.
 
 ### Networking
 
-- [ ] Host hardening against bots — not yet planned
+- [ ] Host hardening against bots — shipped, pending install on both nodes
+      ([runbook](runbooks/install-fail2ban.md))
 - [ ] Grafana IP tracking + anomaly alerts — not yet planned
