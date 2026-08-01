@@ -29,7 +29,11 @@ in `raw/PREROUTING`, before Docker's MASQUERADE rewrites the source to the host'
 tailnet IP. Once that rewrite has happened, Headscale — and any ACL it enforces — cannot
 tell a container's traffic from the host's. The two mechanisms defend different things:
 the guard blocks the container path, the ACL is a port policy for the host's own
-mesh-native traffic (Alloy, gm-relay, Komodo, backups). **The guard stays, generalized to
+mesh-native traffic — its 11 ports (`docs/REFERENCE.md`) cover Alloy and gm-relay only.
+Komodo Core's `network_mode: host` comment claims it needs the mesh for periphery agents,
+but `docs/domains/deploy.md` describes onboarding as outbound-only over the public edge —
+that predates this redesign and is unresolved; verify empirically before relying on it
+(`docs/runbooks/deploy-a-stack.md`'s cutover pre-flight). **The guard stays, generalized to
 both nodes** (previously TB-only, which is the asymmetry this redesign closes); the ACL
 is additive defense-in-depth, not a substitute.
 
@@ -43,16 +47,18 @@ mesh guard are the compensating control, not the bind address.
 
 ## Supersedes
 
-- `docs/ADR/2026-07-19-caddy-single-public-edge.md` — Caddy is no longer the only
-  ingress; `gm-relay` is a second, host-mode instance with a narrower job.
 - `docs/ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md` — the relay pattern
   is generalized into its own `gm-relay` stack instead of living inside main Caddy.
 - `docs/ADR/2026-07-27-cross-node-calls-use-the-public-edge.md` — the LiteLLM-specific
   reasoning in that ADR still holds; the general mechanism it described (Caddy dialing
-  `100.64.0.1` directly) is what `gm-relay` replaces.
+  `100.64.0.1` directly) is what `gm-relay` replaces. It also states the mesh-guard "runs
+  on TB only / that install has not happened" — no longer true, GM has its own copy now.
 
 ## Extends, does not supersede
 
+- `docs/ADR/2026-07-19-caddy-single-public-edge.md` — still true: `gm-relay` is
+  loopback-plaintext behind the perimeter firewall, not publicly reachable and not a TLS
+  terminator. TB remains the only machine facing the internet.
 - `docs/ADR/2026-07-25-mesh-guard-in-raw-prerouting.md` — still the live mechanism and
   still the reason it lives in `raw/PREROUTING`; this redesign only adds the GM copy.
 - `docs/ADR/2026-07-19-services-bind-private-addresses.md` — still true, exception list

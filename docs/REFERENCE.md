@@ -10,8 +10,9 @@ The constants. Everything here is looked up, not reasoned about.
 | Mesh IPs | TB `100.64.0.2`, GM `100.64.0.1`. Base domain `mesh.siffreinsigy.me` |
 | Public IPs | TB `141.253.109.196`, GM `62.4.16.10` |
 | Open ports | TB 80/443/22 · GM 4747 (SSH) · nothing else. **Planned, not yet open:** TB 22000/tcp+udp for Syncthing ([the one exception](ADR/2026-07-26-syncthing-public-port.md)) — needs the Docker publish *and* an Oracle VCN security-list rule |
-| `edge` network | TB — hand-created (`docker network create edge`), `external: true` in every compose that joins it. Every service Caddy reverse-proxies to by container name |
+| `edge` network | TB — hand-created (`docker network create edge`), `external: true` in every compose that joins it. Every non-n8n service Caddy reverse-proxies to by container name |
 | `ai-backends` network | TB — hand-created (`docker network create ai-backends`), `external: true` in open-webui, litellm, tika. Lets open-webui dial its AI backend and doc-extraction service by name |
+| `n8n-edge` network | TB — hand-created (`docker network create n8n-edge`), `external: true` in n8n and caddy only. n8n runs user-supplied code, so it's isolated from `edge`'s other members (headscale, authelia, backrest) instead of sharing the flat network |
 | Repo on nodes | `/opt/the-sea` ← `git@github.com:siffreinsg/the-sea.git`, `main` |
 | age recipient | `age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md` |
 | age private key | password manager + `/etc/sops/age.key` (root, 0600) on each node |

@@ -32,7 +32,7 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - default
-      - edge
+      - n8n-edge
     volumes:
       - n8n-data:/home/node/.n8n
       - n8n-files:/files
@@ -42,5 +42,8 @@ volumes:
   n8n-files:
 
 networks:
-  edge:
+  # Not `edge` — n8n runs user-supplied code and `edge` reaches headscale, authelia,
+  # backrest by container name. n8n gets its own network, shared only with Caddy, so
+  # a workflow can't dial past the reverse proxy to anything else on `edge`.
+  n8n-edge:
     external: true

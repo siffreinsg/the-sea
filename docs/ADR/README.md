@@ -35,7 +35,7 @@ New decision = new dated file + one row here.
 | 2026-07-21 | [Database dumps run from a host systemd timer](2026-07-21-dumps-via-host-systemd-timer.md) | Accepted |
 | 2026-07-21 | [Backups: Backrest → restic → Proton Drive + Mega](2026-07-21-backrest-restic-proton-mega.md) | Accepted |
 | 2026-07-19 | [Services bind a private address, never 0.0.0.0](2026-07-19-services-bind-private-addresses.md) | Accepted |
-| 2026-07-19 | [One public edge: Caddy on Thriller Bark](2026-07-19-caddy-single-public-edge.md) | Superseded |
+| 2026-07-19 | [One public edge: Caddy on Thriller Bark](2026-07-19-caddy-single-public-edge.md) | Accepted |
 | 2026-07-18 | [Secrets live in git, encrypted with SOPS + age](2026-07-18-sops-age-secrets-in-git.md) | Accepted |
 | 2026-07-18 | [Headscale for the mesh](2026-07-18-headscale-mesh.md) | Accepted |
 | 2026-07-18 | [Komodo + Compose, not Kubernetes](2026-07-18-komodo-compose-not-kubernetes.md) | Accepted |

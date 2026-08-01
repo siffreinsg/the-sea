@@ -14,6 +14,7 @@ services:
     networks:
       - default
       - edge
+      - n8n-edge
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
@@ -25,4 +26,6 @@ volumes:
 
 networks:
   edge:
+    external: true
+  n8n-edge:
     external: true
