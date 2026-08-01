@@ -3,16 +3,6 @@
 	acme_dns cloudflare {env.CF_API_TOKEN}
 	metrics
 	admin off
-	# Per-IP request cap, edge-wide (applied below with `rate_limit dynamic`). 240/min
-	# is loose enough for a household behind CGNAT, tight enough to blunt a scan —
-	# tune from the infra-services Grafana dashboard.
-	rate_limit {
-		zone dynamic {
-			key {remote_host}
-			events 240
-			window 1m
-		}
-	}
 }
 
 # Metrics only. Loopback, plaintext, no ACME. Exists so `admin off` above can be set
@@ -36,7 +26,17 @@ http://127.0.0.1:2020 {
 		output file /var/log/caddy/access.log
 		format json
 	}
-	rate_limit dynamic
+	# Per-IP request cap. caddy-ratelimit has no global-option form — the zone has
+	# to be defined at the site/route level where it's enforced. 240/min is loose
+	# enough for a household behind CGNAT, tight enough to blunt a scan — tune from
+	# the infra-services Grafana dashboard.
+	rate_limit {
+		zone dynamic {
+			key {remote_host}
+			events 240
+			window 1m
+		}
+	}
 	# No `preload` until includeSubDomains is verified safe for every name
 	# under the apex — preload is effectively irreversible.
 	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
