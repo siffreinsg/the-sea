@@ -10,8 +10,6 @@ services:
       # For the OTLP endpoint in config.env. Bridge gateway IPs move when a network is
       # recreated, so never write a literal 172.x address.
       - "host.docker.internal:host-gateway"
-    ports:
-      - "127.0.0.1:3020:8080"
     volumes:
       - open-webui-data:/app/backend/data
     depends_on:
@@ -19,7 +17,8 @@ services:
         condition: service_healthy
     networks:
       - default
-      - the-sea-internal
+      - edge
+      - ai-backends
 
   # Open-WebUI's own database, private to this stack: one database per app
   # ([why](../../docs/ADR/2026-07-28-one-database-per-app.md)). pgvector because this is
@@ -54,5 +53,7 @@ networks:
     ipam:
       config:
         - subnet: 10.89.2.0/24
-  the-sea-internal:
+  edge:
+    external: true
+  ai-backends:
     external: true
