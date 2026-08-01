@@ -10,6 +10,7 @@ The constants. Everything here is looked up, not reasoned about.
 | Mesh IPs | TB `100.64.0.2`, GM `100.64.0.1`. Base domain `mesh.siffreinsigy.me` |
 | Public IPs | TB `141.253.109.196`, GM `62.4.16.10` |
 | Open ports | TB 80/443/22 · GM 4747 (SSH) · nothing else. **Planned, not yet open:** TB 22000/tcp+udp for Syncthing ([the one exception](ADR/2026-07-26-syncthing-public-port.md)) — needs the Docker publish *and* an Oracle VCN security-list rule |
+| sshd hardening <!-- mirrors ssh/hardening.conf + <node>/ssh/local.conf — verify: diff against /etc/ssh/sshd_config.d/ on each node --> | Shared: key-only, no root login, no PAM, `MaxAuthTries 3` (`ssh/hardening.conf`, same file on both nodes). Per-node: TB bound to `141.253.109.196:22`, `AllowUsers ubuntu`; GM bound to `62.4.16.10:4747`, `AllowUsers siffrein`. See [networking.md](domains/networking.md) |
 | `edge` network | TB — hand-created (`docker network create edge`), `external: true` in every compose that joins it. Every non-n8n service Caddy reverse-proxies to by container name |
 | `ai-backends` network | TB — hand-created (`docker network create ai-backends`), `external: true` in open-webui, litellm, tika. Lets open-webui dial its AI backend and doc-extraction service by name |
 | `n8n-edge` network | TB — hand-created (`docker network create n8n-edge`), `external: true` in n8n and caddy only. n8n runs user-supplied code, so it's isolated from `edge`'s other members (headscale, authelia, backrest) instead of sharing the flat network |
