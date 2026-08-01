@@ -70,14 +70,17 @@ prometheus.scrape "litellm" {
 // the mesh guard DROPs 172.16/12 -> 100.64/10 in raw/PREROUTING, by design. Alloy is
 // network_mode: host, so its traffic is the host's and passes.
 //
-// 0.0.0.0, unlike the UI pinned to 127.0.0.1 above, because the senders are bridged
-// containers on two different networks (default bridge 172.17.0.1, the-sea-internal
-// 172.24.0.1) and gateway IPs change when a network is recreated. The gate is the
-// perimeter firewall — TB accepts 80/443/22 inbound and nothing else.
+// 0.0.0.0, unlike the UI pinned to 127.0.0.1 above, because senders are bridged
+// containers on different bridges and `host.docker.internal` resolves to one
+// address for every container regardless of which bridge it's on — there is no
+// single non-catch-all bind that every sender's gateway can reach. The mesh guard
+// and perimeter firewall are the compensating control, same as the relay listeners.
 otelcol.receiver.otlp "in" {
   grpc { endpoint = "0.0.0.0:4317" }
   http { endpoint = "0.0.0.0:4318" }
-  output { traces = [otelcol.processor.filter.noise.input] }
+  output {
+    traces = [otelcol.processor.filter.noise.input]
+  }
 }
 
 // Drop traffic that is never worth a trace. Only self-contained requests are listed —

@@ -5,9 +5,9 @@ gateway — nothing dials Scaleway or Mistral directly.
 
 ## 1. Base URL
 
-- **On `the-sea-internal`** (TB container, same Docker network as `litellm`):
+- **On `ai-backends`** (TB container, same Docker network as `litellm`):
   `http://litellm:4000/v1`
-- **Off-network** (GM, or anything not on `the-sea-internal`): `https://ai.siffreinsigy.me/v1`
+- **Off-network** (GM, or anything not on `ai-backends`): `https://ai.siffreinsigy.me/v1`
   — public edge, protected by the virtual key alone, no forward_auth
   ([why](../../thriller-bark/caddy/Caddyfile) — see the `@litellm` block).
 

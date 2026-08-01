@@ -56,20 +56,20 @@ duplicating them. Dashboards re-poll every 30s; alert rules only re-read on cont
 
 ## Traces
 
-Apps never push to Tempo directly. The [mesh guard](networking.md) DROPs `172.16/12` →
-`100.64/10` in raw/PREROUTING, so a bridged container cannot reach GM at all. They send
-OTLP to **Alloy on their own node**, which is `network_mode: host` and whose traffic is
-therefore the host's — the same "one collector per node" shape as metrics and logs.
+Apps never push to Tempo directly. The [mesh guard](networking.md) DROPs bridged-container
+traffic to the mesh, so they send OTLP to **Alloy on their own node** instead, which is
+`network_mode: host` and whose traffic is therefore the host's — the same "one collector
+per node" shape as metrics and logs.
 
-`thriller-bark/alloy/config.alloy` binds the OTLP receiver on **`0.0.0.0`:4317/4318**, and
-that is the one place a listener is not loopback- or mesh-scoped. It has to be: the senders
-sit on two different bridges (`172.17.0.1`, `the-sea-internal` at `172.24.0.1`) and gateway
-IPs change when a network is recreated. The perimeter firewall is the gate — TB accepts
-80/443/22 inbound and nothing else. Alloy's own UI stays pinned to `127.0.0.1:12345`.
+`thriller-bark/alloy/config.alloy` binds `0.0.0.0:4317/4318` — senders are bridged
+containers on different bridges, and `host.docker.internal` resolves to one address
+regardless of which bridge a container is on, so there's no single non-catch-all bind
+every sender's gateway can reach. The mesh guard and perimeter firewall are the
+compensating control, same reasoning as `gm-relay`'s proxy ports. Alloy's own UI
+stays `127.0.0.1:12345`.
 
 Senders use `host.docker.internal` with `extra_hosts: host-gateway`, never a literal
-gateway IP, for the same reason. This works because [containers can reach the
-host](networking.md).
+gateway IP. This works because [containers can reach the host](networking.md).
 
 The Grafana links that make three panes into one are in `grafana-datasources.yaml`:
 `tracesToLogsV2` on Tempo, and a `TraceID` derived field on Loki. **The Loki direction is

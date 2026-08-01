@@ -62,9 +62,11 @@ rebuilt), Homepage (all config is in git).
 
 Clone the repo, drop in the age key, redeploy. What that does **not** restore, and must be
 rebuilt by hand: Backrest's repos and plans, the Komodo Discord alerter, three Komodo
-Procedures and one Tag, and **the `the-sea-internal` docker network on TB**
-(`docker network create the-sea-internal` — it is `external: true` in every compose that
-joins it, so `litellm` and `open-webui` will refuse to start until it exists).
+Procedures and one Tag, and **the `edge`/`ai-backends`/`n8n-edge` docker networks on TB**
+(`docker network create edge && docker network create ai-backends && docker network
+create n8n-edge` — all three are `external: true` in every compose that joins them, so
+those stacks will refuse to start until they exist; `docs/REFERENCE.md`'s top table has
+the membership list).
 
 **Deploy order matters.** Backrest mounts `external: true` volumes on both nodes (TB:
 headscale, caddy, komodo, authelia, open-webui; GM: observability, cleanuparr, profilarr)

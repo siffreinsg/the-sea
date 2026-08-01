@@ -2,9 +2,19 @@ services:
   caddy:
     build: .
     container_name: caddy
-    network_mode: host # binds 80/443; backends reached via 127.0.0.1 and mesh DNS
     restart: unless-stopped
     env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "127.0.0.1:2020:2020"   # metrics — scraped by host-mode Alloy over loopback
+    extra_hosts:
+      # Reaches gm-relay's and komodo's host-bound listeners from the bridge.
+      - "host.docker.internal:host-gateway"
+    networks:
+      - default
+      - edge
+      - n8n-edge
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
@@ -13,3 +23,9 @@ services:
 volumes:
   caddy-data:
   caddy-config:
+
+networks:
+  edge:
+    external: true
+  n8n-edge:
+    external: true

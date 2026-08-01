@@ -30,8 +30,9 @@ services:
       - N8N_OTEL_TRACES_INJECT_OUTBOUND=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    ports:
-      - "127.0.0.1:5678:5678"
+    networks:
+      - default
+      - n8n-edge
     volumes:
       - n8n-data:/home/node/.n8n
       - n8n-files:/files
@@ -39,3 +40,10 @@ services:
 volumes:
   n8n-data:
   n8n-files:
+
+networks:
+  # Not `edge` — n8n runs user-supplied code and `edge` reaches headscale, authelia,
+  # backrest by container name. n8n gets its own network, shared only with Caddy, so
+  # a workflow can't dial past the reverse proxy to anything else on `edge`.
+  n8n-edge:
+    external: true

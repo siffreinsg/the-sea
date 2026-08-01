@@ -10,7 +10,9 @@ The constants. Everything here is looked up, not reasoned about.
 | Mesh IPs | TB `100.64.0.2`, GM `100.64.0.1`. Base domain `mesh.siffreinsigy.me` |
 | Public IPs | TB `141.253.109.196`, GM `62.4.16.10` |
 | Open ports | TB 80/443/22 · GM 4747 (SSH) · nothing else. **Planned, not yet open:** TB 22000/tcp+udp for Syncthing ([the one exception](ADR/2026-07-26-syncthing-public-port.md)) — needs the Docker publish *and* an Oracle VCN security-list rule |
-| Container network | `the-sea-internal` on TB — hand-created (`docker network create`), `external: true` in every compose that joins it. For containers that must dial each other by name |
+| `edge` network | TB — hand-created (`docker network create edge`), `external: true` in every compose that joins it. Every non-n8n service Caddy reverse-proxies to by container name |
+| `ai-backends` network | TB — hand-created (`docker network create ai-backends`), `external: true` in open-webui, litellm, tika. Lets open-webui dial its AI backend and doc-extraction service by name |
+| `n8n-edge` network | TB — hand-created (`docker network create n8n-edge`), `external: true` in n8n and caddy only. n8n runs user-supplied code, so it's isolated from `edge`'s other members (headscale, authelia, backrest) instead of sharing the flat network |
 | Repo on nodes | `/opt/the-sea` ← `git@github.com:siffreinsg/the-sea.git`, `main` |
 | age recipient | `age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md` |
 | age private key | password manager + `/etc/sops/age.key` (root, 0600) on each node |
@@ -51,22 +53,55 @@ the offset if you change these.
 | Overseerr (legacy redirect) | `overseerr.blackpearl.siffreinsigy.me` |
 | Uptime-Kuma | on Sunny (`app-uptimekuma`), **not behind Caddy** — external node-liveness for TB and GM, the mitigation for observability living on a watched node ([ADR](ADR/2026-07-23-observability-on-going-merry.md)) |
 
-This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 15 hosts,
+This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 16 hosts,
 verified. All are `@name host` matchers inside the wildcard block except
 `overseerr.blackpearl`, which is its own site block (a `redir`, not a proxy), and
 Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block for a hostname,
-add a row. The relay listeners below are the one part of the Caddyfile with no hostname.
+add a row. `thriller-bark/gm-relay/Caddyfile` is a separate file, not part of this table.
 
-## Caddy mesh relay
+## GM relay
 
-Not public, no hostname, no TLS. How a bridged TB container reaches a GM service that has
-no auth of its own ([why](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)).
-Callers use `http://host.docker.internal:<port>`.
+`thriller-bark/gm-relay/` — a second, host-mode Caddy instance. Every GM-bound hostname's
+backend now points here instead of `100.64.0.1:<port>` directly (main Caddy is
+bridge-networked since this redesign and can't dial the mesh itself). Binds `0.0.0.0`,
+same reasoning as Alloy's OTLP receiver ([why](domains/networking.md)) — callers use
+`host.docker.internal`, never a literal gateway IP.
 
-| Port | Backend |
+| GM service | GM port | gm-relay port |
+|---|---|---|
+| Dawarich | 3200 | 13200 |
+| Backrest | 9898 | 19898 |
+| Grafana | 3000 | 13000 |
+| Profilarr | 6868 | 16868 |
+| Cleanuparr | 11011 | 11011 |
+| your_spotify | 8095 | 18095 |
+| SearXNG | 8080 | 18090 |
+| Playwright | 3002 | 18091 |
+
+SearXNG and Playwright have no auth of their own — callers on TB reach them via
+`http://host.docker.internal:18090`/`:18091`, same as before this redesign, just renumbered.
+
+## Headscale ACL
+
+`thriller-bark/headscale/acl.hujson` — port-level TB→GM allowlist, additive to the mesh
+guard, not a replacement for it ([why](ADR/2026-08-01-per-stack-networks-and-headscale-acl.md)).
+Covers exactly what needs to cross the mesh from the host side: Alloy's OTLP push and
+gm-relay's 8 hops (the table above). Nothing else is allowed TB→GM, and nothing is
+allowed GM→TB.
+
+| Service | Port |
 |---|---|
-| `8090` | SearXNG, `100.64.0.1:8080` |
-| `8091` | Playwright (`run-server`), `100.64.0.1:3002` |
+| VictoriaMetrics remote_write | 8428 |
+| Loki push | 3100 |
+| Tempo OTLP gRPC | 4317 |
+| Dawarich | 3200 |
+| Backrest-GM | 9898 |
+| Grafana | 3000 |
+| Profilarr | 6868 |
+| Cleanuparr | 11011 |
+| your_spotify | 8095 |
+| SearXNG | 8080 |
+| Playwright | 3002 |
 
 ## Restic repositories
 

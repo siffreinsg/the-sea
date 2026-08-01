@@ -30,57 +30,59 @@ http://127.0.0.1:2020 {
 
 	@headscale host headscale.siffreinsigy.me
 	handle @headscale {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy headscale:8080
 	}
 
 	@komodo host komodo.siffreinsigy.me
 	handle @komodo {
-		reverse_proxy 127.0.0.1:9120
+		# Komodo Core stays network_mode: host (dials periphery agents over the mesh) — main
+		# Caddy doesn't anymore (this redesign), so host.docker.internal, not 127.0.0.1.
+		reverse_proxy host.docker.internal:9120
 	}
 
 	@auth host auth.siffreinsigy.me
 	handle @auth {
-		reverse_proxy 127.0.0.1:9091
+		reverse_proxy authelia:9091
 	}
 
 	@dawarich host dawarich.siffreinsigy.me
 	handle @dawarich {
-		reverse_proxy 100.64.0.1:3200
+		reverse_proxy host.docker.internal:13200
 	}
 
 	@backrest-tb host backrest-tb.siffreinsigy.me
 	handle @backrest-tb {
-		reverse_proxy 127.0.0.1:9898
+		reverse_proxy backrest:9898
 	}
 
 	@backrest-gm host backrest-gm.siffreinsigy.me
 	handle @backrest-gm {
-		reverse_proxy 100.64.0.1:9898
+		reverse_proxy host.docker.internal:19898
 	}
 
 	@grafana host grafana.siffreinsigy.me
 	handle @grafana {
-		reverse_proxy 100.64.0.1:3000
+		reverse_proxy host.docker.internal:13000
 	}
 
 	@actualbudget host actual.siffreinsigy.me
 	handle @actualbudget {
-		reverse_proxy 127.0.0.1:5006
+		reverse_proxy actual_server:5006
 	}
 
 	@profilarr host profilarr.siffreinsigy.me
 	handle @profilarr {
-		reverse_proxy 100.64.0.1:6868
+		reverse_proxy host.docker.internal:16868
 	}
 
 	@cleanuparr host cleanuparr.siffreinsigy.me
 	handle @cleanuparr {
-		reverse_proxy 100.64.0.1:11011
+		reverse_proxy host.docker.internal:11011
 	}
 
 	@n8n host n8n.siffreinsigy.me
 	handle @n8n {
-		reverse_proxy 127.0.0.1:5678
+		reverse_proxy n8n:5678
 	}
 
 	# LiteLLM has its own Authelia OIDC client, so no forward_auth — that was one login
@@ -99,13 +101,13 @@ http://127.0.0.1:2020 {
 		# has to precede reverse_proxy or the proxy answers first.
 		@metrics path /metrics /metrics/*
 		respond @metrics 404
-		reverse_proxy 127.0.0.1:4000
+		reverse_proxy litellm:4000
 	}
 
 	# Open-WebUI has its own OIDC client in Authelia, so no forward_auth here.
 	@open-webui host chat.siffreinsigy.me
 	handle @open-webui {
-		reverse_proxy 127.0.0.1:3020
+		reverse_proxy open-webui:8080
 	}
 
 	@your_spotify host spotify.siffreinsigy.me
@@ -113,14 +115,14 @@ http://127.0.0.1:2020 {
 		# Spotify redirects the browser back here; the link flow must not hit the portal.
 		@your_spotify_oauth path /api/oauth/spotify /api/oauth/spotify/callback
 		handle @your_spotify_oauth {
-			reverse_proxy 100.64.0.1:8095
+			reverse_proxy host.docker.internal:18095
 		}
 		handle {
-			forward_auth 127.0.0.1:9091 {
+			forward_auth authelia:9091 {
 				uri /api/authz/forward-auth
 				copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 			}
-			reverse_proxy 100.64.0.1:8095
+			reverse_proxy host.docker.internal:18095
 		}
 	}
 
@@ -131,30 +133,4 @@ http://127.0.0.1:2020 {
 
 overseerr.blackpearl.siffreinsigy.me {
 	redir https://seerr-thousandsunny.fox.usbx.me{uri} 302
-}
-
-# --- mesh relay ---------------------------------------------------------------------
-# Not a public site. Bridged containers on TB cannot dial 100.64.0.1 — the mesh guard
-# DROPs 172.16.0.0/12 -> 100.64.0.0/10 in raw/PREROUTING — so a GM service with no auth
-# of its own is reached through Caddy, which is network_mode: host and whose traffic is
-# therefore the host's:
-# docs/ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md
-#
-# Binds 0.0.0.0 because senders sit on two different bridges and gateway IPs move when a
-# network is recreated. That is the third exception to the bind rule; the perimeter
-# firewall (80/443/22 inbound, nothing else) plus the tailnet ACL are the gate — this also
-# listens on tailscale0. Callers use host.docker.internal, never a literal 172.x.
-:8090 {
-	# This one logs the query string, unlike the public site's own log and unlike
-	# Open-WebUI's audit path, which excludes chat bodies on purpose. Deliberate: single
-	# user, own searches, and it is the only view of what the model actually asked for.
-	log {
-		output stdout
-		format json
-	}
-	reverse_proxy 100.64.0.1:8080
-}
-
-:8091 {
-	reverse_proxy 100.64.0.1:3002
 }

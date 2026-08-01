@@ -3,8 +3,9 @@ services:
     image: actualbudget/actual-server:26.7.0-alpine
     container_name: actual_server
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:5006:5006"
+    networks:
+      - default
+      - edge
     volumes:
       - actual-data:/data
     healthcheck:
@@ -16,3 +17,7 @@ services:
 
 volumes:
   actual-data:
+
+networks:
+  edge:
+    external: true

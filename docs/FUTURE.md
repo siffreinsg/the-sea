@@ -33,9 +33,10 @@ Ideas and deferred questions, not on deck. Anything with a named phase and domai
 - **Wire n8n to LiteLLM — it isn't yet.** This is the reason LiteLLM exists; don't let n8n
   hold provider keys directly. Give it its own virtual key, and note the URL: **not**
   `http://127.0.0.1:4000/v1`. n8n is a bridged container, so that is its own loopback (the
-  same bug already fixed for Open-WebUI). n8n has to **join `the-sea-internal`** — its
-  compose has no `networks:` block today — and dial `http://litellm:4000/v1`. Same host, no
-  mesh hop.
+  same bug already fixed for Open-WebUI). n8n is deliberately isolated on `n8n-edge`
+  (shared only with Caddy — it runs user-supplied code) and **must not** join
+  `ai-backends` to reach LiteLLM directly, that undoes the isolation and hands it
+  open-webui and tika too. Go through the public edge instead: `https://ai.siffreinsigy.me/v1`.
 - **When the first n8n workflow calls LiteLLM, set a session header.** Nothing does this
   automatically. Open-WebUI gets session grouping for free because it sends the chat id;
   an n8n HTTP Request node must set `x-litellm-session-id` itself. The value has to match

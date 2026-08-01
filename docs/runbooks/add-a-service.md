@@ -27,16 +27,24 @@ services:
     ports:
       - "<bind>:<P>:<container-port>"
 ```
-`<bind>` is the node's private address — **never `0.0.0.0`**:
-- **TB:** `127.0.0.1` (Caddy is on the same host).
-- **GM:** `100.64.0.1` (GM's mesh IP — reachable from TB's Caddy over the mesh, off the public interface).
+A TB service usually needs **no** `ports:` at all — join `edge` (below) and let Caddy
+reach it by container name instead. GM services still publish to their mesh address —
+**never `0.0.0.0`**:
+- **TB:** skip `ports:` entirely; join `edge` instead.
+- **GM:** `100.64.0.1` (GM's mesh IP — reachable from `gm-relay` over the mesh, off the
+  public interface).
 
 Services that must dial mesh addresses themselves use `network_mode: host` instead
-(like Caddy and Komodo Core) — most don't.
+(like `gm-relay` and Komodo Core) — most don't. Main Caddy is bridge-networked, not
+host-mode; it reaches host-mode services via `host.docker.internal`, not a literal IP.
 
-Containers that must dial each other **by name** join `the-sea-internal` (TB only), which
-is `external: true` everywhere and hand-created — `docker network create the-sea-internal`
-if it is missing. Nothing recreates it, including DR.
+Containers that must dial each other **by name** join a shared network — `edge` if Caddy
+needs to reach them, `ai-backends` if it's open-webui/litellm/tika needing each other.
+Both are `external: true` everywhere and hand-created:
+`docker network create edge` / `docker network create ai-backends` if missing. Nothing
+recreates them, including DR. A new cross-stack dependency that doesn't fit either
+existing network gets its own hand-created one, following the same pattern — don't
+default back to a flat shared network.
 
 `secrets.env` (skip if the app has no secrets):
 ```bash
@@ -70,10 +78,18 @@ Inside `*.siffreinsigy.me`, above the final `handle { abort }`:
 ```caddyfile
 	@<app> host <app>.siffreinsigy.me
 	handle @<app> {
-		reverse_proxy <bind>:<P>
+		reverse_proxy <app>:<container-port>
 	}
 ```
-`<bind>` matches the compose bind: `127.0.0.1` for a TB app, `100.64.0.1` for a GM app.
+For a TB app on `edge`, `<app>` is the container name and `<container-port>` its internal
+port. For a GM app, there's no container to dial directly — see §3d: the block instead
+reads `reverse_proxy host.docker.internal:<relay-port>`, dialing gm-relay. A GM app routed
+through Caddy this way needs the same three additions §3d lists for the no-humans case:
+a gm-relay listener, a row in [REFERENCE](../REFERENCE.md#gm-relay), and `tag:gm:<P>` in
+`acl.hujson` — auth still applies per §3b, gm-relay only removes the mesh hop.
+
+Whatever node the app lands on, add it to REFERENCE's [Web UIs
+table](../REFERENCE.md) and, if it joins `ai-backends`, to that network's member list.
 
 ## 3b. Auth — pick one of three
 
@@ -112,13 +128,15 @@ hostname env var (bit us on Dawarich).
 ```caddyfile
 	@<app> host <app>.siffreinsigy.me
 	handle @<app> {
-		forward_auth 127.0.0.1:9091 {
+		forward_auth authelia:9091 {
 			uri /api/authz/forward-auth
 			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 		}
-		reverse_proxy <bind>:<P>
+		reverse_proxy <container-name>:<P>
 	}
 ```
+`<container-name>:<P>` for a TB service (joins `edge`); `host.docker.internal:<relay-port>`
+via `gm-relay` for a GM service (see (d) below).
 
 Need to bypass paths (API, webhooks, OAuth callbacks)? **Wrap every branch in its
 own `handle {}`.** Caddy's mutual exclusion only applies between *sibling* `handle`
@@ -132,8 +150,8 @@ double-login friction wasn't worth it. Record the decision, don't leave it impli
 **d) No humans at all — a GM service consumed by a TB container.** Then it gets no
 hostname, no Caddy `handle` block and no auth, and §3 above does not apply. It cannot be
 dialled directly either: the mesh guard DROPs `172.16.0.0/12 → 100.64.0.0/10`, so a bridged
-container on TB reaching `100.64.0.1` times out. Add a relay listener instead
-([why](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)):
+container on TB reaching `100.64.0.1` times out. Add a listener to `gm-relay` instead
+(`thriller-bark/gm-relay/Caddyfile`, [why](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)):
 
 ```caddyfile
 :<relay-port> {
@@ -141,10 +159,13 @@ container on TB reaching `100.64.0.1` times out. Add a relay listener instead
 }
 ```
 
-Outside the `*.siffreinsigy.me` block, at the bottom of the Caddyfile with the other
-relays. The consumer uses `http://host.docker.internal:<relay-port>` and needs
+In `thriller-bark/gm-relay/Caddyfile`, with the other GM relay listeners — not the main
+Caddyfile. The consumer uses `http://host.docker.internal:<relay-port>` and needs
 `extra_hosts: - "host.docker.internal:host-gateway"`, never a literal `172.x`. Allocate the
-port in [REFERENCE](../REFERENCE.md#caddy-mesh-relay) and add a row.
+port in [REFERENCE](../REFERENCE.md#gm-relay) and add a row.
+
+The ACL is default-deny: add `tag:gm:<P>` to the TB→GM allowlist in
+`thriller-bark/headscale/acl.hujson` for the port gm-relay dials, or the listener times out.
 
 If the callee *does* authenticate itself (LiteLLM's virtual keys, an API key), the public
 edge is the other sanctioned path — same ADR.

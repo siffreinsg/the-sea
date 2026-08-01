@@ -3,6 +3,13 @@
 What's next. Ideas that aren't thought out yet are in [FUTURE.md](FUTURE.md); a task links
 its plan in [plans/](plans/) once work starts.
 
+## Misc
+
+- [ ] Run the network redesign cutover — [runbook](runbooks/deploy-a-stack.md#one-time-cutover-the-network-redesign-why)
+- [ ] Configure Uptime Kuma to monitor The Sea
+- [ ] Collect traces from Komodo
+- [ ] Remove noise from Grafana logs, metrics and traces
+
 ## AI platform
 
 ### Sidekick stack
@@ -38,3 +45,8 @@ its plan in [plans/](plans/) once work starts.
 
 - [ ] Scan the edge from off-network, and read the Oracle VCN security list — hairpin NAT
       can't prove which layer closes what
+
+### Networking
+
+- [ ] Host hardening against bots — not yet planned
+- [ ] Grafana IP tracking + anomaly alerts — not yet planned

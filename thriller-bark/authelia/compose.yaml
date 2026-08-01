@@ -8,8 +8,9 @@ services:
       - 'authelia'
       - '--config=/config/configuration.yml'
       - '--config=/config/oidc.yml'
-    ports:
-      - "127.0.0.1:9091:9091"
+    networks:
+      - default
+      - edge
     volumes:
       - authelia-data:/config
       - ./configuration.yml:/config/configuration.yml:ro
@@ -18,3 +19,7 @@ services:
 
 volumes:
   authelia-data:
+
+networks:
+  edge:
+    external: true

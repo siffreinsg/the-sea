@@ -3,14 +3,15 @@
 Four ships, one repo. Komodo pulls this repo onto each node and runs the compose stacks;
 Caddy on Thriller Bark is the only public door.
 
-**Request path** — one door, two backends. TB is loopback, GM is over the mesh.
+**Request path** — one door, two backends. TB is container DNS, GM goes through gm-relay.
 
 ```mermaid
 flowchart LR
   user([Internet]) -->|443| caddy[Caddy · TB]
   caddy <-->|forward_auth · OIDC| authelia[Authelia · TB]
-  caddy -->|127.0.0.1| tb[TB stacks]
-  caddy -->|mesh| gm[GM stacks]
+  caddy -->|container DNS · edge| tb[TB stacks]
+  caddy -->|host.docker.internal| gm_relay[gm-relay · TB]
+  gm_relay -->|mesh| gm[GM stacks]
 ```
 
 **Deploy path** — the repo is the source, Komodo Core the only thing that acts on it.
@@ -56,7 +57,7 @@ Constants live in [REFERENCE.md](REFERENCE.md), decisions in [ADR/](ADR/), proce
   ([why](ADR/2026-07-19-services-bind-private-addresses.md)).
 - Cross-node calls **between apps** go through the public edge, not the mesh
   ([why](ADR/2026-07-27-cross-node-calls-use-the-public-edge.md)). Infrastructure is the
-  exception and uses the mesh directly: Caddy reverse-proxying GM, Komodo Periphery, Alloy.
+  exception and uses the mesh directly: gm-relay, Komodo Periphery, Alloy.
 - The mesh carries that infrastructure only, never app traffic; Sunny is not on it at all
   ([why](ADR/2026-07-25-sunny-stays-off-the-mesh.md)).
 - Placement follows the benchmarks: TB is the workhorse, GM is light and legacy

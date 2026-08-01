@@ -51,8 +51,9 @@ Two notes on the newest entries:
   first, containers on TB dialling TB's own public `auth.` name and hairpinning past the
   `INPUT` default REJECT. It needed no workaround. Kept for the day one breaks: the fix
   is **not** an internal `http://authelia:9091`, because Authelia advertises the public URL
-  as its issuer and issuer validation would break. Put Authelia on `the-sea-internal`
-  instead and resolve the public name internally.
+  as its issuer and issuer validation would break. Resolve the public name internally
+  instead (Authelia is already on `edge`, same network as every service Caddy proxies to
+  — except n8n, deliberately isolated on its own network; see `docs/REFERENCE.md`).
 - **LiteLLM is an OIDC client, not `forward_auth`.** Its admin UI has a mandatory login
   that cannot be disabled, so `forward_auth` would mean two logins every time.
   SSO is free below five users at v1.93.0 (`ui_sso.py:858`) — no
@@ -66,7 +67,7 @@ Two notes on the newest entries:
   so the list would be long and would break on upgrade.
   The mitigations that must stay true: the master key is a long random, never shared with
   a consumer, and every consumer holds a virtual key instead. Same-node callers use
-  `the-sea-internal` (`http://litellm:4000`) and do not depend on the public name;
+  `ai-backends` (`http://litellm:4000`) and do not depend on the public name;
   **cross-node callers do**, there is no mesh bind
   ([why](../ADR/2026-07-27-cross-node-calls-use-the-public-edge.md)).
   Its client is `require_pkce: false` — fastapi-sso's generic provider sends a verifier but

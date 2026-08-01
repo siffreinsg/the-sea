@@ -8,13 +8,20 @@ services:
     tmpfs:
       - /var/run/headscale
     ports:
-      - "127.0.0.1:8080:8080"
       - "127.0.0.1:9090:9090"    # metrics — scraped by local Alloy only
+    networks:
+      - default
+      - edge
     volumes:
       - ./config.yaml:/etc/headscale/config.yaml:ro
+      - ./acl.hujson:/etc/headscale/acl.hujson:ro
       - headscale-data:/var/lib/headscale
     healthcheck:
       test: ["CMD", "headscale", "health"]
 
 volumes:
   headscale-data:
+
+networks:
+  edge:
+    external: true

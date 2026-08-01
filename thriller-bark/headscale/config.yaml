@@ -27,3 +27,7 @@ dns:
     global:
       - 1.1.1.1
       - 1.0.0.1
+
+policy:
+  mode: file
+  path: /etc/headscale/acl.hujson

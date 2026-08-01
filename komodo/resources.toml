@@ -140,6 +140,16 @@ pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 extra_args = ["--force-recreate", "--build"]
 
 [[stack]]
+name = "gm-relay"
+[stack.config]
+server = "thriller-bark"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "thriller-bark/gm-relay"
+extra_args = ["--force-recreate"]   # Caddyfile is bind-mounted
+
+[[stack]]
 name = "actualbudget"
 [stack.config]
 server = "thriller-bark"

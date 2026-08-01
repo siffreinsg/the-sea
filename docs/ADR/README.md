@@ -10,7 +10,8 @@ New decision = new dated file + one row here.
 
 | Date | Decision | Status |
 |---|---|---|
-| 2026-07-29 | [Caddy relays GM services to TB containers, on a non-public listener](2026-07-29-caddy-relays-mesh-services-to-containers.md) | Accepted |
+| 2026-08-01 | [Per-stack Docker networks, bridge-mode Caddy, Headscale ACL](2026-08-01-per-stack-networks-and-headscale-acl.md) | Accepted |
+| 2026-07-29 | [Caddy relays GM services to TB containers, on a non-public listener](2026-07-29-caddy-relays-mesh-services-to-containers.md) | Superseded |
 | 2026-07-28 | [One database per app, inside the app's stack](2026-07-28-one-database-per-app.md) | Accepted |
 | 2026-07-28 | [RAG uses no reranker](2026-07-28-no-reranking.md) | Accepted |
 | 2026-07-27 | [GM→TB service calls go through the public edge, not the mesh](2026-07-27-cross-node-calls-use-the-public-edge.md) | Superseded |

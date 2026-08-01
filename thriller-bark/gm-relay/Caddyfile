@@ -1,0 +1,45 @@
+{
+	admin off
+}
+
+# 0.0.0.0, not 127.0.0.1: gm-relay is network_mode: host, so a loopback-only bind is
+# unreachable from bridge containers (they see the host through their bridge gateway,
+# never the host's own 127.0.0.1). Callers use host.docker.internal, never a literal
+# gateway IP — the perimeter firewall (80/443/22 inbound, nothing else) plus the mesh
+# guard are the compensating control, same reasoning as Alloy's OTLP receiver.
+
+:13200 {
+	reverse_proxy 100.64.0.1:3200
+}
+
+:19898 {
+	reverse_proxy 100.64.0.1:9898
+}
+
+:13000 {
+	reverse_proxy 100.64.0.1:3000
+}
+
+:16868 {
+	reverse_proxy 100.64.0.1:6868
+}
+
+:11011 {
+	reverse_proxy 100.64.0.1:11011
+}
+
+:18095 {
+	reverse_proxy 100.64.0.1:8095
+}
+
+:18090 {
+	log {
+		output stdout
+		format json
+	}
+	reverse_proxy 100.64.0.1:8080
+}
+
+:18091 {
+	reverse_proxy 100.64.0.1:3002
+}
