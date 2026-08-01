@@ -12,11 +12,10 @@ Komodo, metrics, logs, backups, reverse-proxying — goes over it.
 - GM runs **kernel mode** (its OpenVZ host exposes `/dev/net/tun`).
 - **GM's `100.64.0.1` is a procedural pin** — DB-persisted and stable across reboots, but
   it changes if the node is deleted and re-added. **Never delete that node**, re-register
-  the existing one. The Caddyfile targets this address directly.
+  the existing one. `gm-relay` targets this address directly.
 - Sunny is [not on the mesh](../ADR/2026-07-25-sunny-stays-off-the-mesh.md) and does
   not need to be.
-- Headscale has **no ACL policy** — the tailnet is allow-all between members. That is
-  tolerable only because membership is two trusted nodes; see the container trap below.
+- Headscale has a **port-level TB→GM ACL** — see § Cross-node enforcement below.
 
 ## Binds
 

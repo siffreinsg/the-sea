@@ -17,9 +17,8 @@ Read the `docs/HANDOFF.md` document for context on the previous session conclusi
 ## Infrastructure
 
 - Never bind `0.0.0.0`, bind `127.0.0.1` on TB, `100.64.0.1` on GM.
-  Three exceptions: TB's Alloy OTLP receiver ([why](docs/domains/observability.md)),
-  Caddy's relay listeners for mesh services ([why](docs/ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)),
-  and Syncthing's 22000, the only *publicly reachable* one ([why](docs/ADR/2026-07-26-syncthing-public-port.md)).
+  One exception: Syncthing's 22000, the only *publicly reachable* one
+  ([why](docs/ADR/2026-07-26-syncthing-public-port.md)).
 - Every `pre_deploy` and `backup.sh` starts with `umask 077`. Decrypted secrets and dumps must be 0600.
 - Never pass a secret as a CLI argument (`~/.bash_history`, `ps`). Prompt instead.
 - Pin every image to a released tag, and prefer alpine/slim variants.

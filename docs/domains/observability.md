@@ -56,10 +56,10 @@ duplicating them. Dashboards re-poll every 30s; alert rules only re-read on cont
 
 ## Traces
 
-Apps never push to Tempo directly. The [mesh guard](networking.md) DROPs `172.16/12` →
-`100.64/10` in raw/PREROUTING, so a bridged container cannot reach GM at all. They send
-OTLP to **Alloy on their own node**, which is `network_mode: host` and whose traffic is
-therefore the host's — the same "one collector per node" shape as metrics and logs.
+Apps never push to Tempo directly — bridged containers can't dial GM at all (the
+[Headscale ACL](networking.md) is TB→GM only, no bridge network is mesh-attached). They
+send OTLP to **Alloy on their own node**, which is `network_mode: host` and whose traffic
+is therefore the host's — the same "one collector per node" shape as metrics and logs.
 
 `thriller-bark/alloy/config.alloy` binds three sender-specific addresses —
 `10.89.0.1:4317/4318` (litellm), `10.89.1.1:4317/4318` (n8n), `10.89.2.1:4317/4318`
