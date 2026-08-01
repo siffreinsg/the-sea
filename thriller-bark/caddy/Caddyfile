@@ -146,4 +146,6 @@ overseerr.blackpearl.siffreinsigy.me {
 	reverse_proxy 100.64.0.1:8080
 }
 
-# :8091 is reserved for Firecrawl and lands with it (sidekick stack, step 4).
+:8091 {
+	reverse_proxy 100.64.0.1:3000
+}

@@ -207,6 +207,16 @@ run_directory = "going-merry/searxng"
 # root:root. Owning both is tighter and quieter.
 pre_deploy.command = "umask 077 && sops -d secrets.env > .env && mkdir -p config && sops -d secrets.settings.yml > config/settings.yml && chown -R 977:977 config"
 
+[[stack]]
+name = "playwright"
+[stack.config]
+server = "going-merry"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "going-merry/playwright"
+extra_args = ["--force-recreate", "--build"]
+
 # These keep /opt/the-sea — the path every backup.sh, systemd unit and runbook
 # uses — in sync with main, so nobody has to `git pull` by hand on the nodes.
 # `path` is explicit: without it Komodo clones into its own repo dir instead.
