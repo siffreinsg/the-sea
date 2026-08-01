@@ -7,10 +7,6 @@ its plan in [plans/](plans/) once work starts.
 
 ### Sidekick stack
 
-Tika, Postgres cutover, SearXNG, patchright, per-key budgets and the config review all
-landed — [runbook](runbooks/wire-ai-into-an-app.md), [why no reranker](ADR/2026-07-28-no-reranking.md),
-[why the Caddy relay](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md).
-
 - [ ] Rework web search, SearXNG or otherwise. Scraping consumer engines from a datacenter
       IP CAPTCHAs, so it returns Wikipedia only. Both SearXNG alert rules paused until this
       lands.
@@ -37,11 +33,6 @@ landed — [runbook](runbooks/wire-ai-into-an-app.md), [why no reranker](ADR/202
 - [ ] Homepage — [plan](plans/2026-07-25-homepage.md)
 
 ## Security
-
-### Edge
-
-- [ ] Narrow the `your_spotify` `/api/*` bypass — [plan](plans/2026-07-26-your-spotify-api-bypass.md).
-      Until it lands, `allowRegistrations: false` must stay off.
 
 ### Audit
 
