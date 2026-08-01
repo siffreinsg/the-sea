@@ -36,8 +36,14 @@ the Grafana container:
 - `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter),
   `dashboards/containers.json` (14282, cadvisor), `dashboards/ai-platform.json`
   (hand-written: LiteLLM spend, tokens, latency, rate-limit headroom, plus the TraceQL
-  cheatsheet for per-call exploration) and `dashboards/resources-<node>.json`
-  (hand-written: which container or volume is eating RAM, CPU and disk).
+  cheatsheet for per-call exploration), `dashboards/resources-<node>.json`
+  (hand-written: which container or volume is eating RAM, CPU and disk),
+  `dashboards/infra-services.json` (hand-written: Caddy request rate/latency/errors,
+  headscale node count and map-response rate, SearXNG engine reliability — the three
+  scraped jobs that had metrics in VictoriaMetrics but no panel) and
+  `dashboards/service-logs.json` (hand-written: one Loki logs panel behind a `container`
+  template variable, covers every current and future container without a dashboard per
+  app).
   **One resources dashboard per node, not one with a node filter.** Container names are
   long enough that a `node — name` legend truncates in a bargauge to the point of being
   unreadable, and you look at these one box at a time anyway. TB's copy omits the
@@ -94,11 +100,12 @@ Install it per node with the [query-observability runbook](../runbooks/query-obs
 Folder `Alerting`, rule group `infra`, evaluated every 60s.
 
 | Rule | Query | Threshold | Severity |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Node down | `up{job="integrations/unix"}` | < 1 for 5m | critical |
 | Root disk space low | `node_filesystem_avail_bytes / node_filesystem_size_bytes * 100`, mountpoint `/` | < 10 for 10m | critical |
 | High memory usage | `node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100` | < 10 for 10m | warning |
 | Caddy config reload failed | `caddy_config_last_reload_successful` (TB only) | < 1 for 5m | critical |
+| Headscale down | `up{job="headscale"}` (TB only) | < 1 for 5m | critical |
 | LLM spend above threshold | `sum(increase(litellm_spend_metric_total[24h]))` | > EUR 2/day for 15m | warning |
 | LLM provider errors | `sum(rate(litellm_proxy_failed_requests_metric_total[15m]))` | sustained > 0 for 10m | warning |
 
