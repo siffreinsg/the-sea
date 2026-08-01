@@ -102,8 +102,9 @@
 
 	@your_spotify host spotify.siffreinsigy.me
 	handle @your_spotify {
-		@your_spotify_api path /api/*
-		handle @your_spotify_api {
+		# Spotify redirects the browser back here; the link flow must not hit the portal.
+		@your_spotify_oauth path /api/oauth/spotify /api/oauth/spotify/callback
+		handle @your_spotify_oauth {
 			reverse_proxy 100.64.0.1:8095
 		}
 		handle {
