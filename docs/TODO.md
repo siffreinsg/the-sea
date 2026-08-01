@@ -7,21 +7,15 @@ its plan in [plans/](plans/) once work starts.
 
 ### Sidekick stack
 
-Build order and verification commands: [plan](plans/2026-07-26-sidekick-stack.md)
+Tika, Postgres cutover, SearXNG, patchright, per-key budgets and the config review all
+landed — [runbook](runbooks/wire-ai-into-an-app.md), [why no reranker](ADR/2026-07-28-no-reranking.md),
+[why the Caddy relay](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md).
 
-- [x] Tika (TB). Reranking dropped after measurement — [why](ADR/2026-07-28-no-reranking.md)
-- [x] Postgres cutover, one database per app, Open-WebUI on v0.11.0
-- [x] SearXNG on GM, through Caddy's `:8090` relay rather than the mesh
-      ([why](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md))
 - [ ] Rework web search, SearXNG or otherwise. Scraping consumer engines from a datacenter
       IP CAPTCHAs, so it returns Wikipedia only. Both SearXNG alert rules paused until this
       lands.
 - [ ] wikidata 403s on init and stays gone until restarted. Waiting on the upstream fix,
       then bump the image pin.
-- [x] patchright (stealth-patched Playwright) on GM, custom-built — `going-merry/playwright/`,
-      relay on `:8091`, web search verified end to end in chat
-- [x] Per-key budgets on the LiteLLM keys — set at creation from now on, [runbook](runbooks/wire-ai-into-an-app.md)
-- [ ] Config review, read when a value looks wrong — [plan](plans/2026-07-26-ai-platform-config-review.md)
 
 ## Services
 
