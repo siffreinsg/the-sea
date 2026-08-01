@@ -8,7 +8,7 @@ mode instead of trying to firewall around it.
 
 Every published port binds `127.0.0.1` on TB (reachable from bridge-networked Caddy over
 `host.docker.internal`) or `100.64.0.1` on GM (its mesh address, reachable from
-`gm-relay`, off the public interface). Only `gm-relay` and Komodo Core use
+`gm-relay`, off the public interface). Only Alloy, `gm-relay` and Komodo Core use
 `network_mode: host` on TB, because they must dial mesh addresses themselves
 ([why](../domains/networking.md) has the current shape — main Caddy moved off host mode
 in the 2026-08-01 redesign).

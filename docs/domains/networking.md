@@ -29,7 +29,7 @@ is not a fixed, predictable address to bind instead — plus Syncthing's `22000`
 network to make something reachable — that only works when a stack has exactly one,
 permanent gateway IP, which most don't. Caddy's own `80`/`443` isn't in this count: it's
 the public edge, not an exception to a private-bind rule.
-Only `gm-relay` and Komodo Core use `network_mode: host` on TB, because they dial mesh
+Only Alloy, `gm-relay` and Komodo Core use `network_mode: host` on TB, because they dial mesh
 addresses themselves — main Caddy is bridge-networked and reaches both over
 `host.docker.internal` instead.
 ([The rule and why](../ADR/2026-07-19-services-bind-private-addresses.md).)
