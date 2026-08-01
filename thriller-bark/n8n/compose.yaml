@@ -30,8 +30,9 @@ services:
       - N8N_OTEL_TRACES_INJECT_OUTBOUND=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    ports:
-      - "127.0.0.1:5678:5678"
+    networks:
+      - default
+      - edge
     volumes:
       - n8n-data:/home/node/.n8n
       - n8n-files:/files
@@ -45,3 +46,5 @@ networks:
     ipam:
       config:
         - subnet: 10.89.1.0/24
+  edge:
+    external: true

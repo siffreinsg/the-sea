@@ -3,8 +3,9 @@ services:
     image: garethgeorge/backrest:v1.14.1-alpine   # -alpine bundles restic + rclone
     container_name: backrest
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:9898:9898"
+    networks:
+      - default
+      - edge
     environment:
       BACKREST_DATA: /data
       BACKREST_CONFIG: /config/config.json
@@ -41,3 +42,7 @@ volumes:
   open-webui-data:
     external: true
     name: open-webui_open-webui-data
+
+networks:
+  edge:
+    external: true
