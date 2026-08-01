@@ -52,7 +52,8 @@ Two notes on the newest entries:
   `INPUT` default REJECT. It needed no workaround. Kept for the day one breaks: the fix
   is **not** an internal `http://authelia:9091`, because Authelia advertises the public URL
   as its issuer and issuer validation would break. Resolve the public name internally
-  instead (Authelia is already on `edge`, same network as every service Caddy proxies to).
+  instead (Authelia is already on `edge`, same network as every service Caddy proxies to
+  — except n8n, deliberately isolated on its own network; see `docs/REFERENCE.md`).
 - **LiteLLM is an OIDC client, not `forward_auth`.** Its admin UI has a mandatory login
   that cannot be disabled, so `forward_auth` would mean two logins every time.
   SSO is free below five users at v1.93.0 (`ui_sso.py:858`) — no

@@ -81,6 +81,28 @@ same reasoning as Alloy's OTLP receiver ([why](domains/networking.md)) — calle
 SearXNG and Playwright have no auth of their own — callers on TB reach them via
 `http://host.docker.internal:18090`/`:18091`, same as before this redesign, just renumbered.
 
+## Headscale ACL
+
+`thriller-bark/headscale/acl.hujson` — port-level TB→GM allowlist, additive to the mesh
+guard, not a replacement for it ([why](ADR/2026-08-01-per-stack-networks-and-headscale-acl.md)).
+Covers exactly what needs to cross the mesh from the host side: Alloy's OTLP push and
+gm-relay's 8 hops (the table above). Nothing else is allowed TB→GM, and nothing is
+allowed GM→TB.
+
+| Service | Port |
+|---|---|
+| VictoriaMetrics remote_write | 8428 |
+| Loki push | 3100 |
+| Tempo OTLP gRPC | 4317 |
+| Dawarich | 3200 |
+| Backrest-GM | 9898 |
+| Grafana | 3000 |
+| Profilarr | 6868 |
+| Cleanuparr | 11011 |
+| your_spotify | 8095 |
+| SearXNG | 8080 |
+| Playwright | 3002 |
+
 ## Restic repositories
 
 ```
