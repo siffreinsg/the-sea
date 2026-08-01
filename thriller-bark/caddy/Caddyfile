@@ -147,5 +147,5 @@ overseerr.blackpearl.siffreinsigy.me {
 }
 
 :8091 {
-	reverse_proxy 100.64.0.1:3000
+	reverse_proxy 100.64.0.1:3002
 }
