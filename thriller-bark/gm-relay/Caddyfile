@@ -69,3 +69,9 @@
 		import forwarded-https
 	}
 }
+
+:13050 {
+	reverse_proxy 100.64.0.1:3050 {
+		import forwarded-https
+	}
+}
