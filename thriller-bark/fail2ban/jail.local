@@ -1,0 +1,14 @@
+[DEFAULT]
+bantime = 1h
+findtime = 10m
+
+[sshd]
+enabled = true
+port = 22
+maxretry = 5
+
+[caddy-abuse]
+enabled = true
+filter = caddy-abuse
+logpath = /var/log/caddy/access.log
+maxretry = 20

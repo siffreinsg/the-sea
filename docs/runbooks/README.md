@@ -13,4 +13,5 @@ procedure, named `<verb-object>.md`. Why anything works the way it does lives in
 | [check-the-mesh](check-the-mesh.md) | Headscale, preauth keys, the container/tailnet guard |
 | [query-observability](query-observability.md) | VM/Loki queries, Grafana export, volume-size collector |
 | [check-node-health](check-node-health.md) | Reboots, upgrades, what is listening |
+| [install-fail2ban](install-fail2ban.md) | fail2ban + sshd hardening drop-ins, both nodes |
 | [wire-ai-into-an-app](wire-ai-into-an-app.md) | Base URL, a budgeted virtual key, verify |
