@@ -15,6 +15,11 @@ services:
     extra_hosts:
       # The host, named stably. Bridge gateway IPs move when a network is recreated.
       - "host.docker.internal:host-gateway"
+    ports:
+      # Alloy-only: host-mode Alloy scrapes /metrics over loopback, unauthenticated on
+      # this port only (see litellm/config.yaml). Not how Caddy reaches this container —
+      # that's litellm:4000 over `edge`.
+      - "127.0.0.1:4000:4000"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
     depends_on:
@@ -66,10 +71,6 @@ volumes:
   postgres-data:
 
 networks:
-  default:
-    ipam:
-      config:
-        - subnet: 10.89.0.0/24
   edge:
     external: true
   ai-backends:

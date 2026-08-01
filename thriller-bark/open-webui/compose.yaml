@@ -26,7 +26,7 @@ services:
   # DATABASE_URL, which points here.
   #
   # Not named `postgres`: LiteLLM's database answers to that name and this container is on
-  # `the-sea-internal` too, so the short name would be ambiguous. No `ports:` — the only
+  # `ai-backends` too, so the short name would be ambiguous. No `ports:` — the only
   # consumer is in this stack, on its default network.
   open-webui-db:
     image: pgvector/pgvector:0.8.5-pg17
@@ -49,10 +49,6 @@ volumes:
   open-webui-db-data:
 
 networks:
-  default:
-    ipam:
-      config:
-        - subnet: 10.89.2.0/24
   edge:
     external: true
   ai-backends:

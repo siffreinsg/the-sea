@@ -7,6 +7,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "127.0.0.1:2020:2020"   # metrics — scraped by host-mode Alloy over loopback
     extra_hosts:
       # Reaches gm-relay's and komodo's host-bound loopback listeners from the bridge.
       - "host.docker.internal:host-gateway"

@@ -20,10 +20,15 @@ Komodo, metrics, logs, backups, reverse-proxying — goes over it.
 ## Binds
 
 Every published port binds a private address: `127.0.0.1` on TB, `100.64.0.1` on GM.
-**Never `0.0.0.0`** — and don't "fix" a bind to a bridge network to make something
-reachable. Only `gm-relay` and Komodo Core use `network_mode: host` on TB, because they
-dial mesh addresses themselves — main Caddy is bridge-networked and reaches both over
-`host.docker.internal`/container DNS instead.
+**Never `0.0.0.0`**, with two exceptions, both because a bridged sender's gateway IP is
+not a fixed, predictable address to bind instead: Alloy's OTLP receiver
+(`thriller-bark/alloy/config.alloy`, `0.0.0.0:4317/4318`) and `gm-relay`'s eight loopback
+proxies (`thriller-bark/gm-relay/Caddyfile`). Don't "fix" a bind to a bridge network to
+make something reachable — that only works when a stack has exactly one, permanent
+gateway IP, which most don't.
+Only `gm-relay` and Komodo Core use `network_mode: host` on TB, because they dial mesh
+addresses themselves — main Caddy is bridge-networked and reaches both over
+`host.docker.internal` instead.
 ([The rule and why](../ADR/2026-07-19-services-bind-private-addresses.md).)
 
 Anything on GM binding `100.64.0.1` must be ordered `After=tailscaled` — the address does
@@ -51,15 +56,25 @@ Two properties worth keeping, both verified by connection rather than by reading
   therefore reachable by every container, including n8n, which runs user-supplied code.
   Bind `127.0.0.1` unless a container genuinely has to reach it.
 
-### Cross-node enforcement — the Headscale ACL
+### Cross-node enforcement — two mechanisms, two different jobs
 
-The Headscale ACL (`thriller-bark/headscale/acl.hujson`) is the sole enforcement point,
-applied identically to both nodes: no per-node firewall unit, no asymmetry between TB and
-GM. Unidirectional TB→GM, port-level allowlist — see `docs/REFERENCE.md` for the exact
-port table. Superseded `thriller-bark/firewall/the-sea-mesh-guard.service`
-([why it existed](../ADR/2026-07-25-mesh-guard-in-raw-prerouting.md)), which only ever
-ran on TB and left GM's bridged containers able to reach the full mesh — that asymmetry
-is now closed as a consequence of the ACL applying to both nodes, not a separate fix.
+**The mesh guard** (`thriller-bark/firewall/the-sea-mesh-guard.service`, and its GM twin
+at `going-merry/firewall/the-sea-mesh-guard.service`) DROPs bridged-container traffic to
+the mesh in `raw/PREROUTING`, before Docker's per-bridge MASQUERADE rewrites it to the
+host's own tailnet IP. This is the only mechanism that can do this job: once MASQUERADE
+has run, GM cannot tell a container's traffic from the host's, so a Headscale ACL has
+nothing to key on. ([Why it lives in raw/PREROUTING](../ADR/2026-07-25-mesh-guard-in-raw-prerouting.md).)
+Installed on **both** nodes as of this redesign — previously TB-only, which left GM's
+bridged containers able to reach the full mesh.
+
+**The Headscale ACL** (`thriller-bark/headscale/acl.hujson`) is a port-level TB→GM
+allowlist for genuinely mesh-native (host-originated) traffic — Alloy, gm-relay, Komodo,
+backups — see `docs/REFERENCE.md` for the exact port table. It does not, and cannot,
+replace the guard: it only sees packets after MASQUERADE, so it has no way to
+distinguish a container's traffic from the host's. Both nodes' hosts must be tagged
+(`headscale nodes tag`) before this allowlist takes effect — an untagged node is
+default-deny, which would otherwise silently kill the metrics pipeline. Verify with
+`headscale nodes list` before considering the ACL live.
 
 ### Reaching a GM service from a TB container
 

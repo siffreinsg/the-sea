@@ -56,19 +56,20 @@ duplicating them. Dashboards re-poll every 30s; alert rules only re-read on cont
 
 ## Traces
 
-Apps never push to Tempo directly — bridged containers can't dial GM at all (the
-[Headscale ACL](networking.md) is TB→GM only, no bridge network is mesh-attached). They
-send OTLP to **Alloy on their own node**, which is `network_mode: host` and whose traffic
-is therefore the host's — the same "one collector per node" shape as metrics and logs.
+Apps never push to Tempo directly. The [mesh guard](networking.md) DROPs bridged-container
+traffic to the mesh, so they send OTLP to **Alloy on their own node** instead, which is
+`network_mode: host` and whose traffic is therefore the host's — the same "one collector
+per node" shape as metrics and logs.
 
-`thriller-bark/alloy/config.alloy` binds three sender-specific addresses —
-`10.89.0.1:4317/4318` (litellm), `10.89.1.1:4317/4318` (n8n), `10.89.2.1:4317/4318`
-(open-webui) — one per fixed subnet gateway (`docs/REFERENCE.md` § Docker subnets), not
-`0.0.0.0`. Alloy's own UI stays `127.0.0.1:12345`.
+`thriller-bark/alloy/config.alloy` binds `0.0.0.0:4317/4318` — senders are bridged
+containers on different bridges, and `host.docker.internal` resolves to one address
+regardless of which bridge a container is on, so there's no single non-catch-all bind
+every sender's gateway can reach. The mesh guard and perimeter firewall are the
+compensating control, same reasoning as `gm-relay`'s loopback proxies. Alloy's own UI
+stays `127.0.0.1:12345`.
 
 Senders use `host.docker.internal` with `extra_hosts: host-gateway`, never a literal
-gateway IP, for the same reason. This works because [containers can reach the
-host](networking.md).
+gateway IP. This works because [containers can reach the host](networking.md).
 
 The Grafana links that make three panes into one are in `grafana-datasources.yaml`:
 `tracesToLogsV2` on Tempo, and a `TraceID` derived field on Loki. **The Loki direction is
