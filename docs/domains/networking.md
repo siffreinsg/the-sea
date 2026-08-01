@@ -22,8 +22,10 @@ Komodo, metrics, logs, backups, reverse-proxying — goes over it.
 
 Every published port binds a private address: `127.0.0.1` on TB, `100.64.0.1` on GM.
 **Never `0.0.0.0`** — and don't "fix" a bind to a bridge network to make something
-reachable. Only Caddy and Komodo Core use `network_mode: host`, because they dial mesh
-addresses themselves. ([The rule and why](../ADR/2026-07-19-services-bind-private-addresses.md).)
+reachable. Only `gm-relay` and Komodo Core use `network_mode: host` on TB, because they
+dial mesh addresses themselves — main Caddy is bridge-networked and reaches both over
+`host.docker.internal`/container DNS instead.
+([The rule and why](../ADR/2026-07-19-services-bind-private-addresses.md).)
 
 Anything on GM binding `100.64.0.1` must be ordered `After=tailscaled` — the address does
 not exist until the mesh is up.
@@ -50,43 +52,24 @@ Two properties worth keeping, both verified by connection rather than by reading
   therefore reachable by every container, including n8n, which runs user-supplied code.
   Bind `127.0.0.1` unless a container genuinely has to reach it.
 
-### Containers must not reach the tailnet
+### Cross-node enforcement — the Headscale ACL
 
-Docker's per-bridge MASQUERADE plus Tailscale's `ts-forward` accept let every bridged
-container on TB route onto `100.64.0.0/10`. That breaks the premise VictoriaMetrics and
-Loki rely on — proven from inside n8n, a workflow engine that runs user-supplied code,
-which pulled unauthenticated 200s from both.
-
-Closed by `thriller-bark/firewall/the-sea-mesh-guard.service`, a oneshot that DROPs the
-traffic in **raw/PREROUTING**. The chain choice is not incidental and neither is
-`PartOf=docker.service`: [see the decision](../ADR/2026-07-25-mesh-guard-in-raw-prerouting.md).
-
-**The guard is installed on TB only — GM has no `firewall/` dir and its bridged containers
-can still reach `100.64.0.0/10`.** That is a known gap, not an oversight: the threat is a
-user-code engine and the only one (n8n) is on TB. It stays fixable because no GM container
-needs the mesh, so a copy of the unit can land there whenever we want it. The mesh is for
-`network_mode: host` infrastructure — Alloy, Caddy, Komodo — which the guard does not touch.
+The Headscale ACL (`thriller-bark/headscale/acl.hujson`) is the sole enforcement point,
+applied identically to both nodes: no per-node firewall unit, no asymmetry between TB and
+GM. Unidirectional TB→GM, port-level allowlist — see `docs/REFERENCE.md` for the exact
+port table. Superseded `thriller-bark/firewall/the-sea-mesh-guard.service`
+([why it existed](../ADR/2026-07-25-mesh-guard-in-raw-prerouting.md)), which only ever
+ran on TB and left GM's bridged containers able to reach the full mesh — that asymmetry
+is now closed as a consequence of the ACL applying to both nodes, not a separate fix.
 
 ### Reaching a GM service from a TB container
 
-The guard means a bridged container cannot dial `100.64.0.1` at all. Two sanctioned paths,
-picked by whether the callee can authenticate itself
-([decision](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)):
-
-| Callee | Path |
-|---|---|
-| Has its own auth (LiteLLM virtual keys) | public edge, `https://<app>.siffreinsigy.me` |
-| Has none (SearXNG, Firecrawl) | Caddy relay listener, outside the wildcard site |
-
-The relay is a plain `reverse_proxy` on its own port in `thriller-bark/caddy/Caddyfile`:
-`:8090` → SearXNG, `:8091` → Firecrawl (reserved). Callers use
-`http://host.docker.internal:<port>` with `extra_hosts: host-gateway`, never a literal
-gateway IP. Caddy is `network_mode: host`, so the hop to GM is the host's traffic and the
-guard never sees it — the same shape as [OTLP to Alloy](observability.md).
-
-These listeners bind `0.0.0.0`, the **third** exception to the bind rule, for the reason
-Alloy's OTLP receiver has the same one: senders sit on two different bridges and gateway
-IPs change when a network is recreated. The perimeter firewall is the gate.
+Main Caddy is bridge-networked and can't dial the mesh itself. GM-bound calls go through
+`thriller-bark/gm-relay/`, a second host-mode Caddy instance on TB that reverse-proxies a
+loopback port to each GM service's `100.64.0.1:<port>`
+([why](../ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)). Callers reach it
+via `host.docker.internal:<loopback port>`, never a literal gateway IP — see
+`docs/REFERENCE.md` § GM relay for the port table.
 
 ## DNS
 
