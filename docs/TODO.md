@@ -29,6 +29,11 @@ its plan in [plans/](plans/) once work starts.
 
 - [ ] Bazarr — [plan](plans/2026-07-25-bazarr.md)
 - [ ] Wizarr — [plan](plans/2026-07-25-wizarr.md)
+- [ ] Fix cross-seed on qui
+- [ ] Doplarr — not yet planned
+- [ ] Suggestarr — not yet planned
+- [ ] Pulsarr — not yet planned
+- [ ] Prunerr — not yet planned
 
 ### Files and documents
 
@@ -41,6 +46,7 @@ its plan in [plans/](plans/) once work starts.
 - [ ] Forgejo — [plan](plans/2026-07-26-forgejo.md)
 - [ ] Wallos — [plan](plans/2026-07-26-wallos.md)
 - [ ] Homepage — [plan](plans/2026-07-25-homepage.md)
+- [ ] Digarr (Spotify support) — not yet planned
 
 ## Security
 

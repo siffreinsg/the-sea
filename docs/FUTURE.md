@@ -45,15 +45,40 @@ Ideas and deferred questions, not on deck. Anything with a named phase and domai
   execution (`{{ $execution.id }}`) or one logical conversation spanning executions?
   Tracing is already wired — `N8N_OTEL_TRACES_INJECT_OUTBOUND=true` is set, so the calls
   will join one trace — but that has never been exercised by a real workflow either.
-- **n8n automations for Actual Budget** — auto-sync, auto-categorization, rule
-  creation, Telegram bot.
-- **n8n automations for Radarr/Sonarr** — on Radarr, switch anime to the right quality
-  profile; on Sonarr/Seerr, route anime requests to the correct Sonarr instance.
 - **Grafana access to the conversation archive.** 180 days of conversations sit in
   `LiteLLM_SpendLogs`; Tempo only covers 14. Reading them from Grafana needs a mesh-published
   port on a Postgres that deliberately has none, plus a read-only role. Security decision,
   not a slip-in.
 - Explore s3drive as an alternative to reach Proton Drive. Useful for S3-compatible access too.
+
+## Automations
+
+Mechanism (n8n, Komodo, systemd, a script) is per-item, decided when each is planned.
+
+- **Actual Budget** — auto-sync, auto-categorization, rule creation, Telegram bot.
+- **Radarr/Sonarr** — on Radarr, switch anime to the right quality profile; on
+  Sonarr/Seerr, route anime requests to the correct Sonarr instance.
+- **Google Calendar event when I stay somewhere more than an hour** — needs a location
+  source (Dawarich?) and a dwell-time trigger.
+- Restart Plex and other *arr services on Sunny when unreachable — whether it upgrades,
+  which services, filtering intelligence, escalation, and reporting are all still open.
+- Run upgrades on Sunny regularly.
+- Track traffic and disk quotas on Sunny.
+- Sync Plex watch history with Trakt and TVTime.
+- Weekly report of failing requests on Seerr.
+- Detect stale Plex watchlist items across all users, add rules to remove via Maintainerr configs.
+- Grafana dashboard derived from Tautulli, Plex and Seerr.
+- Detect non-English content on Radarr/Sonarr, try dedicated profiles if the default fails.
+- Fall back to a more permissive profile on Radarr/Sonarr for failing requests (e.g. 4K → HD).
+- **On-demand dummy-file library** — dummy files for everything in Radarr/Sonarr; playing
+  one triggers a real grab via the arr API, Tautulli webhook holds/resumes the stream
+  until it lands. Deleted-then-requested-again items should fall back to a dummy too, so
+  a repeat request loads fast instead of re-running the full request flow.
+- Smart deletion by watch stats — when disk quota nears the limit, delete the
+  least-recently-watched content via Tautulli's history + the arr delete API, skip
+  anything Maintainerr is protecting.
+- Missing-episode/corrupt-file health check — periodic scan for files Sonarr thinks it
+  has that are 0-byte, unplayable, or missing from disk, auto-trigger a re-search.
 
 ## Tool wishlist
 
