@@ -5,26 +5,16 @@
 The tool wishlist had accumulated candidates that were never re-examined after the things
 around them changed. Reviewed in one pass; most of them stopped making sense.
 
-**Dropped, superseded by something already running:**
+**Dropped, superseded by something already running:** Configarr and Huntarr (Profilarr
+covers this), HedgeDoc (Obsidian vault + Syncthing already answers collaborative notes),
+Coolify (overlaps [Komodo](2026-07-18-komodo-compose-not-kubernetes.md), same class as
+nginx-proxy-manager against Caddy).
 
-- **Configarr** and **Huntarr** — Profilarr covers this. Two more arr-adjacent containers
-  to maintain for overlapping function.
-- **HedgeDoc** — never used, and collaborative notes are answered by the Obsidian vault +
-  Syncthing setup.
-- **Coolify** — it is a deploy platform, and [Komodo is already the deploy
-  platform](2026-07-18-komodo-compose-not-kubernetes.md). Same class of overlap as
-  nginx-proxy-manager against Caddy.
+**Dropped, public instance is enough:** IT-Tools, Stirling-PDF — both free online, neither
+holds state worth keeping local. Reconsider only if a genuinely private document needs one.
 
-**Dropped, because the public instance is enough:**
-
-- **IT-Tools** and **Stirling-PDF** — both are free and usable online, and neither holds
-  state worth keeping local. Self-hosting them buys a container to patch and nothing else.
-  Reconsider only if a genuinely private document has to go through one.
-
-**Moved, not dropped:**
-
-- **Maintainerr** runs on **The Thousand Sunny**, with the rest of the media stack, rather
-  than as a Komodo stack on GM.
+**Moved, not dropped:** Maintainerr runs on **The Thousand Sunny** with the rest of the
+media stack, rather than as a Komodo stack on GM.
 
 **Consequence:** `docs/domains/nodes.md` loses four names from the GM column and the
 wishlist shrinks to Paperless-ngx, a habit tracker and a static site. Maintainerr on Sunny

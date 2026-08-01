@@ -1,9 +1,8 @@
 # Observability
 
-Grafana + VictoriaMetrics + Loki on **GM**
-([why GM](../ADR/2026-07-23-observability-on-going-merry.md)), one **Alloy**
-collector per node pushing over the mesh. Reached at `grafana.siffreinsigy.me` through
-TB's Caddy.
+Grafana + VictoriaMetrics + Loki on **GM** ([why](../ADR/2026-07-23-observability-on-going-merry.md)),
+one **Alloy** collector per node pushing over the mesh. Reached at
+`grafana.siffreinsigy.me` through TB's Caddy.
 
 - **VictoriaMetrics** — metrics, 90d retention (VM flag).
 - **Loki** — logs, 30d retention (`loki.yaml`), `auth_enabled: false`.
@@ -35,19 +34,14 @@ the Grafana container:
   file's header.
 - `provisioning/dashboards/dashboards.yaml` → `dashboards/nodes.json` (1860, node_exporter),
   `dashboards/containers.json` (14282, cadvisor), `dashboards/ai-platform.json`
-  (hand-written: LiteLLM spend, tokens, latency, rate-limit headroom, plus the TraceQL
-  cheatsheet for per-call exploration), `dashboards/resources-<node>.json`
-  (hand-written: which container or volume is eating RAM, CPU and disk),
-  `dashboards/infra-services.json` (hand-written: Caddy request rate/latency/errors,
-  headscale node count and map-response rate, SearXNG engine reliability — the three
-  scraped jobs that had metrics in VictoriaMetrics but no panel) and
-  `dashboards/service-logs.json` (hand-written: one Loki logs panel behind a `container`
-  template variable, covers every current and future container without a dashboard per
-  app).
-  **One resources dashboard per node, not one with a node filter.** Container names are
-  long enough that a `node — name` legend truncates in a bargauge to the point of being
-  unreadable, and you look at these one box at a time anyway. TB's copy omits the
-  writable-layer panel: cadvisor does not report `container_fs_usage_bytes` there.
+  (hand-written: LiteLLM spend, tokens, latency, rate-limit headroom, TraceQL cheatsheet),
+  `dashboards/resources-<node>.json` (hand-written: RAM/CPU/disk per container or volume),
+  `dashboards/infra-services.json` (hand-written: Caddy, headscale, SearXNG — the three
+  scraped jobs that had metrics but no panel), `dashboards/service-logs.json` (one Loki
+  panel behind a `container` template variable, covers every container without its own
+  dashboard). **One resources dashboard per node, not a node filter** — legends truncate
+  in a bargauge otherwise. TB's copy omits the writable-layer panel (cadvisor doesn't
+  report `container_fs_usage_bytes` there).
 - `provisioning/alerting/rules.yaml` and `contact-points.yaml`.
 
 **Provisioned resources are read-only in the UI.** Edit the file and redeploy. Grafana

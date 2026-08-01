@@ -4,64 +4,37 @@ Date: 2026-08-01
 
 ## Decision
 
-Replace the flat `the-sea-internal` bridge and host-published loopback/mesh ports with:
-a per-stack default network for every compose project, two purpose-named shared networks
-(`edge`, `ai-backends`), a bridge-mode main Caddy plus a dedicated host-mode `gm-relay`
-for the one job that still needs the mesh directly, and a Headscale port-level TB→GM ACL
-as an *additional* layer alongside the mesh-guard, not a replacement for it — the ACL
-can't do the guard's job (see the correction below).
+Replace the flat `the-sea-internal` bridge and host-published loopback/mesh ports with a
+per-stack default network per compose project, two purpose-named shared networks (`edge`,
+`ai-backends`), a bridge-mode main Caddy plus a dedicated host-mode `gm-relay`, and a
+Headscale port-level TB→GM ACL *additional* to the mesh-guard, not a replacement (below).
 
 ## Why
 
 The prior model accreted one exception at a time (`the-sea-internal`, three separate
 `0.0.0.0` binds, a TB-only iptables guard) until the set no longer read as one coherent
-design. Explicit and standard first; the security improvement (generalizing the
-mesh-guard to both nodes) follows from that, not chased separately. The `0.0.0.0`
-exception count stays at three — Alloy, `gm-relay`, Syncthing — same as before this
-redesign, just renamed where the mesh-relay pattern became its own stack.
+design. Explicit and standard first; generalizing the mesh-guard to both nodes follows
+from that. The `0.0.0.0` exception count stays at three — Alloy, `gm-relay`, Syncthing.
 
 ## Correction found in final review
 
-The original design (this ADR's first draft, and the plan it recorded) intended the
-Headscale ACL to *replace* `the-sea-mesh-guard.service`, reasoning that a port-level
-allowlist covers the same threat. It does not: the guard blocks bridged-container traffic
-in `raw/PREROUTING`, before Docker's MASQUERADE rewrites the source to the host's own
-tailnet IP. Once that rewrite has happened, Headscale — and any ACL it enforces — cannot
-tell a container's traffic from the host's. The two mechanisms defend different things:
-the guard blocks the container path, the ACL is a port policy for the host's own
-mesh-native traffic — its 11 ports (`docs/REFERENCE.md`) cover Alloy and gm-relay only.
-Komodo Core's `network_mode: host` comment claims it needs the mesh for periphery agents,
-but `docs/domains/deploy.md` describes onboarding as outbound-only over the public edge —
-that predates this redesign and is unresolved; verify empirically before relying on it
-(`docs/runbooks/deploy-a-stack.md`'s cutover pre-flight). **The guard stays, generalized to
-both nodes** (previously TB-only, which is the asymmetry this redesign closes); the ACL
-is additive defense-in-depth, not a substitute.
-
-Similarly, the design's first draft tried to close the `0.0.0.0` exception list down to
-zero by binding Alloy's OTLP receiver and `gm-relay`'s listeners to fixed
-per-sender addresses. This doesn't work: `host.docker.internal` resolves to one address
-per container regardless of which bridge network it's on, so a fixed-address-per-sender
-scheme has no way for every sender to actually reach it. Both keep `0.0.0.0`, same
-reasoning as before this redesign — the perimeter firewall and (for cross-node hops) the
-mesh guard are the compensating control, not the bind address.
+The first draft had the ACL *replace* the mesh guard. It can't: the guard acts before
+Docker's MASQUERADE rewrites a container's source to the host's tailnet IP, the ACL only
+sees packets after. **The guard stays, generalized to both nodes**; the ACL is additive.
+Mechanism and the Komodo Core open question: [networking.md § Cross-node
+enforcement](../domains/networking.md), [deploy.md § Periphery](../domains/deploy.md).
 
 ## Supersedes
 
-- `docs/ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md` — the relay pattern
-  is generalized into its own `gm-relay` stack instead of living inside main Caddy.
-- `docs/ADR/2026-07-27-cross-node-calls-use-the-public-edge.md` — the LiteLLM-specific
-  reasoning in that ADR still holds; the general mechanism it described (Caddy dialing
-  `100.64.0.1` directly) is what `gm-relay` replaces. It also states the mesh-guard "runs
-  on TB only / that install has not happened" — no longer true, GM has its own copy now.
+- [caddy-relays-mesh-services-to-containers](2026-07-29-caddy-relays-mesh-services-to-containers.md) —
+  relay pattern moved into its own `gm-relay` stack.
+- [cross-node-calls-use-the-public-edge](2026-07-27-cross-node-calls-use-the-public-edge.md) —
+  its LiteLLM reasoning still holds; "guard is TB-only" no longer true, GM has a copy now.
 
 ## Extends, does not supersede
 
-- `docs/ADR/2026-07-19-caddy-single-public-edge.md` — still true: `gm-relay` is
-  loopback-plaintext behind the perimeter firewall, not publicly reachable and not a TLS
-  terminator. TB remains the only machine facing the internet.
-- `docs/ADR/2026-07-25-mesh-guard-in-raw-prerouting.md` — still the live mechanism and
-  still the reason it lives in `raw/PREROUTING`; this redesign only adds the GM copy.
-- `docs/ADR/2026-07-19-services-bind-private-addresses.md` — still true, exception list
-  unchanged in count (Alloy, gm-relay's proxy ports, Syncthing), gm-relay is the new
-  name for what was "Caddy's relay listeners."
+[caddy-single-public-edge](2026-07-19-caddy-single-public-edge.md),
+[mesh-guard-in-raw-prerouting](2026-07-25-mesh-guard-in-raw-prerouting.md),
+[services-bind-private-addresses](2026-07-19-services-bind-private-addresses.md) — all
+still true as written; this redesign adds the GM guard copy and renames the relay.
 </content>

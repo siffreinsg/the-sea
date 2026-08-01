@@ -11,24 +11,15 @@ open metasearch on the internet, and the [mesh guard](2026-07-25-mesh-guard-in-r
 drops any bridged TB container that tries `100.64.0.1` directly.
 
 **Decision: two sanctioned paths, picked by whether the callee can authenticate.** Callee
-has its own auth → public edge. Callee has none → a Caddy listener that is not part of the
-`*.siffreinsigy.me` site, reverse-proxying to the mesh address. Caddy is `network_mode:
-host`, so its traffic is the host's and the guard never sees it. This is the shape
-[Alloy already uses for OTLP](../domains/observability.md): bridged containers reach
-host-network infrastructure, which reaches the mesh.
+has its own auth → public edge. Callee has none → a Caddy listener outside the
+`*.siffreinsigy.me` site, reverse-proxying to the mesh address, `network_mode: host` so
+the guard never sees its traffic — same shape as
+[Alloy's OTLP path](../domains/observability.md).
 
-Rejected: an ACCEPT hole in the guard for one destination port. It turns a flat invariant
-into a per-service allowlist inside a hand-installed unit, and the guard is the control
-that stopped n8n reading GM's unauthenticated VictoriaMetrics and Loki.
+Rejected: an ACCEPT hole in the guard for one destination port — turns a flat invariant
+into a per-service allowlist, and the guard is what stopped n8n reading GM's
+unauthenticated VictoriaMetrics and Loki.
 
-**Consequences:**
-
-- Caddy binds `0.0.0.0:8090` (SearXNG) and `:8091` (Firecrawl, reserved). Senders sit on
-  two different bridges and gateway IPs move when a network is recreated, so a literal
-  gateway address is not an option. **Third exception to never-bind-`0.0.0.0`**; the
-  perimeter firewall and the tailnet ACL are the gate, exactly as for Alloy's OTLP
-  receiver. The perimeter alone is not enough — `0.0.0.0` is on `tailscale0` too, so every
-  tailnet peer can reach the relay. Own devices, accepted.
-- Bridged containers still never touch the tailnet, so the guard can still be copied to GM.
-- Every TB container can reach the relay, and therefore SearXNG. Not VictoriaMetrics, not
-  Loki: the relay is an allowlist of one backend per port.
+Consequences (mechanism superseded by `gm-relay`, see header): third `0.0.0.0` exception,
+gate is the perimeter firewall + tailnet ACL, own devices on `tailscale0` accepted; the
+relay is an allowlist of one backend per port, not a general mesh hole.
