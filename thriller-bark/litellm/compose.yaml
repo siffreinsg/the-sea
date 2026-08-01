@@ -15,11 +15,6 @@ services:
     extra_hosts:
       # The host, named stably. Bridge gateway IPs move when a network is recreated.
       - "host.docker.internal:host-gateway"
-    ports:
-      # 127.0.0.1 only. TB's own consumers dial it here; cross-node consumers go through
-      # Caddy -> ai.siffreinsigy.me like anything else, so the mesh guard can eventually
-      # be fleet-wide. See docs/decisions/2026-07-27-cross-node-calls-use-the-public-edge.md
-      - "127.0.0.1:4000:4000"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
     depends_on:
@@ -27,7 +22,8 @@ services:
         condition: service_healthy
     networks:
       - default
-      - the-sea-internal
+      - edge
+      - ai-backends
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4000/health/liveliness || exit 1"]
       interval: 60s
@@ -74,5 +70,7 @@ networks:
     ipam:
       config:
         - subnet: 10.89.0.0/24
-  the-sea-internal:
+  edge:
+    external: true
+  ai-backends:
     external: true
