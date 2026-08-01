@@ -12,51 +12,60 @@
 # so reverse_proxy's default X-Forwarded-Proto would say "http" and clobber what the
 # public Caddy already set — breaking any backend that redirects on it (Dawarich looped
 # forever on this). Every caller reaches gm-relay only via the public Caddy's https
-# frontend, so pin it.
+# frontend, so pin it. header_up is a reverse_proxy subdirective, so the snippet has to
+# be imported inside the reverse_proxy block, not the site block.
 (forwarded-https) {
 	header_up X-Forwarded-Proto https
 }
 
 :13200 {
-	import forwarded-https
-	reverse_proxy 100.64.0.1:3200
+	reverse_proxy 100.64.0.1:3200 {
+		import forwarded-https
+	}
 }
 
 :19898 {
-	import forwarded-https
-	reverse_proxy 100.64.0.1:9898
+	reverse_proxy 100.64.0.1:9898 {
+		import forwarded-https
+	}
 }
 
 :13000 {
-	import forwarded-https
-	reverse_proxy 100.64.0.1:3000
+	reverse_proxy 100.64.0.1:3000 {
+		import forwarded-https
+	}
 }
 
 :16868 {
-	import forwarded-https
-	reverse_proxy 100.64.0.1:6868
+	reverse_proxy 100.64.0.1:6868 {
+		import forwarded-https
+	}
 }
 
 :11011 {
-	import forwarded-https
-	reverse_proxy 100.64.0.1:11011
+	reverse_proxy 100.64.0.1:11011 {
+		import forwarded-https
+	}
 }
 
 :18095 {
-	import forwarded-https
-	reverse_proxy 100.64.0.1:8095
+	reverse_proxy 100.64.0.1:8095 {
+		import forwarded-https
+	}
 }
 
 :18090 {
-	import forwarded-https
 	log {
 		output stdout
 		format json
 	}
-	reverse_proxy 100.64.0.1:8080
+	reverse_proxy 100.64.0.1:8080 {
+		import forwarded-https
+	}
 }
 
 :18091 {
-	import forwarded-https
-	reverse_proxy 100.64.0.1:3002
+	reverse_proxy 100.64.0.1:3002 {
+		import forwarded-https
+	}
 }
