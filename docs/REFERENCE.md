@@ -50,10 +50,11 @@ the offset if you change these.
 | your_spotify | `spotify.siffreinsigy.me` |
 | Profilarr | `profilarr.siffreinsigy.me` |
 | Cleanuparr | `cleanuparr.siffreinsigy.me` |
+| Karakeep | `karakeep.siffreinsigy.me` |
 | Overseerr (legacy redirect) | `overseerr.blackpearl.siffreinsigy.me` |
 | Uptime-Kuma | on Sunny (`app-uptimekuma`), **not behind Caddy** — external node-liveness for TB and GM, the mitigation for observability living on a watched node ([ADR](ADR/2026-07-23-observability-on-going-merry.md)) |
 
-This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 16 hosts,
+This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 17 hosts,
 verified. All are `@name host` matchers inside the wildcard block except
 `overseerr.blackpearl`, which is its own site block (a `redir`, not a proxy), and
 Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block for a hostname,
@@ -77,6 +78,7 @@ same reasoning as Alloy's OTLP receiver ([why](domains/networking.md)) — calle
 | your_spotify | 8095 | 18095 |
 | SearXNG | 8080 | 18090 |
 | Playwright | 3002 | 18091 |
+| Karakeep | 3050 | 13050 |
 
 SearXNG and Playwright have no auth of their own — callers on TB reach them via
 `http://host.docker.internal:18090`/`:18091`, same as before this redesign, just renumbered.
@@ -86,7 +88,7 @@ SearXNG and Playwright have no auth of their own — callers on TB reach them vi
 `thriller-bark/headscale/acl.hujson` — port-level TB→GM allowlist, additive to the mesh
 guard, not a replacement for it ([why](ADR/2026-08-01-per-stack-networks-and-headscale-acl.md)).
 Covers exactly what needs to cross the mesh from the host side: Alloy's OTLP push and
-gm-relay's 8 hops (the table above). Nothing else is allowed TB→GM, and nothing is
+gm-relay's 9 hops (the table above). Nothing else is allowed TB→GM, and nothing is
 allowed GM→TB.
 
 | Service | Port |
@@ -102,6 +104,7 @@ allowed GM→TB.
 | your_spotify | 8095 |
 | SearXNG | 8080 |
 | Playwright | 3002 |
+| Karakeep | 3050 |
 
 ## Restic repositories
 

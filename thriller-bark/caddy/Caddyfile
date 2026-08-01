@@ -80,6 +80,11 @@ http://127.0.0.1:2020 {
 		reverse_proxy host.docker.internal:11011
 	}
 
+	@karakeep host karakeep.siffreinsigy.me
+	handle @karakeep {
+		reverse_proxy host.docker.internal:13050
+	}
+
 	@n8n host n8n.siffreinsigy.me
 	handle @n8n {
 		reverse_proxy n8n:5678

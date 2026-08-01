@@ -18,6 +18,7 @@ services:
       - grafana-data:/userdata/grafana:ro
       - cleanuparr-config:/userdata/cleanuparr:ro
       - profilarr-config:/userdata/profilarr:ro
+      - karakeep-data:/userdata/karakeep:ro
 
 volumes:
   backrest-data:
@@ -32,3 +33,6 @@ volumes:
   profilarr-config:
     external: true
     name: profilarr_config
+  karakeep-data:
+    external: true
+    name: karakeep_data
