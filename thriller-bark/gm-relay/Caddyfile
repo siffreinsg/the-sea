@@ -8,31 +8,47 @@
 # gateway IP — the perimeter firewall (80/443/22 inbound, nothing else) plus the mesh
 # guard are the compensating control, same reasoning as Alloy's OTLP receiver.
 
+# gm-relay itself only ever speaks plain HTTP (no TLS between the public Caddy and here),
+# so reverse_proxy's default X-Forwarded-Proto would say "http" and clobber what the
+# public Caddy already set — breaking any backend that redirects on it (Dawarich looped
+# forever on this). Every caller reaches gm-relay only via the public Caddy's https
+# frontend, so pin it.
+(forwarded-https) {
+	header_up X-Forwarded-Proto https
+}
+
 :13200 {
+	import forwarded-https
 	reverse_proxy 100.64.0.1:3200
 }
 
 :19898 {
+	import forwarded-https
 	reverse_proxy 100.64.0.1:9898
 }
 
 :13000 {
+	import forwarded-https
 	reverse_proxy 100.64.0.1:3000
 }
 
 :16868 {
+	import forwarded-https
 	reverse_proxy 100.64.0.1:6868
 }
 
 :11011 {
+	import forwarded-https
 	reverse_proxy 100.64.0.1:11011
 }
 
 :18095 {
+	import forwarded-https
 	reverse_proxy 100.64.0.1:8095
 }
 
 :18090 {
+	import forwarded-https
 	log {
 		output stdout
 		format json
@@ -41,5 +57,6 @@
 }
 
 :18091 {
+	import forwarded-https
 	reverse_proxy 100.64.0.1:3002
 }
