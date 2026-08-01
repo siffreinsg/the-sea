@@ -35,6 +35,7 @@ services:
       KOMODO_LOCAL_AUTH: "true"
       KOMODO_DISABLE_USER_REGISTRATION: "true"
       KOMODO_DISABLE_CONFIRM_DIALOG: "true"
+      KOMODO_UI_WRITE_DISABLED: "true"
     volumes:
       - keys:/config/keys # persist Core/Periphery comms keys
 
