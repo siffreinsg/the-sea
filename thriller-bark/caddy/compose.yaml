@@ -19,6 +19,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
+      - /var/log/caddy:/var/log/caddy
 
 volumes:
   caddy-data:

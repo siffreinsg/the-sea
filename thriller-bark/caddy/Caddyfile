@@ -3,6 +3,16 @@
 	acme_dns cloudflare {env.CF_API_TOKEN}
 	metrics
 	admin off
+	# Per-IP request cap, edge-wide (applied below with `rate_limit dynamic`). 240/min
+	# is loose enough for a household behind CGNAT, tight enough to blunt a scan —
+	# tune from the infra-services Grafana dashboard.
+	rate_limit {
+		zone dynamic {
+			key {remote_host}
+			events 240
+			window 1m
+		}
+	}
 }
 
 # Metrics only. Loopback, plaintext, no ACME. Exists so `admin off` above can be set
@@ -19,6 +29,14 @@ http://127.0.0.1:2020 {
 		output stdout
 		format json
 	}
+	# Second copy of the same log, to a stable file path — fail2ban's caddy-abuse jail
+	# tails this (docs/runbooks/install-fail2ban.md). Docker's json-file path changes
+	# on every container recreate, so stdout alone isn't tailable from the host.
+	log {
+		output file /var/log/caddy/access.log
+		format json
+	}
+	rate_limit dynamic
 	# No `preload` until includeSubDomains is verified safe for every name
 	# under the apex — preload is effectively irreversible.
 	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
