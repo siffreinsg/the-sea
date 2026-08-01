@@ -40,6 +40,13 @@ Always read the `docs-system` skill.
 - Ideas, backlog: `docs/FUTURE.md`
 - Session state, what's half-done: `docs/HANDOFF.md`
 - Code and configs must be commented. Comments should be one or two lines.
+- Never explain *why a rejected alternative was rejected* in a comment or doc unless a future
+  reader would otherwise redo that mistake. State the decision, not the deliberation.
+- Docs: state the fact once. No restating context already in a linked doc, no "as discussed
+  above," no recap paragraphs before the point.
+- Default doc/comment length: the shortest version that a future you, with zero memory of this
+  conversation, needs to not re-derive the decision. Cut anything past that.
+- If a section is a list, use the list. Don't also narrate it in prose above or below.
 
 ## Git
 
