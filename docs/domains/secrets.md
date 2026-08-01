@@ -67,6 +67,12 @@ find /etc/komodo /var/backups/the-sea -type f \
 - **Backrest's `config.json` and Komodo's alerters** are deliberately not in git at all —
   [why, and what that costs at DR time](../ADR/2026-07-25-backrest-and-alerters-stay-ui-managed.md).
 
+## Never-rotate keys
+
+`WEBUI_SECRET_KEY` (Open-WebUI) and `LITELLM_SALT_KEY` (LiteLLM) encrypt credentials
+stored in each app's own database. Set from first boot and never rotated — a restore
+under a different value leaves every stored credential undecryptable.
+
 ## Blast radius worth knowing
 
 **Alloy is the widest-privilege container in the fleet**: host netns, `/` mounted,

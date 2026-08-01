@@ -13,19 +13,11 @@ the single source of truth, reviewable in a diff, and `secrets.env` (SOPS) holds
 values that can't be. The `ENABLE_OAUTH_SIGNUP` true-then-false first-login step only
 works at all under this setting; left at the default it would be decorative.
 
-The cost, accepted knowingly: **the Admin UI still lets you edit those settings and
-silently discards them on restart.** Roughly 70% of the app's configuration surface
-becomes read-only-by-silence, with no warning in the interface. Anyone changing behaviour
-must change the file and redeploy.
+Cost, accepted knowingly: the Admin UI still lets you edit those settings and silently
+discards them on restart, no warning shown. Anyone changing behaviour must change the file
+and redeploy. Two conventions keep the file readable: upstream defaults are never
+written (a line means "this differs from v0.10.2"), and settings worth trying when
+something breaks ship as commented-out lines with a one-line why.
 
-Two conventions follow from it, and they are what keep the file readable:
-
-- **Upstream defaults are never written.** A line in `config.env` means "this differs from
-  v0.10.2", so the file is a diff against upstream rather than a dump.
-- **Settings worth trying when something breaks ship as commented-out lines** next to what
-  they relate to, each with a one-line why — so the reasoning survives without bloating
-  the live config.
-
-Rejected: leaving persistence on and treating the UI as the source of truth. It would put
-the app's real configuration inside a volume, invisible to review and recoverable only
-from a restic snapshot, which is the opposite of how every other service here is managed.
+Rejected: persistence on, UI as source of truth — puts real config inside a volume,
+invisible to review, recoverable only from a restic snapshot.

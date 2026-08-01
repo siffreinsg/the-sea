@@ -1,5 +1,6 @@
 # AGENTS.md
 
+Always load skills `docs-system` and `i-have-adhd`.
 Read the `docs/HANDOFF.md` document for context on the previous session conclusions.
 
 ## Guidelines
@@ -49,7 +50,7 @@ Always read the `docs-system` skill.
 
 ## Git
 
-- Work on branches only, `main` is strictly prohibited unless specified otherwise.
+- `main` is write-protected. Use branches and PRs.
 - Commit and push only when asked.
 - Split commits by concern. A runbook fix, a set of plans and a decision reversal are three commits, not one. If two concerns touch the same file, group them rather than surgically splitting the diff.
 - Commit subject: `type(scope): imperative summary`

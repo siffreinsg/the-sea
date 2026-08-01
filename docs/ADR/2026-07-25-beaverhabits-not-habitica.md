@@ -17,17 +17,11 @@ Beaverhabits (1.8k stars, pushed 2026-07-19, `v0.9.1`) is a single container tha
 stores either a JSON file per user or one SQLite file (`HABITS_STORAGE=USER_DISK` or
 `DATABASE`). Cold state, no dump needed, `:ro` into Backrest's bulk plan like the rest.
 
-**Consequence:** no OIDC. Beaverhabits has its own login, so it lands as auth outcome
-**b or c**, not **a** — decide which when it's deployed, per
-[the three-outcomes rule](2026-07-23-three-auth-outcomes.md).
+**Consequence:** no OIDC — own login, lands as auth outcome **b or c**, not **a**, decide
+when deployed ([three-outcomes rule](2026-07-23-three-auth-outcomes.md)). Second: no
+released image tag to pin (Docker Hub only ships `nightly`/`sha-*`, semver tags stuck at
+2024's `v0.1.5` while GitHub releases reached `v0.9.1`) — [pin-every-image](../../AGENTS.md)
+satisfied with an image digest instead, upgrades manual, accepted for the small container.
 
-**Second consequence, and it's the annoying one: there is no released image tag to
-pin.** Docker Hub `daya0576/beaverhabits` publishes `nightly` and `sha-*`; its only
-semver tags are `v0.1.2`/`v0.1.4`/`v0.1.5`, all from 2024, while GitHub releases have
-reached `v0.9.1` (checked 2026-07-25). The [pin-every-image](../../AGENTS.md) rule
-therefore has to be satisfied with **an image digest**, not a tag — Komodo's
-image-update polling won't help, so upgrades are manual. That's the price of the small
-container; it's accepted, not overlooked.
-
-If the gamification turns out to be the thing that actually makes the habit stick,
-this is cheap to reverse — the data is a JSON file.
+If gamification is what actually makes the habit stick, this is cheap to reverse — the
+data is a JSON file.

@@ -16,11 +16,7 @@ the shared one was the exception.
 An app's database is a private dependency: same stack, no `the-sea-internal`, no host port,
 reached by service name on the stack's own network.
 
-Consequences:
-
-- Two Postgres on TB, ~200 MB idle against 24 GB. Not the constraint.
-- Two `pg_dump` targets rather than one. `backups/run.sh` currently has neither.
-- LiteLLM's database keeps the pgvector image and the `litellm_` volume prefix. Historical,
-  and not worth a dump to rename.
-- Databases are named `<app>-db`, never `postgres`, so no two stacks publish the same short
-  name. Renaming LiteLLM's means its `DATABASE_URL` host changes with it.
+Consequences: two Postgres on TB (~200 MB idle against 24 GB, not the constraint), two
+`pg_dump` targets rather than one (`backups/run.sh` had neither yet); LiteLLM keeps the
+pgvector image and `litellm_` volume prefix, not worth a dump to rename; databases are
+named `<app>-db`, never `postgres`, so renaming one changes its `DATABASE_URL` host.

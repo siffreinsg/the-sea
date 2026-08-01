@@ -58,6 +58,10 @@ later flip to inbound is safe by default. The shipped defaults are `[::]` with a
 `allowed_ips` and no passkeys, which by the file's own comment is an **unauthenticated
 root-RCE listener**. Never restore them.
 
+Komodo Core's `network_mode: host` comment claims it needs the mesh for periphery agents —
+unverified, and outbound-only onboarding above suggests it may not. Confirm empirically
+before relying on either claim (`runbooks/deploy-a-stack.md`'s cutover pre-flight).
+
 ## The inode trap
 
 **A bind-mounted git-tracked file is inode-pinned.** `git pull` swaps the inode, so a plain

@@ -23,23 +23,12 @@ the pgvector store, is on TB too. On GM, every key lookup, every spend write, ev
 embedding write and every retrieval query would cross the mesh to reach a database whose
 only users are on the other side of it. The disk advantage does not pay for that.
 
-**Decision: one `pgvector/pgvector:0.8.5-pg17` on TB**, inside the LiteLLM stack, on
-`the-sea-internal`, with no host port at all — every consumer reaches it by container
-name, so there is nothing to bind and the
-[bind rule](2026-07-19-services-bind-private-addresses.md) is satisfied by absence. The
-pgvector image is used from the start so Phase 4 adds a schema rather than a migration.
+**Decision: one `pgvector/pgvector:0.8.5-pg17` on TB**, inside the LiteLLM stack, reached
+by container name, no host port — the [bind rule](2026-07-19-services-bind-private-addresses.md)
+is satisfied by absence. pgvector from the start so Phase 4 adds a schema, not a migration.
 
-Consequences:
-
-- It is on TB's slow disk. Accepted: the workload is small rows and short queries, not the
-  throughput case the placement rule was written for. If retrieval turns out to be the
-  thing limiting RAG, that measurement reopens this.
-- Stateful and holding secrets material (virtual keys, spend logs) → `backup.sh` and the
-  **critical** plan, per `runbooks/add-a-service.md` §3c.
-- `LITELLM_SALT_KEY` must be set from the first boot and never rotated: it encrypts the
-  credentials stored in the database, and a restore under a different salt leaves every
-  stored key undecryptable. Same failure class as `WEBUI_SECRET_KEY`.
-- The Phase 5 cost-per-consumer dashboard is no longer blocked.
-- `STORE_MODEL_IN_DB` stays off. The model list remains in committed YAML, consistent with
-  [config as code](2026-07-26-open-webui-config-as-code.md); the UI's model pages are
-  read-only as a result.
+Consequences: TB's slow disk, accepted for small rows and short queries (reopens if
+retrieval measurement says otherwise); backed up under the **critical** plan
+(`runbooks/add-a-service.md` §3c, [secrets.md](../domains/secrets.md) for
+`LITELLM_SALT_KEY`); Phase 5 cost-per-consumer dashboard unblocked; `STORE_MODEL_IN_DB`
+stays off, consistent with [config as code](2026-07-26-open-webui-config-as-code.md).

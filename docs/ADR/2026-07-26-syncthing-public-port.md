@@ -16,22 +16,13 @@ relayed sync is slow and routes connection metadata through third parties for a 
 tree that is synced continuously.
 
 **Decision: Syncthing on TB publishes 22000/tcp+udp on `0.0.0.0`. Relaying, global
-discovery, local discovery and UPnP are all off.** The GUI stays on `127.0.0.1:8384`
-behind `forward_auth` like everything else — the exception covers the sync protocol only.
+discovery, local discovery and UPnP are all off.** GUI stays on `127.0.0.1:8384` behind
+`forward_auth`; the exception covers the sync protocol only. The listener speaks BEP over
+its own TLS and **refuses a peer unless its device ID was confirmed on both ends** — the
+allowlist, not the firewall, is the boundary. Discovery off means the node doesn't
+announce itself; peers carry static addresses.
 
-What makes it acceptable, and what has to stay true:
-
-- The listener speaks BEP over its own TLS, and **a peer is refused unless its device ID
-  was confirmed on both ends**. The allowlist, not the firewall, is the boundary here.
-- Discovery off means the node does not announce itself; peers carry static addresses.
-- It is one port on the node that already terminates public TLS, not a second edge. The
-  [one-public-edge decision](2026-07-19-caddy-single-public-edge.md) is about HTTP and is
-  not weakened by a non-HTTP listener beside it.
-
-**Consequence:** TB's open ports become **80/443/22/22000**, which needs an Oracle VCN
-security-list rule as well as the Docker publish — `docs/REFERENCE.md` updated to match.
-This is the only *publicly reachable* exception to the bind rule. The bind rule's other
-written exception is Alloy's OTLP receiver on `0.0.0.0:4317/4318`, which is host-local
-behind the perimeter firewall — a different thing, listed in `AGENTS.md` alongside this
-one. A third needs its own record, not a reference to either. Syncthing also lands on TB's slow disk against the placement
-rule, accepted because the public port has to be here and the write pattern is bursty.
+**Consequence:** TB's open ports become **80/443/22/22000** (Oracle VCN rule + Docker
+publish, `docs/REFERENCE.md`). The only *publicly reachable* exception to the bind rule —
+Alloy's `0.0.0.0` is host-local behind the perimeter firewall, a different thing. Lands on
+TB's slow disk against the placement rule, accepted: the public port has to be here.
