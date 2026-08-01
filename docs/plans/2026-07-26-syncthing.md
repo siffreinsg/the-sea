@@ -35,12 +35,17 @@ services:
       PUID: "1000"
       PGID: "1000"
     ports:
-      - "127.0.0.1:8384:8384"        # GUI — private, like everything else
       - "0.0.0.0:22000:22000/tcp"    # BEP sync — the deliberate exception
       - "0.0.0.0:22000:22000/udp"    # QUIC
+    networks:
+      - edge                         # GUI reached by Caddy over container DNS, no host publish
     volumes:
       - syncthing-config:/var/syncthing/config
       - syncthing-data:/var/syncthing/data
+
+networks:
+  edge:
+    external: true
 
 volumes:
   syncthing-config:
@@ -104,8 +109,8 @@ request. That allowlist is the actual security boundary of the open port.
 
 Peers pointed at this node use `tcp://141.253.109.196:22000`. A mesh-capable peer may use
 `tcp://100.64.0.2:22000` instead and skip the public path — **that direction only.** Note:
-the Headscale ACL (`thriller-bark/headscale/acl.hujson`) only allows TB→GM, so a GM peer
-dialing TB this way needs a `tag:tb:22000` rule added first.
+`acl.hujson` has no GM→TB entry — it needs a second ACL block, `{"action":"accept",
+"src":["tag:gm"],"dst":["tag:tb:22000"]}`, not a row appended to the existing TB→GM one.
 Syncthing here is a bridged container on TB, so anything *it* dials on `100.64.0.0/10` is
 DROPped by `the-sea-mesh-guard.service` in raw/PREROUTING. It works because peers connect
 inbound to a listener that is always up, never because TB reaches out. Don't configure a
@@ -120,11 +125,11 @@ protocol does not go through Caddy at all — it is its own TLS on 22000.
 ```caddyfile
 	@syncthing host syncthing.siffreinsigy.me
 	handle @syncthing {
-		forward_auth 127.0.0.1:9091 {
+		forward_auth authelia:9091 {
 			uri /api/authz/forward-auth
 			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
 		}
-		reverse_proxy 127.0.0.1:8384
+		reverse_proxy syncthing:8384
 	}
 ```
 

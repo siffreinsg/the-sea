@@ -10,7 +10,7 @@ flowchart LR
   user([Internet]) -->|443| caddy[Caddy · TB]
   caddy <-->|forward_auth · OIDC| authelia[Authelia · TB]
   caddy -->|container DNS · edge| tb[TB stacks]
-  caddy -->|container DNS| gm_relay[gm-relay · TB]
+  caddy -->|host.docker.internal| gm_relay[gm-relay · TB]
   gm_relay -->|mesh| gm[GM stacks]
 ```
 

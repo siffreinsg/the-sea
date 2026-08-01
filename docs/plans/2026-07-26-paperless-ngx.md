@@ -33,37 +33,19 @@ app.
 | Gotenberg | `gotenberg/gotenberg:8.34.0` | Paperless-only |
 | Tika | `apache/tika:3.2.3.0-full` | own stack, shared with Open-WebUI |
 
-## 0. The blocker: containers on TB cannot reach `127.0.0.1` on the host
+## 0. Reaching Tika: join `ai-backends`, not a host port
 
 Tika is shared, so Paperless and Open-WebUI both have to dial it — and neither can do it
-the way the other plans assume. From inside a bridged container `127.0.0.1` is *its own*
-loopback, and the host gateway (`172.x.0.1`) is closed by TB's `INPUT` default REJECT,
-which `docs/domains/networking.md` records as a deliberate property.
+via `127.0.0.1`. From inside a bridged container `127.0.0.1` is *its own* loopback, and
+the host gateway (`172.x.0.1`) is closed by TB's `INPUT` default REJECT, which
+`docs/domains/networking.md` records as a deliberate property.
 
-So a published `127.0.0.1:9998` is reachable from the host and from Caddy
-(`network_mode: host`) — **and from nothing else**. Cross-stack container-to-container
-traffic needs a shared user-defined network:
-
-```bash
-docker network create the-sea-internal    # once, on TB
-```
-
-Each participating compose declares it:
-
-```yaml
-networks:
-  the-sea-internal:
-    external: true
-```
-
-and its services join it, then dial each other by container name — `http://tika:9998`. No
-ports published for Tika at all; nothing about this crosses the host or the mesh.
-
-This is why the LLM stack already joins `the-sea-internal` — Open-WebUI dials LiteLLM by
-container name, not `127.0.0.1:4000`, which would not work from a bridged container. It
-does not affect Karakeep, which reaches LiteLLM over
-[the public edge](../ADR/2026-07-27-cross-node-calls-use-the-public-edge.md) from
-another node.
+Tika, LiteLLM and Open-WebUI already share the pre-existing `ai-backends` network
+([REFERENCE](../REFERENCE.md)) — Paperless's `webserver` joins it too and dials
+`http://tika:9998` by container name. No ports published for Tika at all; nothing about
+this crosses the host or the mesh. Does not affect Karakeep, which reaches LiteLLM over
+[the public edge](../ADR/2026-07-27-cross-node-calls-use-the-public-edge.md) from another
+node.
 
 ## 1. Tika — `thriller-bark/tika/`
 
@@ -73,7 +55,7 @@ Its own stack because two unrelated apps use it: Paperless for Office documents 
 Paperless breaks chat uploads.
 
 Stateless, no volume, no secrets, no `pre_deploy`, **no Caddy route and no Authelia** —
-like LiteLLM, it stays off the edge entirely. Only `the-sea-internal`, no published port.
+like LiteLLM, it stays off the edge entirely. Only `ai-backends`, no published port.
 Nothing to back up.
 
 `-full` rather than the base tag: it carries the OCR and language models Paperless expects.
@@ -81,13 +63,11 @@ It is a JVM and will sit around 1 GB resident.
 
 ## 2. Paperless — `thriller-bark/paperless/`
 
-Bind `127.0.0.1:8010` → container 8000. TB's taken ports: 8080 headscale, 9091 authelia,
-9120 komodo, 9898 backrest, 5006 actual, 5678 n8n, 12345 alloy, 8384 syncthing, 5040
-wallos, plus 4000 LiteLLM and 3020 Open-WebUI.
+No host port — reached over `edge` by container name, container port 8000.
 
 Four services: `webserver`, `db`, `broker`, `gotenberg`. Only `webserver` publishes a
 port; `db`, `broker` and `gotenberg` are private to the stack. `webserver` also joins
-`the-sea-internal` to reach Tika.
+`ai-backends` to reach Tika.
 
 Volumes: `data`, `media` (the documents — this is the one that matters), `pgdata`, and a
 **bind mount** for consume:
@@ -147,8 +127,9 @@ linked your superuser. Create that superuser first —
 `docker exec -it paperless-webserver python3 manage.py createsuperuser` — or you can lock
 yourself out of a fresh instance.
 
-Caddy is a plain `reverse_proxy 127.0.0.1:8010`. Check `paperless.siffreinsigy.me` has no
-existing Cloudflare record.
+`webserver` also joins `edge`; Caddy is a plain `reverse_proxy paperless-webserver:8000`
+by container name, no host port needed. Check `paperless.siffreinsigy.me` has no existing
+Cloudflare record.
 
 ## Backups — critical tier, both halves
 
