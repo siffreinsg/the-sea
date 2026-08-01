@@ -1,0 +1,8 @@
+[DEFAULT]
+bantime = 1h
+findtime = 10m
+
+[sshd]
+enabled = true
+port = 4747
+maxretry = 5

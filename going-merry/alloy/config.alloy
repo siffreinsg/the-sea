@@ -84,3 +84,14 @@ loki.source.docker "logs" {
   targets    = discovery.relabel.logs.output
   forward_to = [loki.write.central.receiver]
 }
+
+// ---- fail2ban log ----
+// Not a container, so discovery.docker never sees it — tail the file directly via the
+// existing /host/root mount (docs/runbooks/install-fail2ban.md).
+local.file_match "fail2ban" {
+  path_targets = [{ __path__ = "/host/root/var/log/fail2ban.log", job = "fail2ban" }]
+}
+loki.source.file "fail2ban" {
+  targets    = local.file_match.fail2ban.targets
+  forward_to = [loki.write.central.receiver]
+}
