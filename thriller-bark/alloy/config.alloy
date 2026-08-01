@@ -86,22 +86,20 @@ otelcol.receiver.otlp "in" {
 // The healthchecks alone are the bulk of it: LiteLLM's compose healthcheck curls
 // /health/liveliness every 60s, forever, and each one is a full trace.
 //
-// Deliberately conservative. Open-WebUI's browser polling is noisier still, but the
-// routes have not been read off a real trace yet — add them here once they have, rather
-// than guessing a path prefix and silently losing the one request that mattered.
+// Read off a real trace: fastapi instrumentation sets `http.target`, not `url.path` —
+// the `_app` rule below never matched anything until this fix. `/_app/version.json` is
+// the browser's periodic version poll.
 otelcol.processor.filter "noise" {
   error_mode = "ignore"
   traces {
     span = [
       `IsMatch(attributes["http.route"], "^/health(/.*)?$")`,
       `IsMatch(attributes["url.path"], "^/health(/.*)?$")`,
-      `IsMatch(attributes["url.path"], "^/(static|assets|_app)/")`,
-      // Open-WebUI instruments SQLAlchemy, so every connection to its local SQLite file
-      // becomes a span. Leaf spans, so dropping them orphans nothing. A single-user app
-      // hitting a file on disk has no query performance story worth the volume.
-      // Widen to all of `attributes["db.system"] == "sqlite"` if the query spans are
-      // noise too — this drops only the connection setup.
-      `name == "connect" and attributes["db.system"] == "sqlite"`,
+      `IsMatch(attributes["http.target"], "^/(static|_app)/")`,
+      // The Postgres cutover (sidekick-stack step 5) made this dead code — db.system is
+      // "postgresql" now, and the pool's per-request connect span became the dominant
+      // noise source, unfiltered the whole time. Leaf span, dropping it orphans nothing.
+      `name == "connect" and attributes["db.system"] == "postgresql"`,
     ]
   }
   output { traces = [otelcol.processor.batch.traces.input] }
