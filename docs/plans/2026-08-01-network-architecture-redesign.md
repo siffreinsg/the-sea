@@ -1,6 +1,7 @@
-# Network architecture redesign
+# Plan — Network architecture redesign
 
-**2026-08-01 · Design**
+Design notes ahead of the implementation plan. Delete this doc when it lands (the
+durable facts move to domain docs and new/superseded ADRs, per docs-system).
 
 ## Problem
 

@@ -38,3 +38,10 @@ its plan in [plans/](plans/) once work starts.
 
 - [ ] Scan the edge from off-network, and read the Oracle VCN security list — hairpin NAT
       can't prove which layer closes what
+
+### Networking
+
+- [ ] Redesign container/mesh/host networking: per-stack Docker networks, Caddy
+      edge/GM-relay split, port-level Headscale ACL — [plan](plans/2026-08-01-network-architecture-redesign.md)
+- [ ] Host hardening against bots — not yet planned
+- [ ] Grafana IP tracking + anomaly alerts — not yet planned
