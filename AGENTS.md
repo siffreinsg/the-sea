@@ -2,9 +2,16 @@
 
 Read the `docs/HANDOFF.md` document for context on the previous session conclusions.
 
+## Guidelines
+
+- Be concise, lead with the answer.
+- Prefer editing existing files over creating new ones.
+- For multi-step tasks, work through them systematically.
+
 ## Working style
 
 - No SSH access from here. Hand me commands to run, I paste the output back.
+- No `gh` command here. Instruct the user instead.
 - Always challenge plans, decisions, remarks, ... Say so when one is wrong.
 - Root-cause fixes, not symptom patches. Grep every caller before editing a shared path.
 
@@ -32,10 +39,18 @@ Always read the `docs-system` skill.
 - In-flight work, picked up from TODO: `docs/plans/`, delete when it lands
 - Ideas, backlog: `docs/FUTURE.md`
 - Session state, what's half-done: `docs/HANDOFF.md`
+- Code and configs must be commented. Comments should be one or two lines.
+- Never explain *why a rejected alternative was rejected* in a comment or doc unless a future
+  reader would otherwise redo that mistake. State the decision, not the deliberation.
+- Docs: state the fact once. No restating context already in a linked doc, no "as discussed
+  above," no recap paragraphs before the point.
+- Default doc/comment length: the shortest version that a future you, with zero memory of this
+  conversation, needs to not re-derive the decision. Cut anything past that.
+- If a section is a list, use the list. Don't also narrate it in prose above or below.
 
 ## Git
 
-- Work on `main`, no PR flow except when explicitly asked for.
+- Work on branches only, `main` is strictly prohibited unless specified otherwise.
 - Commit and push only when asked.
 - Split commits by concern. A runbook fix, a set of plans and a decision reversal are three commits, not one. If two concerns touch the same file, group them rather than surgically splitting the diff.
 - Commit subject: `type(scope): imperative summary`

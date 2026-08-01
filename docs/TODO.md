@@ -18,7 +18,8 @@ Build order and verification commands: [plan](plans/2026-07-26-sidekick-stack.md
       lands.
 - [ ] wikidata 403s on init and stays gone until restarted. Waiting on the upstream fix,
       then bump the image pin.
-- [ ] Firecrawl (API + Redis + Playwright) on GM — must answer `/v2/scrape`, relay on `:8091`
+- [ ] patchright (stealth-patched Playwright) on GM, custom-built — `going-merry/playwright/`,
+      relay on `:8091`, written not deployed.
 - [ ] Per-key budgets on the LiteLLM keys
 - [ ] Config review, read when a value looks wrong — [plan](plans/2026-07-26-ai-platform-config-review.md)
 

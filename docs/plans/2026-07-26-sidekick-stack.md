@@ -1,6 +1,6 @@
 # Sidekick stack — the six containers the config review needs
 
-**Status: steps 0, 1, 5 landed; step 2 dropped; 3 written but not deployed; 4, 6 open.**
+**Status: steps 0, 1, 3, 5 landed; step 2 dropped; 4 written, not deployed; 6 open.**
 Delete this file once the rest lands. Open items are tracked in [`../TODO.md`](../TODO.md).
 
 Decisions and rationale are in
@@ -101,33 +101,22 @@ Verify in order, on GM unless noted:
    — this is the one that proves the relay works and the guard is not in the way.
 6. Then a real web search in the chat UI.
 
-## 4. Firecrawl — GM (3 containers)
+## 4. Playwright (patchright) — GM (1 container)
 
-- API + Redis + Playwright service. The Redis here is Firecrawl-internal and does not
-  reopen the Redis question, which is out of scope for Open-WebUI.
-- Ship dir `going-merry/firecrawl/`, API bound `100.64.0.1:3002`.
-- **Reached through the Caddy relay on `:8091`**, already reserved, not a public hostname —
-  same reasoning as step 3. `FIRECRAWL_API_BASE_URL` becomes
-  `http://host.docker.internal:8091` in the same commit that adds the listener. Firecrawl
-  does have an API key, so the public edge would also have been legitimate here; the relay
-  is chosen so both services answer the question the same way.
-- **Blocking check — Open-WebUI v0.10.2 speaks the v2 API** (`firecrawl.py:24-27`,
-  `/v2/scrape`, `formats: ['markdown']`) and carries a v1/v2 response-shape shim
-  (upstream issue #23966). If the self-hosted image only answers v1, web search breaks and
-  the fallback is a plain Playwright container (`mcr.microsoft.com/playwright:v1.60.0-noble`
-  running `playwright run-server`, version-pinned to the image's `playwright==1.60.0`) with
-  `WEB_LOADER_ENGINE=playwright` and `PLAYWRIGHT_WS_URL`.
+**Firecrawl dropped**: self-hosted CE is 5-6 containers and its anti-bot layer
+(Fire-engine) is hosted-only, so it bought weight without the feature that justified it.
 
-  ```
-  curl -s http://100.64.0.1:3002/v2/scrape \
-    -H 'Content-Type: application/json' \
-    -d '{"url":"https://example.com","formats":["markdown"]}' | jq
-  ```
+**patchright, not vanilla Playwright** — same CDP/WS protocol, no Open-WebUI-side change,
+narrows the browser-fingerprint gap. No `run-server` CLI or image exists for it, so
+`going-merry/playwright/` builds one (`Dockerfile` on
+`mcr.microsoft.com/playwright:v1.60.0-noble`, `patchright@1.60.0`, `server.js` wrapping
+`chromium.launchServer()`). Does not fix IP-reputation CAPTCHA — needs a residential
+proxy, declined for now.
 
-- Self-hosted loses Fire-engine, so IP-block and bot-detection handling is absent. Expect
-  some sites to fail; that is a known limit, not a misconfiguration.
-- Second consumer to wire once it works: n8n. That reuse is the reason Firecrawl was chosen
-  over a bare Playwright container.
+- Ship dir `going-merry/playwright/`, bound `100.64.0.1:3000`. Komodo builds with
+  `extra_args = ["--force-recreate", "--build"]`, same as `caddy`.
+- Reached through the Caddy relay on `:8091`, already reserved.
+  `WEB_LOADER_ENGINE=playwright`, `PLAYWRIGHT_WS_URL=ws://host.docker.internal:8091`.
 
 ## 5. Postgres cutover — TB
 

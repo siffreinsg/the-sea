@@ -66,7 +66,7 @@ Callers use `http://host.docker.internal:<port>`.
 | Port | Backend |
 |---|---|
 | `8090` | SearXNG, `100.64.0.1:8080` |
-| `8091` | Firecrawl, `100.64.0.1:3002` — reserved, lands with the service |
+| `8091` | Playwright (`run-server`), `100.64.0.1:3000` |
 
 ## Restic repositories
 

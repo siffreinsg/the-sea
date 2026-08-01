@@ -1,0 +1,13 @@
+services:
+  playwright:
+    # No published patchright image; Dockerfile builds one.
+    build: .
+    container_name: playwright
+    restart: unless-stopped
+    ports:
+      - "100.64.0.1:3000:3000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
