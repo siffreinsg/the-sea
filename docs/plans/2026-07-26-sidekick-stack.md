@@ -1,6 +1,7 @@
 # Sidekick stack — the six containers the config review needs
 
-**Status: steps 0, 1, 3, 4, 5 landed; step 2 dropped; 6 open.**
+**Status: steps 0, 1, 3, 4, 5, 6 landed; step 2 dropped.** Only the linked
+[config-review plan](2026-07-26-ai-platform-config-review.md) is still open.
 Delete this file once the rest lands. Open items are tracked in [`../TODO.md`](../TODO.md).
 
 Decisions and rationale are in
@@ -155,21 +156,8 @@ from `POSTGRES_USER`/`POSTGRES_DB` on first boot.
 
 ## 6. Virtual keys — per-key budgets
 
-Not a config file: budgets live **on the keys**, set through LiteLLM's API or admin UI, so
-nothing in `config.yaml` implements them. The `max_budget: 50` / `budget_duration: 30d` in
-`litellm_settings` is only the global backstop.
-
-Update the three existing keys — Open-WebUI €30, n8n €10, Karakeep €5, all `30d`:
-
-```
-curl -s -X POST http://127.0.0.1:4000/key/update \
-  -H "Authorization: Bearer $LITELLM_MASTER_KEY" -H 'Content-Type: application/json' \
-  -d '{"key":"sk-...","max_budget":30,"budget_duration":"30d"}'
-```
-
-The point of splitting them is isolation: a runaway n8n workflow must not consume the
-budget the chat UI needs. Pair with an alert *before* a key hits its cap, or the first
-symptom is a user seeing errors.
+Open-WebUI's key is budgeted. n8n and Karakeep don't have keys yet — budget them at
+creation, not as a follow-up: [runbook](../runbooks/wire-ai-into-an-app.md).
 
 ## Secrets to add (sops), in one place so none is missed
 
