@@ -70,16 +70,25 @@ pool — do not add a row here for a stack that doesn't need a fixed gateway IP.
 | n8n | `10.89.1.0/24` | `10.89.1.1` |
 | open-webui | `10.89.2.0/24` | `10.89.2.1` |
 
-## Caddy mesh relay
+## GM relay
 
-Not public, no hostname, no TLS. How a bridged TB container reaches a GM service that has
-no auth of its own ([why](ADR/2026-07-29-caddy-relays-mesh-services-to-containers.md)).
-Callers use `http://host.docker.internal:<port>`.
+`thriller-bark/gm-relay/` — a second, host-mode Caddy instance. Every GM-bound hostname's
+backend now points here instead of `100.64.0.1:<port>` directly (main Caddy is
+bridge-networked since this redesign and can't dial the mesh itself).
 
-| Port | Backend |
-|---|---|
-| `8090` | SearXNG, `100.64.0.1:8080` |
-| `8091` | Playwright (`run-server`), `100.64.0.1:3002` |
+| GM service | GM port | Loopback port |
+|---|---|---|
+| Dawarich | 3200 | 13200 |
+| Backrest | 9898 | 19898 |
+| Grafana | 3000 | 13000 |
+| Profilarr | 6868 | 16868 |
+| Cleanuparr | 11011 | 11011 |
+| your_spotify | 8095 | 18095 |
+| SearXNG | 8080 | 18090 |
+| Playwright | 3002 | 18091 |
+
+SearXNG and Playwright have no auth of their own — callers on TB reach them via
+`http://host.docker.internal:18090`/`:18091`, same as before this redesign, just renumbered.
 
 ## Restic repositories
 

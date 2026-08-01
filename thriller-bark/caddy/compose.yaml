@@ -7,6 +7,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    extra_hosts:
+      # Reaches gm-relay's and komodo's host-bound loopback listeners from the bridge.
+      - "host.docker.internal:host-gateway"
     networks:
       - default
       - edge
