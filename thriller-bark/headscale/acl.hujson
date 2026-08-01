@@ -1,0 +1,25 @@
+{
+	"tagOwners": {
+		"tag:tb": [],
+		"tag:gm": [],
+	},
+	"acls": [
+		{
+			"action": "accept",
+			"src": ["tag:tb"],
+			"dst": [
+				"tag:gm:8428",   // VictoriaMetrics remote_write
+				"tag:gm:3100",   // Loki push
+				"tag:gm:4317",   // Tempo OTLP gRPC
+				"tag:gm:3200",   // Dawarich
+				"tag:gm:9898",   // Backrest-GM
+				"tag:gm:3000",   // Grafana
+				"tag:gm:6868",   // Profilarr
+				"tag:gm:11011",  // Cleanuparr
+				"tag:gm:8095",   // your_spotify
+				"tag:gm:8080",   // SearXNG
+				"tag:gm:3002",   // Playwright
+			],
+		},
+	],
+}

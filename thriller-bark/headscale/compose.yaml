@@ -14,6 +14,7 @@ services:
       - edge
     volumes:
       - ./config.yaml:/etc/headscale/config.yaml:ro
+      - ./acl.hujson:/etc/headscale/acl.hujson:ro
       - headscale-data:/var/lib/headscale
     healthcheck:
       test: ["CMD", "headscale", "health"]
