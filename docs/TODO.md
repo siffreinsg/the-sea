@@ -42,7 +42,6 @@ landed — [runbook](runbooks/wire-ai-into-an-app.md), [why no reranker](ADR/202
 
 - [ ] Narrow the `your_spotify` `/api/*` bypass — [plan](plans/2026-07-26-your-spotify-api-bypass.md).
       Until it lands, `allowRegistrations: false` must stay off.
-- [ ] Close the Caddy admin API — [plan](plans/2026-07-25-caddy-admin-off.md)
 
 ### Audit
 

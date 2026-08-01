@@ -2,6 +2,14 @@
 	email hello@siffreinsigy.me
 	acme_dns cloudflare {env.CF_API_TOKEN}
 	metrics
+	admin off
+}
+
+# Metrics only. Loopback, plaintext, no ACME. Exists so `admin off` above can be set
+# without blinding Alloy — the admin endpoint on :2019 was unauthenticated read/write
+# config for any local user.
+http://127.0.0.1:2020 {
+	metrics /metrics
 }
 
 *.siffreinsigy.me {
