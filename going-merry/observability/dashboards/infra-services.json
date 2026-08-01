@@ -76,13 +76,44 @@
         { "refId": "B", "expr": "rate(headscale_mapresponse_ended_total[$__rate_interval])", "legendFormat": "ended" }
       ]
     },
-    { "type": "row", "title": "SearXNG", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 } },
+    { "type": "row", "title": "Bot mitigation", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 } },
+    {
+      "type": "timeseries",
+      "title": "Caddy rate-limit rejections, TB",
+      "description": "caddy-ratelimit's own counter, exposed on the same /metrics job as the panels above. Metric name unverified against a live build — check /metrics after the caddy-ratelimit plugin lands (docs/plans, host hardening) and fix here if it differs.",
+      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "fillOpacity": 10, "showPoints": "never" } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (zone) (rate(caddy_http_rate_limit_exceeded_requests_total[$__rate_interval]))",
+          "legendFormat": "{{zone}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "fail2ban bans, both nodes",
+      "description": "Tailed from /var/log/fail2ban.log (thriller-bark/alloy and going-merry/alloy config.alloy) — fail2ban isn't a container, so it's not in the docker-discovery log path.",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "showPoints": "never" } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (node) (count_over_time({job=\"fail2ban\"} |= \"Ban\" [$__interval]))",
+          "legendFormat": "{{node}}"
+        }
+      ]
+    },
+    { "type": "row", "title": "SearXNG", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 } },
     {
       "type": "timeseries",
       "title": "Engine reliability, %",
       "description": "Same signal as the (currently paused) SearXNG alert rules — trend it here to know when to unpause them.",
       "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 23 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
       "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "fillOpacity": 5, "showPoints": "never" } }, "overrides": [] },
       "targets": [
         {
