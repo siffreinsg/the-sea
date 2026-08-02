@@ -57,7 +57,10 @@ subnet router plus a Komodo/Alloy node with no stacks assigned.
 6. Cut over: verify HA on the new container, then wipe Baratie to RPi OS Lite, set up
    Tailscale subnet-router advertisement for the home LAN, install Komodo Periphery +
    Alloy.
-7. Delete the Freebox port-forward to the RPi.
+7. Delete the Freebox port-forward to the RPi, **and** delete `home.siffreinsigy.me`'s
+   existing Cloudflare A record (it points straight at the Freebox's public IP today —
+   that's how the current HA is reached — and sits outside the wildcard until it's gone;
+   the Caddy block added in step 2 is inert until this record is removed).
 8. Update docs in the landing commit: `nodes.md` (Baratie role/runtime, GM service list),
    `REFERENCE.md` (web-UI table, gm-relay table if HA needs a relay hop), `backups.md`
    (assignment table), `ARCHI.md` (Baratie leaves the "outside every diagram" paragraph).
