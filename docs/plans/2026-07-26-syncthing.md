@@ -88,8 +88,19 @@ The public port is only safe because of this list. Nothing here is optional.
 | NAT traversal (UPnP) | off | No UPnP on a cloud VPS |
 | Usage reporting | off | |
 | Default folder | remove it | The image creates `~/Sync`; delete it rather than let it sync |
+| Metrics without auth | **on** | Lets host-mode Alloy scrape `/metrics` without a key; Caddy 404s the path at the edge so it's never public |
+| **Folder defaults** (applies to every folder created after this) | | |
+| Type | `sendreceive` | The rare one-way exception (e.g. a future service-integration folder) is set per-folder, not the default |
 | File versioning | `simple`, 5 versions | Caps the footprint. Backrest is the real history, not this |
+| Ignore patterns | `.DS_Store`, `node_modules`, `.venv`, `target`, `dist`, `build` | Don't replicate build output to every peer and into Proton |
+| `ignorePerms` | **on** | Android and Windows peers have no meaningful Unix perms; syncing them causes spurious changes on every other peer |
+| `minDiskFree` | 25 GiB (absolute, not %) | 193 G volume is shared with everything else on TB; a percentage default could let a runaway sync eat tens of GB before stopping |
+| fsWatcher | on (default) | Real-time change detection; rescan interval stays at the 1h default as the fallback net |
 | **Every folder path** | must start `/var/syncthing/data/` | See below — this is the one that loses data |
+| **Every device** | `autoAcceptFolders` off, `introducer` off | Manual accept per new folder/device is the actual security boundary — don't automate around it |
+| Compression | `metadata` (default) | TB's constraint is disk IOPS, not bandwidth; `always` just burns CPU |
+| Bandwidth limit | none | No data yet to size a cap against; add one only if the first sync actually causes contention |
+| Folder naming | `id` = `label` = kebab-case slug matching the path segment (e.g. `obsidian-vault`) | Keeps the GUI list, `du -sh /var/syncthing/data/*` and folder IDs trivially matched across 10+ folders |
 
 **The folder-path trap.** The GUI defaults a new folder to the home directory
 (`/var/syncthing/<label>`), which is **neither volume**. Accept that default and 20 GB
@@ -178,8 +189,24 @@ folder layout is a five-minute rebuild.
 rather than discovering it at 04:00, and confirm it finished before trusting the
 schedule.
 
+## Monitoring
+
+`/metrics` on the GUI/API port, same shape as LiteLLM's. GUI setting
+`metricsWithoutAuth: true` lets host-mode Alloy scrape `127.0.0.1:8384` unauthenticated;
+Caddy 404s `/metrics` at the edge so it's never public. Alert: `Syncthing folder stuck
+out of sync` in `going-merry/observability/provisioning/alerting/rules.yaml`, firing when
+a folder's `needBytes` stays above 0 for 6h. No per-device disconnect alert — the phone
+is expected offline most of the time, and the stuck-folder alert already catches the
+harm that matters regardless of which peer caused it.
+
+**Unverified: `syncthing_model_folder_summary`'s exact label for needBytes** (written as
+`item="needBytes"`, not confirmed against a live scrape). Check `curl -s
+127.0.0.1:8384/metrics | grep syncthing_model_folder_summary` on TB post-deploy and fix
+the rule's `expr` if the label doesn't match.
+
 ## Done when
 
 The GUI gates through Authelia, a peer on the mesh and the peer that can't join the mesh
 both show "Up to Date", `nc -vz` from off-network answers on 22000, an unknown device ID
-is refused, and the tree appears in a TB bulk snapshot.
+is refused, the tree appears in a TB bulk snapshot, and the stuck-folder alert's metric
+label is confirmed live (see Monitoring above).

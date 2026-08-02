@@ -10,6 +10,7 @@ services:
     ports:
       - "0.0.0.0:22000:22000/tcp"    # BEP sync — the deliberate exception
       - "0.0.0.0:22000:22000/udp"    # QUIC
+      - "127.0.0.1:8384:8384"        # GUI/API, for host-mode Alloy to scrape /metrics — same pattern as litellm
     networks:
       - edge                         # GUI reached by Caddy over container DNS, no host publish
     volumes:
