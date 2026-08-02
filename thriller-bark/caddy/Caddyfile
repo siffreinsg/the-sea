@@ -26,13 +26,17 @@ http://127.0.0.1:2020 {
 		output file /var/log/caddy/access.log
 		format json
 	}
-	# Per-IP request cap. caddy-ratelimit has no global-option form — the zone has
-	# to be defined at the site/route level where it's enforced. 240/min is loose
-	# enough for a household behind CGNAT, tight enough to blunt a scan — tune from
-	# the infra-services Grafana dashboard.
+	# Per-IP, per-service request cap. caddy-ratelimit has no global-option form — the
+	# zone has to be defined at the site/route level where it's enforced. Key includes
+	# {host}: this block matches every subdomain via the wildcard, so a key of just
+	# {remote_host} pooled one 240/min budget across all of them — a household IP
+	# opening Komodo (which alone polls dozens of times per load) and one other
+	# service together tripped 429s under normal use. Per-service budgets fix that.
+	# 240/min/service is loose enough for a household behind CGNAT, tight enough to
+	# blunt a scan — tune from the infra-services Grafana dashboard.
 	rate_limit {
 		zone dynamic {
-			key {remote_host}
+			key {remote_host}_{host}
 			events 240
 			window 1m
 		}
