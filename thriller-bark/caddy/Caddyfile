@@ -26,6 +26,12 @@ http://127.0.0.1:2020 {
 		output file /var/log/caddy/access.log
 		format json
 	}
+	# Static assets don't count against the abuse budget — a scanner hits meaningful
+	# endpoints, not JS/CSS chunks, and a single SPA page load (n8n's legacy bundle
+	# ships 300+ separate JS files) can burst past any reasonable per-minute cap on
+	# its own. Confirmed live: one n8n editor load tripped 429s purely from asset
+	# fetches, no actual abuse involved.
+	@not_static not path *.js *.css *.map *.woff *.woff2 *.ttf *.otf *.png *.jpg *.jpeg *.gif *.svg *.ico
 	# Per-IP, per-service request cap. caddy-ratelimit has no global-option form — the
 	# zone has to be defined at the site/route level where it's enforced. Key includes
 	# {host}: this block matches every subdomain via the wildcard, so a key of just
@@ -34,7 +40,7 @@ http://127.0.0.1:2020 {
 	# service together tripped 429s under normal use. Per-service budgets fix that.
 	# 240/min/service is loose enough for a household behind CGNAT, tight enough to
 	# blunt a scan — tune from the infra-services Grafana dashboard.
-	rate_limit {
+	rate_limit @not_static {
 		zone dynamic {
 			key {remote_host}_{host}
 			events 240
