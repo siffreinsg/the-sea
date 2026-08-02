@@ -14,9 +14,13 @@ capacity; Syncthing's writes are bursty rather than sustained, which is the shap
 tolerates. If the tree ever grows past ~50 G or the disk shows up in Grafana, revisit —
 the alternative is an nftables DNAT from TB to GM, rejected today as too much machinery.
 
-**Pin, resolved 2026-07-26:** `syncthing/syncthing:2.1.2` (release v2.1.2, 2026-07-08).
-Manifest index inspected, not just a 200: carries `linux/arm64`, so it runs on TB.
-Docker Hub, not GHCR — this is upstream's own image.
+**Pin, revised 2026-08-02:** `lscr.io/linuxserver/syncthing:v2.1.2-ls226`, not upstream's
+own `syncthing/syncthing:2.1.2` image. Upstream's `docker-entrypoint.sh` only `chown`s
+`$HOME` non-recursively before dropping to `PUID`/`PGID` — the config volume is a separate
+mount point it never touches, so the non-root process can't write `cert.pem` and the
+container crash-loops on first boot (`chmod /var/syncthing/config: operation not
+permitted`). LinuxServer's image handles PUID/PGID ownership recursively via its s6 init,
+same app version (v2.1.2). arm64 confirmed on the tag.
 
 **Syncthing 2.x is a major version.** The database moved from LevelDB to SQLite and the
 log format changed. This is a fresh install, so there is no v1 migration to survive —
@@ -27,7 +31,7 @@ but do not read v1 documentation for anything below.
 ```yaml
 services:
   syncthing:
-    image: syncthing/syncthing:2.1.2
+    image: lscr.io/linuxserver/syncthing:v2.1.2-ls226
     container_name: syncthing
     restart: unless-stopped
     hostname: thriller-bark
@@ -37,11 +41,12 @@ services:
     ports:
       - "0.0.0.0:22000:22000/tcp"    # BEP sync — the deliberate exception
       - "0.0.0.0:22000:22000/udp"    # QUIC
+      - "127.0.0.1:8384:8384"        # GUI/API, for host-mode Alloy to scrape /metrics
     networks:
       - edge                         # GUI reached by Caddy over container DNS, no host publish
     volumes:
-      - syncthing-config:/var/syncthing/config
-      - syncthing-data:/var/syncthing/data
+      - syncthing-config:/config
+      - syncthing-data:/data
 
 networks:
   edge:
@@ -96,21 +101,22 @@ The public port is only safe because of this list. Nothing here is optional.
 | `ignorePerms` | **on** | Android and Windows peers have no meaningful Unix perms; syncing them causes spurious changes on every other peer |
 | `minDiskFree` | 25 GiB (absolute, not %) | 193 G volume is shared with everything else on TB; a percentage default could let a runaway sync eat tens of GB before stopping |
 | fsWatcher | on (default) | Real-time change detection; rescan interval stays at the 1h default as the fallback net |
-| **Every folder path** | must start `/var/syncthing/data/` | See below — this is the one that loses data |
+| **Every folder path** | must start `/data/` | See below — this is the one that loses data |
 | **Every device** | `autoAcceptFolders` off, `introducer` off | Manual accept per new folder/device is the actual security boundary — don't automate around it |
 | Compression | `metadata` (default) | TB's constraint is disk IOPS, not bandwidth; `always` just burns CPU |
 | Bandwidth limit | none | No data yet to size a cap against; add one only if the first sync actually causes contention |
-| Folder naming | `id` = `label` = kebab-case slug matching the path segment (e.g. `obsidian-vault`) | Keeps the GUI list, `du -sh /var/syncthing/data/*` and folder IDs trivially matched across 10+ folders |
+| Folder naming | `id` = `label` = kebab-case slug matching the path segment (e.g. `obsidian-vault`) | Keeps the GUI list, `du -sh /data/*` and folder IDs trivially matched across 10+ folders |
 
 **The folder-path trap.** The GUI defaults a new folder to the home directory
-(`/var/syncthing/<label>`), which is **neither volume**. Accept that default and 20 GB
-lands in the container's writable layer: gone on the next `--force-recreate`, and
-invisible to Backrest at the same time — silent data loss and a silent backup gap from one
-prefilled field. Set the path under `/var/syncthing/data/` for every folder, and before
-trusting the first snapshot confirm the bytes are really on the volume:
+(`/config/<label>`), which is the **config volume, not the data volume**. Accept that
+default and the sync tree lands inside `syncthing-config` instead of `syncthing-data`:
+not lost on `--force-recreate` (both are real named volumes), but invisible to
+Backrest's bulk plan (only `syncthing-data` is mounted there) and bloats a volume meant
+to stay small. Set the path under `/data/` for every folder, and before trusting the
+first snapshot confirm the bytes landed on the right volume:
 
 ```bash
-docker exec syncthing du -sh /var/syncthing/data/*
+docker exec syncthing du -sh /data/*
 docker volume inspect syncthing_syncthing-data
 ```
 
