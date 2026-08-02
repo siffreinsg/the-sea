@@ -479,7 +479,7 @@ groups:
                 # normal and doesn't block this — need only grows once some other peer
                 # has pulled the change and reported back, so a lone offline device
                 # never trips it on its own.
-                expr: max(syncthing_model_folder_summary{item="needBytes"}) by (folder)
+                expr: max(syncthing_model_folder_summary{scope="need",type="bytes"}) by (folder)
                 instant: true
                 intervalMs: 1000
                 maxDataPoints: 43200
