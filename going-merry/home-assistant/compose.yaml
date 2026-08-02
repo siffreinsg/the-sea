@@ -9,6 +9,10 @@ services:
       - config:/config
     ports:
       - "100.64.0.1:8123:8123"
+    extra_hosts:
+      # Freebox's cert is issued for this hostname, not its IP — needed for the
+      # integration to pass cert verification when reached off-LAN via Baratie's route.
+      - "mafreebox.freebox.fr:192.168.1.1"
 
 volumes:
   config:
