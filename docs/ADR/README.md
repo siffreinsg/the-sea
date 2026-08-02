@@ -10,6 +10,7 @@ New decision = new dated file + one row here.
 
 | Date | Decision | Status |
 |---|---|---|
+| 2026-08-02 | [Renovate opens PRs for new tags; Komodo polls digests under the pinned tag](2026-08-02-renovate-for-tag-bumps-komodo-for-digest-drift.md) | Accepted |
 | 2026-08-02 | [Bot hardening: fail2ban + caddy-ratelimit, not CrowdSec or orange-cloud](2026-08-02-fail2ban-and-caddy-ratelimit-not-crowdsec.md) | Accepted |
 | 2026-08-01 | [Per-stack Docker networks, bridge-mode Caddy, Headscale ACL](2026-08-01-per-stack-networks-and-headscale-acl.md) | Accepted |
 | 2026-07-29 | [Caddy relays GM services to TB containers, on a non-public listener](2026-07-29-caddy-relays-mesh-services-to-containers.md) | Superseded |

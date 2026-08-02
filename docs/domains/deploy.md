@@ -31,6 +31,9 @@ n8n is using; nothing is gained by restarting Loki without Grafana.
   files that actually hold secrets, and always prefix `umask 077 &&`
   ([why](secrets.md)).
 - `KOMODO_DISABLE_CONFIRM_DIALOG=true` turns most confirmations into a double-click.
+- `poll_for_updates` is set on every stack; `auto_update` only on Authelia and n8n.
+  Neither catches a new release tag, only a digest change under the pinned one — Renovate
+  covers that ([why](../ADR/2026-08-02-renovate-for-tag-bumps-komodo-for-digest-drift.md)).
 
 ## `/opt/the-sea` on the nodes
 
