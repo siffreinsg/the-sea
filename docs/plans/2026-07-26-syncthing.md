@@ -47,6 +47,7 @@ services:
     volumes:
       - syncthing-config:/config
       - syncthing-data:/data
+      - ./custom-cont-init.d:/custom-cont-init.d:ro
 
 networks:
   edge:
@@ -56,6 +57,14 @@ volumes:
   syncthing-config:
   syncthing-data:
 ```
+
+**LSIO only auto-chowns `/config`.** `/data` is a separate named volume Docker creates
+as `root:root`; the app user (uid 1000) can `mkdir` nothing under it until it's chowned.
+Hit this creating the first folder from a phone (`mkdir /data/Tasker Backups: permission
+denied`). `thriller-bark/syncthing/custom-cont-init.d/chown-data.sh` fixes it on every
+boot — LSIO runs `/custom-cont-init.d/*.sh` as root before dropping to `PUID`/`PGID`, so
+this survives `--force-recreate` and a DR restore onto a fresh volume, not just a one-off
+manual `docker exec chown`.
 
 No `secrets.env`, so **no `pre_deploy`** on the stack entry. Device IDs and folder
 layout are runtime state in the config volume, not config-as-code — Syncthing has no
@@ -68,15 +77,11 @@ a VPS and would only answer the local subnet.
 ## 2. Firewall — the part that isn't in the repo
 
 Docker's publish rule opens the host path by itself, so the host firewall needs nothing.
-**Oracle's VCN security list does**, and it is the layer most likely to be forgotten —
-`docs/FUTURE.md` already records that the VCN rules have never been read.
-
-Add ingress on the VCN subnet's security list: `0.0.0.0/0` → TCP 22000 and UDP 22000.
-Then verify from off-network, not from the host:
-
-```bash
-nc -vz 141.253.109.196 22000
-```
+**Verified 2026-08-02:** `nc -vz 141.253.109.196 22000` answered from off-network with no
+VCN change — an existing security-list rule already covers it. The plan's assumption that
+a new ingress rule was needed was wrong; the audit item in `docs/TODO.md` ("read the
+Oracle VCN security list — hairpin NAT can't prove which layer closes what") is why this
+was checked instead of assumed.
 
 Afterwards `docs/REFERENCE.md`'s "Open ports" row reads **TB 80/443/22/22000**. Update it
 in the same commit.

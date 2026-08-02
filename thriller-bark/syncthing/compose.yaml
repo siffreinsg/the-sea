@@ -16,6 +16,7 @@ services:
     volumes:
       - syncthing-config:/config
       - syncthing-data:/data
+      - ./custom-cont-init.d:/custom-cont-init.d:ro
 
 networks:
   edge:
