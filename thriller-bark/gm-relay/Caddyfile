@@ -75,3 +75,9 @@
 		import forwarded-https
 	}
 }
+
+:18123 {
+	reverse_proxy 100.64.0.1:8123 {
+		import forwarded-https
+	}
+}

@@ -189,6 +189,13 @@ http://127.0.0.1:2020 {
 		reverse_proxy syncthing:8384
 	}
 
+	@home host home.siffreinsigy.me
+	handle @home {
+		# Own login, no forward_auth — the HA mobile app and Google/Alexa can't
+		# complete an OIDC redirect.
+		reverse_proxy host.docker.internal:18123
+	}
+
 	handle {
 		abort
 	}
