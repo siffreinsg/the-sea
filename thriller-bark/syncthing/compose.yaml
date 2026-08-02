@@ -1,6 +1,6 @@
 services:
   syncthing:
-    image: syncthing/syncthing:2.1.2
+    image: lscr.io/linuxserver/syncthing:v2.1.2-ls226
     container_name: syncthing
     restart: unless-stopped
     hostname: thriller-bark
@@ -14,8 +14,8 @@ services:
     networks:
       - edge                         # GUI reached by Caddy over container DNS, no host publish
     volumes:
-      - syncthing-config:/var/syncthing/config
-      - syncthing-data:/var/syncthing/data
+      - syncthing-config:/config
+      - syncthing-data:/data
 
 networks:
   edge:
