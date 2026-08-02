@@ -2,6 +2,7 @@
 	"tagOwners": {
 		"tag:tb": [],
 		"tag:gm": [],
+		"tag:baratie": [],
 	},
 	"acls": [
 		{
@@ -27,6 +28,20 @@
 			"action": "accept",
 			"src": ["tag:gm"],
 			"dst": ["tag:tb:22000"],   // Syncthing BEP, mesh-capable peer skipping the public path
+		},
+		{
+			"action": "accept",
+			"src": ["tag:baratie"],
+			"dst": [
+				"tag:gm:8428",   // VictoriaMetrics remote_write
+				"tag:gm:3100",   // Loki push
+				"tag:gm:4317",   // Tempo OTLP gRPC
+			],
+		},
+		{
+			"action": "accept",
+			"src": ["tag:gm"],
+			"dst": ["192.168.1.0/24:*"],   // HA reaching Yeelight/Bravia behind Baratie's subnet route
 		},
 	],
 }
