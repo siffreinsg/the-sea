@@ -79,6 +79,7 @@ Mechanism (n8n, Komodo, systemd, a script) is per-item, decided when each is pla
   anything Maintainerr is protecting.
 - Missing-episode/corrupt-file health check — periodic scan for files Sonarr thinks it
   has that are 0-byte, unplayable, or missing from disk, auto-trigger a re-search.
+- Detect conflicting files on syncthing
 
 ## Tool wishlist
 
