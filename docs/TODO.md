@@ -23,7 +23,6 @@ its plan in [plans/](plans/) once work starts.
 - [ ] Bazarr — [plan](plans/2026-07-25-bazarr.md)
 - [ ] Wizarr — [plan](plans/2026-07-25-wizarr.md)
 - [ ] Fix cross-seed on qui
-- [ ] Doplarr — not yet planned
 - [ ] Suggestarr — not yet planned
 - [ ] Pulsarr — not yet planned
 - [ ] Prunerr — not yet planned
@@ -31,15 +30,15 @@ its plan in [plans/](plans/) once work starts.
 ### Files and documents
 
 - [ ] n8n automation to detect conflicting files on syncthing
-- [ ] Paperless-ngx — [plan](plans/2026-07-26-paperless-ngx.md)
 - [ ] FileBrowser
 
 ### Tools
 
-- [ ] Forgejo — [plan](plans/2026-07-26-forgejo.md)
-- [ ] Wallos — [plan](plans/2026-07-26-wallos.md)
-- [ ] Homepage — [plan](plans/2026-07-25-homepage.md)
 - [ ] Digarr (Spotify support) — not yet planned
+
+### Home Assistant
+
+- [ ] Migrate off Baratie to a GM container — [plan](plans/2026-08-02-home-assistant-migration.md)
 
 ## Security
 
