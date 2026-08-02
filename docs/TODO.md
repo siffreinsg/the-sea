@@ -40,7 +40,6 @@ its plan in [plans/](plans/) once work starts.
 - [ ] Syncthing, including the public 22000 port — [plan](plans/2026-07-26-syncthing.md)
 - [ ] n8n automation to detect conflicting files on syncthing
 - [ ] Paperless-ngx, blocked on Syncthing — [plan](plans/2026-07-26-paperless-ngx.md)
-- [ ] Karakeep — shipped, pending Komodo deploy + verify
 - [ ] FileBrowser
 
 ### Tools
@@ -59,6 +58,4 @@ its plan in [plans/](plans/) once work starts.
 
 ### Networking
 
-- [ ] Host hardening against bots — shipped, pending install on both nodes
-      ([runbook](runbooks/install-fail2ban.md))
 - [ ] Grafana IP tracking + anomaly alerts — not yet planned
