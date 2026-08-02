@@ -31,7 +31,10 @@ http://127.0.0.1:2020 {
 	# ships 300+ separate JS files) can burst past any reasonable per-minute cap on
 	# its own. Confirmed live: one n8n editor load tripped 429s purely from asset
 	# fetches, no actual abuse involved.
-	@not_static not path *.js *.css *.map *.woff *.woff2 *.ttf *.otf *.png *.jpg *.jpeg *.gif *.svg *.ico
+	@not_static {
+		not path *.js *.css *.map *.woff *.woff2 *.ttf *.otf *.png *.jpg *.jpeg *.gif *.svg *.ico
+		not host komodo.siffreinsigy.me
+	}
 	# Per-IP, per-service request cap. caddy-ratelimit has no global-option form — the
 	# zone has to be defined at the site/route level where it's enforced. Key includes
 	# {host}: this block matches every subdomain via the wildcard, so a key of just
@@ -44,6 +47,20 @@ http://127.0.0.1:2020 {
 		zone dynamic {
 			key {remote_host}_{host}
 			events 240
+			window 1m
+		}
+	}
+	# Komodo's dashboard polls dozens of endpoints per page load and keeps polling while
+	# open — 240/min tripped it under normal use even after the per-service split above.
+	# Own zone, own budget: still protects against a scan, not against Komodo being chatty.
+	@komodo_dynamic {
+		host komodo.siffreinsigy.me
+		not path *.js *.css *.map *.woff *.woff2 *.ttf *.otf *.png *.jpg *.jpeg *.gif *.svg *.ico
+	}
+	rate_limit @komodo_dynamic {
+		zone komodo {
+			key {remote_host}
+			events 1200
 			window 1m
 		}
 	}
