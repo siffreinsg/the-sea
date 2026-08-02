@@ -9,7 +9,7 @@ The constants. Everything here is looked up, not reasoned about.
 | Contact mail | `hello@siffreinsigy.me` (ACME + Authelia user) |
 | Mesh IPs | TB `100.64.0.2`, GM `100.64.0.1`. Base domain `mesh.siffreinsigy.me` |
 | Public IPs | TB `141.253.109.196`, GM `62.4.16.10` |
-| Open ports | TB 80/443/22 · GM 4747 (SSH) · nothing else. **Planned, not yet open:** TB 22000/tcp+udp for Syncthing ([the one exception](ADR/2026-07-26-syncthing-public-port.md)) — needs the Docker publish *and* an Oracle VCN security-list rule |
+| Open ports | TB 80/443/22/22000 (Syncthing BEP, [the one exception](ADR/2026-07-26-syncthing-public-port.md)) · GM 4747 (SSH) · nothing else |
 | sshd hardening <!-- mirrors ssh/hardening.conf + <node>/ssh/local.conf — verify: diff against /etc/ssh/sshd_config.d/ on each node --> | Shared: key-only, no root login, no PAM, `MaxAuthTries 3` (`ssh/hardening.conf`, same file on both nodes). Per-node: TB bound to `141.253.109.196:22`, `AllowUsers ubuntu`; GM bound to `62.4.16.10:4747`, `AllowUsers siffrein`. See [networking.md](domains/networking.md) |
 | `edge` network | TB — hand-created (`docker network create edge`), `external: true` in every compose that joins it. Every non-n8n service Caddy reverse-proxies to by container name |
 | `ai-backends` network | TB — hand-created (`docker network create ai-backends`), `external: true` in open-webui, litellm, tika. Lets open-webui dial its AI backend and doc-extraction service by name |
@@ -52,10 +52,11 @@ the offset if you change these.
 | Profilarr | `profilarr.siffreinsigy.me` |
 | Cleanuparr | `cleanuparr.siffreinsigy.me` |
 | Karakeep | `karakeep.siffreinsigy.me` |
+| Syncthing | `syncthing.siffreinsigy.me` |
 | Overseerr (legacy redirect) | `overseerr.blackpearl.siffreinsigy.me` |
 | Uptime-Kuma | on Sunny (`app-uptimekuma`), **not behind Caddy** — external node-liveness for TB and GM, the mitigation for observability living on a watched node ([ADR](ADR/2026-07-23-observability-on-going-merry.md)) |
 
-This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 17 hosts,
+This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 18 hosts,
 verified. All are `@name host` matchers inside the wildcard block except
 `overseerr.blackpearl`, which is its own site block (a `redir`, not a proxy), and
 Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block for a hostname,

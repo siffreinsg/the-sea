@@ -149,6 +149,15 @@ http://127.0.0.1:2020 {
 		}
 	}
 
+	@syncthing host syncthing.siffreinsigy.me
+	handle @syncthing {
+		forward_auth authelia:9091 {
+			uri /api/authz/forward-auth
+			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+		}
+		reverse_proxy syncthing:8384
+	}
+
 	handle {
 		abort
 	}
