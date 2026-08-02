@@ -64,6 +64,12 @@ prometheus.scrape "litellm" {
   targets    = [{ __address__ = "127.0.0.1:4000", job = "litellm" }]
   forward_to = [prometheus.relabel.add_node.receiver]
 }
+// Syncthing's own /metrics: per-device connection state and per-folder need-bytes,
+// the only signal for a peer silently falling out of sync.
+prometheus.scrape "syncthing" {
+  targets    = [{ __address__ = "127.0.0.1:8384", job = "syncthing" }]
+  forward_to = [prometheus.relabel.add_node.receiver]
+}
 
 // ---- traces ----
 // Apps ship OTLP here, Alloy relays to Tempo on GM. They cannot push to Tempo directly:

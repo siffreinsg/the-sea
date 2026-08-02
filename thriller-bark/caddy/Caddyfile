@@ -149,6 +149,19 @@ http://127.0.0.1:2020 {
 		}
 	}
 
+	@syncthing host syncthing.siffreinsigy.me
+	handle @syncthing {
+		# /metrics has no auth on the container (Alloy scrapes it directly over
+		# 127.0.0.1), so it must never reach the public edge.
+		@syncthing_metrics path /metrics /metrics/*
+		respond @syncthing_metrics 404
+		forward_auth authelia:9091 {
+			uri /api/authz/forward-auth
+			copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+		}
+		reverse_proxy syncthing:8384
+	}
+
 	handle {
 		abort
 	}

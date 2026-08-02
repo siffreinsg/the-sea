@@ -22,5 +22,10 @@
 				"tag:gm:3050",   // Karakeep
 			],
 		},
+		{
+			"action": "accept",
+			"src": ["tag:gm"],
+			"dst": ["tag:tb:22000"],   // Syncthing BEP, mesh-capable peer skipping the public path
+		},
 	],
 }

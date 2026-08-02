@@ -22,6 +22,7 @@ services:
       - komodo-keys:/userdata/komodo-keys:ro
       - authelia-data:/userdata/authelia:ro
       - open-webui-data:/userdata/open-webui:ro
+      - syncthing-data:/userdata/syncthing:ro
 
 volumes:
   backrest-data:
@@ -42,6 +43,9 @@ volumes:
   open-webui-data:
     external: true
     name: open-webui_open-webui-data
+  syncthing-data:
+    external: true
+    name: syncthing_syncthing-data
 
 networks:
   edge:
