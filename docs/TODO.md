@@ -8,6 +8,7 @@ its plan in [plans/](plans/) once work starts.
 - [ ] Fix `/opt/the-sea`'s git-triggered pull on TB
 - [ ] Collect traces from Komodo
 - [ ] Remove noise from Grafana logs, metrics and traces
+- [ ] Repair Grafana going-merry collection
 
 ## AI platform
 
