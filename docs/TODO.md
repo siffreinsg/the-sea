@@ -37,9 +37,8 @@ its plan in [plans/](plans/) once work starts.
 
 ### Files and documents
 
-- [ ] Syncthing, including the public 22000 port — [plan](plans/2026-07-26-syncthing.md)
 - [ ] n8n automation to detect conflicting files on syncthing
-- [ ] Paperless-ngx, blocked on Syncthing — [plan](plans/2026-07-26-paperless-ngx.md)
+- [ ] Paperless-ngx — [plan](plans/2026-07-26-paperless-ngx.md)
 - [ ] FileBrowser
 
 ### Tools
