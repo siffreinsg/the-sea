@@ -5,11 +5,7 @@ its plan in [plans/](plans/) once work starts.
 
 ## Misc
 
-- [ ] Fix `/opt/the-sea`'s git-triggered pull on TB — `main` was stuck at `ffdff9e`
-      (pre-redesign) despite the two `[[repo]]` webhook resources in
-      `komodo/resources.toml`; found while restoring litellm-db, worked around with a
-      manual `git pull`
-- [ ] Configure Uptime Kuma to monitor The Sea
+- [ ] Fix `/opt/the-sea`'s git-triggered pull on TB
 - [ ] Collect traces from Komodo
 - [ ] Remove noise from Grafana logs, metrics and traces
 
@@ -17,11 +13,8 @@ its plan in [plans/](plans/) once work starts.
 
 ### Sidekick stack
 
-- [ ] Rework web search, SearXNG or otherwise. Scraping consumer engines from a datacenter
-      IP CAPTCHAs, so it returns Wikipedia only. Both SearXNG alert rules paused until this
-      lands.
-- [ ] wikidata 403s on init and stays gone until restarted. Waiting on the upstream fix,
-      then bump the image pin.
+- [ ] Rework web search, SearXNG or otherwise.
+- [ ] wikidata 403s on init. Waiting on the upstream fix, then bump the image pin.
 
 ## Services
 

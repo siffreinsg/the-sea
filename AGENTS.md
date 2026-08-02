@@ -50,7 +50,7 @@ Always read the `docs-system` skill.
 
 ## Git
 
-- `main` is write-protected. Use branches and PRs.
+- `main` is write-protected. Use branches and PRs. Pay attention, branches are deleted after a PR is merged.
 - Commit and push only when asked.
 - Split commits by concern. A runbook fix, a set of plans and a decision reversal are three commits, not one. If two concerns touch the same file, group them rather than surgically splitting the diff.
 - Commit subject: `type(scope): imperative summary`
