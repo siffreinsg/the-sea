@@ -210,14 +210,17 @@ a folder's `needBytes` stays above 0 for 6h. No per-device disconnect alert — 
 is expected offline most of the time, and the stuck-folder alert already catches the
 harm that matters regardless of which peer caused it.
 
-**Unverified: `syncthing_model_folder_summary`'s exact label for needBytes** (written as
-`item="needBytes"`, not confirmed against a live scrape). Check `curl -s
-127.0.0.1:8384/metrics | grep syncthing_model_folder_summary` on TB post-deploy and fix
-the rule's `expr` if the label doesn't match.
+**Verified 2026-08-02 against a live scrape:** `syncthing_model_folder_summary` uses
+`scope="global"|"local"|"need"` and `type="bytes"|"deleted"|"directories"|"files"|"symlinks"`
+— not an `item="needBytes"` label as first guessed. The alert's `expr` uses
+`{scope="need",type="bytes"}`.
 
 ## Done when
 
 The GUI gates through Authelia, a peer on the mesh and the peer that can't join the mesh
-both show "Up to Date", `nc -vz` from off-network answers on 22000, an unknown device ID
-is refused, the tree appears in a TB bulk snapshot, and the stuck-folder alert's metric
-label is confirmed live (see Monitoring above).
+(Sunny) both show "Up to Date" — **done**, TB and Sunny paired — `nc -vz` from
+off-network answers on 22000 — **done**, no VCN change needed — an unknown device ID is
+refused, the tree appears in a TB bulk snapshot, and the phone's first folder synced
+without error — **done**, after the `/data` chown fix.
+
+Remaining: unknown-device rejection check, Backrest bulk-plan addition.
