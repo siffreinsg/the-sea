@@ -80,6 +80,11 @@ distinguish a container's traffic from the host's. Both nodes' hosts must be tag
 default-deny, which would otherwise silently kill the metrics pipeline. Verify with
 `headscale nodes list` before considering the ACL live.
 
+Editing `acl.hujson` in the repo does not push the change — Headscale only reads it on
+container start. A port added to the allowlist stays enforced as the old policy (silent
+drop, not a rejection) until `headscale` is redeployed. Verify with
+`headscale policy get` before trusting a new ACL row is live.
+
 ### Reaching a GM service from a TB container
 
 Main Caddy is bridge-networked and can't dial the mesh itself. GM-bound calls go through
