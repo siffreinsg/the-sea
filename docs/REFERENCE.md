@@ -52,11 +52,12 @@ the offset if you change these.
 | Profilarr | `profilarr.siffreinsigy.me` |
 | Cleanuparr | `cleanuparr.siffreinsigy.me` |
 | Karakeep | `karakeep.siffreinsigy.me` |
+| Home Assistant | `home.siffreinsigy.me` — own login, no Authelia |
 | Syncthing | `syncthing.siffreinsigy.me` |
 | Overseerr (legacy redirect) | `overseerr.blackpearl.siffreinsigy.me` |
 | Uptime-Kuma | on Sunny (`app-uptimekuma`), **not behind Caddy** — external node-liveness for TB and GM, the mitigation for observability living on a watched node ([ADR](ADR/2026-07-23-observability-on-going-merry.md)) |
 
-This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 18 hosts,
+This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 19 hosts,
 verified. All are `@name host` matchers inside the wildcard block except
 `overseerr.blackpearl`, which is its own site block (a `redir`, not a proxy), and
 Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block for a hostname,
@@ -81,6 +82,7 @@ same reasoning as Alloy's OTLP receiver ([why](domains/networking.md)) — calle
 | SearXNG | 8080 | 18090 |
 | Playwright | 3002 | 18091 |
 | Karakeep | 3050 | 13050 |
+| Home Assistant | 8123 | 18123 |
 
 SearXNG and Playwright have no auth of their own — callers on TB reach them via
 `http://host.docker.internal:18090`/`:18091`, same as before this redesign, just renumbered.

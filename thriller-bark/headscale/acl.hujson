@@ -20,6 +20,7 @@
 				"tag:gm:8080",   // SearXNG
 				"tag:gm:3002",   // Playwright
 				"tag:gm:3050",   // Karakeep
+				"tag:gm:8123",   // Home Assistant
 			],
 		},
 		{

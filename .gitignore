@@ -27,3 +27,5 @@ keys.txt
 
 docs/HANDOFF.md
 
+# HA inventory export, secrets inside, not meant for git
+ha-exports-temp
