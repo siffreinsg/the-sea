@@ -163,7 +163,7 @@ http://127.0.0.1:2020 {
 	# Leantime has its own OIDC client in Authelia, so no forward_auth here.
 	@leantime host tasks.siffreinsigy.me
 	handle @leantime {
-		reverse_proxy leantime:80
+		reverse_proxy leantime:8080
 	}
 
 	@your_spotify host spotify.siffreinsigy.me
