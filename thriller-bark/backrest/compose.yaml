@@ -23,6 +23,8 @@ services:
       - authelia-data:/userdata/authelia:ro
       - open-webui-data:/userdata/open-webui:ro
       - syncthing-data:/userdata/syncthing:ro
+      - leantime-userfiles:/userdata/leantime-userfiles:ro
+      - leantime-public-userfiles:/userdata/leantime-public-userfiles:ro
 
 volumes:
   backrest-data:
@@ -46,6 +48,12 @@ volumes:
   syncthing-data:
     external: true
     name: syncthing_syncthing-data
+  leantime-userfiles:
+    external: true
+    name: leantime_userfiles
+  leantime-public-userfiles:
+    external: true
+    name: leantime_public-userfiles
 
 networks:
   edge:
