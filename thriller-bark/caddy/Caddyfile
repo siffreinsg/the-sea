@@ -160,6 +160,12 @@ http://127.0.0.1:2020 {
 		reverse_proxy open-webui:8080
 	}
 
+	# Leantime has its own OIDC client in Authelia, so no forward_auth here.
+	@leantime host tasks.siffreinsigy.me
+	handle @leantime {
+		reverse_proxy leantime:80
+	}
+
 	@your_spotify host spotify.siffreinsigy.me
 	handle @your_spotify {
 		# Spotify redirects the browser back here; the link flow must not hit the portal.

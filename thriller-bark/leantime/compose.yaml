@@ -1,0 +1,58 @@
+services:
+  leantime_db:
+    image: mariadb:11.4-noble
+    container_name: leantime_db
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: leantime
+      MYSQL_USER: lean
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  leantime:
+    image: leantime/leantime:3.9.8
+    container_name: leantime
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      LEAN_APP_URL: https://tasks.siffreinsigy.me
+      LEAN_DB_HOST: leantime_db
+      LEAN_DB_USER: lean
+      LEAN_DB_PASSWORD: ${MYSQL_PASSWORD}
+      LEAN_DB_DATABASE: leantime
+      LEAN_SESSION_PASSWORD: ${LEAN_SESSION_PASSWORD}
+      # OIDC — Authelia client, see thriller-bark/authelia/secrets.oidc.yml
+      LEAN_OIDC_ENABLE: "true"
+      LEAN_OIDC_PROVIDER_URL: https://auth.siffreinsigy.me
+      LEAN_OIDC_CLIENT_ID: leantime
+      LEAN_OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      LEAN_OIDC_SCOPES: "openid profile email"
+      # single user, already linked - no self-service signup via OIDC
+      LEAN_OIDC_CREATE_USER: "false"
+    volumes:
+      - userfiles:/var/www/html/userfiles
+      - public-userfiles:/var/www/html/public/userfiles
+    networks:
+      - default
+      - edge
+    depends_on:
+      leantime_db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  userfiles:
+  public-userfiles:
+
+networks:
+  edge:
+    external: true
