@@ -52,12 +52,13 @@ the offset if you change these.
 | Profilarr | `profilarr.siffreinsigy.me` |
 | Cleanuparr | `cleanuparr.siffreinsigy.me` |
 | Karakeep | `karakeep.siffreinsigy.me` |
+| Leantime | `tasks.siffreinsigy.me` |
 | Home Assistant | `home.siffreinsigy.me` — own login, no Authelia |
 | Syncthing | `syncthing.siffreinsigy.me` |
 | Overseerr (legacy redirect) | `overseerr.blackpearl.siffreinsigy.me` |
 | Uptime-Kuma | on Sunny (`app-uptimekuma`), **not behind Caddy** — external node-liveness for TB and GM, the mitigation for observability living on a watched node ([ADR](ADR/2026-07-23-observability-on-going-merry.md)) |
 
-This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 19 hosts,
+This table and `thriller-bark/caddy/Caddyfile` are exhaustive of each other — 20 hosts,
 verified. All are `@name host` matchers inside the wildcard block except
 `overseerr.blackpearl`, which is its own site block (a `redir`, not a proxy), and
 Uptime-Kuma, which is not behind Caddy at all. If you add a Caddy block for a hostname,
