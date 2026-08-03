@@ -36,6 +36,8 @@ services:
       LEAN_OIDC_CLIENT_ID: leantime
       LEAN_OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
       LEAN_OIDC_SCOPES: "openid profile email"
+      # LEAN_OIDC_FIELD_EMAIL has no default — Leantime looks up key "" and always fails without it
+      LEAN_OIDC_FIELD_EMAIL: "email"
       # single user, already linked - no self-service signup via OIDC
       LEAN_OIDC_CREATE_USER: "false"
     volumes:
