@@ -14,7 +14,7 @@ record of the assignment** — keep it current.
 
 | Node | Critical (Mega) | Bulk (Proton) |
 |---|---|---|
-| TB | Authelia config + db, Actual Budget, n8n exports, LiteLLM Postgres dump, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping), `/userdata/headscale`, `/userdata/komodo-keys` | Komodo Mongo dump, headscale dump, Open-WebUI data, the whole `/userdata/backups` dumps dir, `/userdata/headscale`, `/userdata/komodo-keys` |
+| TB | Authelia config + db, Actual Budget, n8n exports, LiteLLM Postgres dump, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping), `/userdata/headscale`, `/userdata/komodo-keys` | Komodo Mongo dump, headscale dump, Open-WebUI data, Leantime MariaDB dump + `/userdata/leantime-userfiles` + `/userdata/leantime-public-userfiles`, the whole `/userdata/backups` dumps dir, `/userdata/headscale`, `/userdata/komodo-keys` |
 | GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, Cleanuparr + Profilarr config |
 
 Both nodes' **bulk** plans include the dumps directory as a *directory* entry

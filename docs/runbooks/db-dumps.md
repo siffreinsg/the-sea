@@ -11,7 +11,7 @@ reinstall.
 
 | Node | Dumps |
 |---|---|
-| TB | `komodo/` (mongodump), `headscale/` (sqlite `.dump`), `actualbudget/`, `n8n/` (workflow + credential export), `litellm/` (`pg_dumpall` — covers Open-WebUI's pgvector database too) |
+| TB | `komodo/` (mongodump), `headscale/` (sqlite `.dump`), `actualbudget/`, `n8n/` (workflow + credential export), `litellm/` (`pg_dumpall` — covers Open-WebUI's pgvector database too), `leantime/` (`mysqldump --all-databases`) |
 | GM | `dawarich/` (`pg_dump`), `your_spotify/` (mongodump) |
 
 Output goes to `/var/backups/the-sea/dumps/`, one file per DB, overwritten nightly —
