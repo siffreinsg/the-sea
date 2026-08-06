@@ -1,6 +1,6 @@
 services:
   leantime_db:
-    image: mariadb:11.4-noble
+    image: mariadb:11.8-noble
     container_name: leantime_db
     restart: unless-stopped
     env_file: .env
