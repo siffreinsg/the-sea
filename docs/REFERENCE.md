@@ -7,7 +7,7 @@ The constants. Everything here is looked up, not reasoned about.
 | Domain | **siffreinsigy.me** — Cloudflare, DNS-only (grey cloud) |
 | Wildcard | `*.siffreinsigy.me` → Thriller Bark. One level only |
 | Contact mail | `hello@siffreinsigy.me` (ACME + Authelia user) |
-| Mesh IPs | TB `100.64.0.2`, GM `100.64.0.1`. Base domain `mesh.siffreinsigy.me` |
+| Mesh IPs | TB `100.64.0.2`, GM `100.64.0.1`, Baratie `100.64.0.3` (subnet router, advertises `192.168.1.0/24`). Base domain `mesh.siffreinsigy.me` |
 | Public IPs | TB `141.253.109.196`, GM `62.4.16.10` |
 | Open ports | TB 80/443/22/22000 (Syncthing BEP, [the one exception](ADR/2026-07-26-syncthing-public-port.md)) · GM 4747 (SSH) · nothing else |
 | sshd hardening <!-- mirrors ssh/hardening.conf + <node>/ssh/local.conf — verify: diff against /etc/ssh/sshd_config.d/ on each node --> | Shared: key-only, no root login, no PAM, `MaxAuthTries 3` (`ssh/hardening.conf`, same file on both nodes). Per-node: TB bound to `10.0.0.112:22` (private NIC IP — OCI NATs the public IP, binding it directly means nothing arrives), `AllowUsers ubuntu`; GM bound to `62.4.16.10:4747`, `AllowUsers siffrein`. See [networking.md](domains/networking.md) |
@@ -87,6 +87,19 @@ same reasoning as Alloy's OTLP receiver ([why](domains/networking.md)) — calle
 
 SearXNG and Playwright have no auth of their own — callers on TB reach them via
 `http://host.docker.internal:18090`/`:18091`, same as before this redesign, just renumbered.
+
+## Freebox DHCP reservations
+
+| Device | IP |
+|---|---|
+| Bureau | `.114` |
+| Salle à manger | `.112` |
+| Spot | `.113` |
+| Chambre Jul | `.111` |
+| Canapé | `.110` |
+| Bravia (WiFi) | `.121` |
+| Bravia (Ethernet, idle) | `.120` |
+| Baratie (Ethernet) | `.67` |
 
 ## Headscale ACL
 

@@ -37,10 +37,6 @@ its plan in [plans/](plans/) once work starts.
 
 - [ ] Digarr (Spotify support) — not yet planned
 
-### Home Assistant
-
-- [ ] Migrate off Baratie to a GM container — [plan](plans/2026-08-02-home-assistant-migration.md)
-
 ## Security
 
 ### Audit

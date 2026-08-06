@@ -29,14 +29,15 @@ flowchart LR
 flowchart LR
   tb[TB stacks] --> alloy_tb[Alloy · TB]
   gm[GM stacks] --> alloy_gm[Alloy · GM]
-  alloy_tb & alloy_gm -->|mesh| obs[Observability · GM]
+  baratie[HA · Baratie] --> alloy_baratie[Alloy · Baratie]
+  alloy_tb & alloy_gm & alloy_baratie -->|mesh| obs[Observability · GM]
   backrest[Backrest] -->|reads volumes| tb & gm
   backrest -->|restic| off[Proton · Mega]
 ```
 
-Sunny and Baratie appear in none of the three. They run no Docker and no collector and are
-outside the mesh; Sunny's apps serve on their own Ultra.cc hostnames, and the edge holds
-one 302 redirect to them. Sunny joins the diagrams when it joins the infra.
+Sunny appears in none of the three. It runs no Docker and no collector and is outside the
+mesh; its apps serve on their own Ultra.cc hostnames, and the edge holds one 302 redirect to
+them. Sunny joins the diagrams when it joins the infra.
 
 | Layer | Doc | What it owns |
 |---|---|---|
