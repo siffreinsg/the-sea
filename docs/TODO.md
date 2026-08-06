@@ -41,10 +41,6 @@ its plan in [plans/](plans/) once work starts.
 
 - [ ] Migrate off Baratie to a GM container — [plan](plans/2026-08-02-home-assistant-migration.md)
 
-### Tasks
-
-- [ ] Leantime — [plan](plans/2026-08-03-leantime.md)
-
 ## Security
 
 ### Audit
