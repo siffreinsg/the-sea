@@ -22,16 +22,30 @@ against the target budget keep the existing `httpHeaderAuth` credential.
 ## Workflow — manual trigger, run repeatedly until the candidate list is empty
 
 1. `GET /rules` on the source; `GET /categories` and `GET /payees` on **both** budgets.
-2. Rewrite each rule's category and payee IDs **by name**. IDs do not survive across
-   budgets, so a copied ID silently points at nothing or, worse, at a different category.
+2. Rewrite category and payee IDs **by name**. IDs do not survive across budgets, so a
+   copied ID silently points at nothing or, worse, at a different category.
+
+   The real corpus decides where this matters: conditions are almost all `imported_payee`
+   strings plus a few `amount` comparisons, which port verbatim; a minority condition on
+   `payee` by ID. **Every** rule's actions set `category` by ID and most also set `payee`,
+   so the mapping is essential on the action side and rare on the condition side.
+
+   Pass `stage` through verbatim — it is `null` on most rules and `"pre"` on a few, and
+   swagger marks it required. Preserve each action's `options` (`splitIndex`); dropping
+   them changes split behaviour. Actions that set `notes` to a fixed string port as-is and
+   belong in the approval message, since they overwrite the field.
 3. Drop candidates whose category or payee has no counterpart in the target; they go in the
    closing report rather than being silently eaten. No dedup against existing target rules
    beyond a cheap string similarity note on the approval message — comparing rule objects
    means normalizing nested arrays, and a duplicate rule in Actual is harmless anyway.
-4. For each surviving candidate, one `run-query` count against the target. Only for
-   conditions that translate to a query filter directly — a general count means
-   reimplementing Actual's rule matcher, which is not worth it. Conditions that don't
-   translate are shown without a count rather than with a guessed one.
+4. For each surviving candidate, **one** `run-query` against the target returning the
+   matching transactions with date, imported payee, amount and current category. Count is
+   the array length, samples are the 3 most recent. No second query for the count.
+
+   Only for conditions that translate to a query filter directly — `imported_payee`
+   contains/is/oneOf, and `payee` is. A general count means reimplementing Actual's rule
+   matcher, so multi-condition and amount-range rules are shown without a count rather than
+   with a guessed one.
 5. **Cap at 10 per run.** `sendAndWait` blocks per item, so an uncapped first run queues
    every remaining rule behind the one waiting at its 45-minute limit.
 6. Telegram `sendAndWait`, `chatApproval: true`, `approverIds` set to the one approver,
