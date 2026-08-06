@@ -28,6 +28,7 @@ The constants. Everything here is looked up, not reasoned about.
 | TB bulk / critical | 04:00 / 04:30 |
 | GM bulk / critical | 05:00 / 05:30 |
 | Unattended-upgrades reboot (TB) | 02:00 |
+| Actual bank sync (n8n) | 06:00, 18:00 **Europe/Paris** — n8n schedules in `GENERIC_TIMEZONE`, not UTC, so this one shifts with DST |
 
 TB and GM authenticate to the **same Proton account**, and simultaneous re-auths trigger
 `429 Too many recent logins`. That is why the nodes are staggered an hour apart — keep
