@@ -11,7 +11,7 @@ does the work. So n8n needs an HTTP surface in front of that library:
 
 Add `actual_api` to `thriller-bark/actualbudget/compose.yaml`.
 
-- Image `jhonderson/actual-http-api:26.7.0`. Its tags mirror Actual's own version —
+- Image `jhonderson/actual-http-api:26.8.0`. Its tags mirror Actual's own version —
   **bump it in the same commit as `actual_server`**, the library applies migrations to the
   budget file and a version behind the server fails at `downloadBudget`, i.e. on every
   endpoint. Renovate sees both.

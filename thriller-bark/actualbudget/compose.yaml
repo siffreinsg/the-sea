@@ -1,6 +1,6 @@
 services:
   actual_server:
-    image: actualbudget/actual-server:26.7.0-alpine
+    image: actualbudget/actual-server:26.8.0-alpine
     container_name: actual_server
     restart: unless-stopped
     networks:
@@ -19,7 +19,7 @@ services:
   # (docs/ADR/2026-08-06-n8n-drives-actual-via-http-sidecar.md). Tag mirrors Actual's
   # own version — bump both together, an older api lib fails on every endpoint.
   actual_api:
-    image: jhonderson/actual-http-api:26.7.0
+    image: jhonderson/actual-http-api:26.8.0
     container_name: actual_api
     restart: unless-stopped
     depends_on:
