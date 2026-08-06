@@ -28,6 +28,12 @@ its plan in [plans/](plans/) once work starts.
 - [ ] Pulsarr — not yet planned
 - [ ] Prunerr — not yet planned
 
+### Finance
+
+- [ ] Port Actual rules from the encrypted budget — [plan](plans/2026-08-06-actual-rules-port.md)
+- [ ] Mine Actual rules from history — [plan](plans/2026-08-06-actual-rules-mining.md)
+- [ ] LLM categorization of leftovers — [plan](plans/2026-08-06-actual-llm-categorization.md)
+
 ### Files and documents
 
 - [ ] n8n automation to detect conflicting files on syncthing
