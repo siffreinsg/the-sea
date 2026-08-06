@@ -28,6 +28,10 @@ its plan in [plans/](plans/) once work starts.
 - [ ] Pulsarr — not yet planned
 - [ ] Prunerr — not yet planned
 
+### Finance
+
+- [ ] Actual Budget auto-sync — [plan](plans/2026-08-06-actual-autosync.md)
+
 ### Files and documents
 
 - [ ] n8n automation to detect conflicting files on syncthing

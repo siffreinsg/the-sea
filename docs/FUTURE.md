@@ -30,7 +30,8 @@ Ideas and deferred questions, not on deck. Anything with a named phase and domai
 
 Mechanism (n8n, Komodo, systemd, a script) is per-item, decided when each is planned.
 
-- **Actual Budget** — auto-sync, auto-categorization, rule creation, Telegram bot.
+- **Actual Budget** — auto-categorization, rule creation, Telegram bot. All three ride the
+  `actual_api` sidecar ([ADR](ADR/2026-08-06-n8n-drives-actual-via-http-sidecar.md)).
 - **Radarr/Sonarr** — on Radarr, switch anime to the right quality profile; on
   Sonarr/Seerr, route anime requests to the correct Sonarr instance.
 - **Google Calendar event when I stay somewhere more than an hour** — needs a location

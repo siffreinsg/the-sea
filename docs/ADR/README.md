@@ -10,6 +10,7 @@ New decision = new dated file + one row here.
 
 | Date | Decision | Status |
 |---|---|---|
+| 2026-08-06 | [n8n drives Actual through an HTTP sidecar](2026-08-06-n8n-drives-actual-via-http-sidecar.md) | Accepted |
 | 2026-08-02 | [Renovate opens PRs for new tags; Komodo polls digests under the pinned tag](2026-08-02-renovate-for-tag-bumps-komodo-for-digest-drift.md) | Accepted |
 | 2026-08-02 | [Bot hardening: fail2ban + caddy-ratelimit, not CrowdSec or orange-cloud](2026-08-02-fail2ban-and-caddy-ratelimit-not-crowdsec.md) | Accepted |
 | 2026-08-01 | [Per-stack Docker networks, bridge-mode Caddy, Headscale ACL](2026-08-01-per-stack-networks-and-headscale-acl.md) | Accepted |

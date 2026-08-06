@@ -13,7 +13,7 @@ The constants. Everything here is looked up, not reasoned about.
 | sshd hardening <!-- mirrors ssh/hardening.conf + <node>/ssh/local.conf — verify: diff against /etc/ssh/sshd_config.d/ on each node --> | Shared: key-only, no root login, no PAM, `MaxAuthTries 3` (`ssh/hardening.conf`, same file on both nodes). Per-node: TB bound to `10.0.0.112:22` (private NIC IP — OCI NATs the public IP, binding it directly means nothing arrives), `AllowUsers ubuntu`; GM bound to `62.4.16.10:4747`, `AllowUsers siffrein`. See [networking.md](domains/networking.md) |
 | `edge` network | TB — hand-created (`docker network create edge`), `external: true` in every compose that joins it. Every non-n8n service Caddy reverse-proxies to by container name |
 | `ai-backends` network | TB — hand-created (`docker network create ai-backends`), `external: true` in open-webui, litellm, tika. Lets open-webui dial its AI backend and doc-extraction service by name |
-| `n8n-edge` network | TB — hand-created (`docker network create n8n-edge`), `external: true` in n8n and caddy only. n8n runs user-supplied code, so it's isolated from `edge`'s other members (headscale, authelia, backrest) instead of sharing the flat network |
+| `n8n-edge` network | TB — hand-created (`docker network create n8n-edge`), `external: true` in n8n, caddy and actualbudget's `actual_api` sidecar. n8n runs user-supplied code, so it's isolated from `edge`'s other members (headscale, authelia, backrest) instead of sharing the flat network |
 | Repo on nodes | `/opt/the-sea` ← `git@github.com:siffreinsg/the-sea.git`, `main` |
 | age recipient | `age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md` |
 | age private key | password manager + `/etc/sops/age.key` (root, 0600) on each node |

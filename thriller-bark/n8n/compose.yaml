@@ -43,7 +43,7 @@ volumes:
 
 networks:
   # Not `edge` — n8n runs user-supplied code and `edge` reaches headscale, authelia,
-  # backrest by container name. n8n gets its own network, shared only with Caddy, so
-  # a workflow can't dial past the reverse proxy to anything else on `edge`.
+  # backrest by container name. n8n gets its own network, joined only by Caddy and the
+  # actual_api sidecar, so a workflow can't dial anything else on `edge`.
   n8n-edge:
     external: true
