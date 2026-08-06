@@ -18,6 +18,7 @@ The constants. Everything here is looked up, not reasoned about.
 | age recipient | `age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md` |
 | age private key | password manager + `/etc/sops/age.key` (root, 0600) on each node |
 | Dumps | `/var/backups/the-sea/dumps/` (0700) |
+| Telegram chat ID | `534886033` — the Den Den Mushi bot's target. Same value as the approver user ID, since it's a private chat. Not a secret on its own; useless without the bot token |
 | GM legacy data | `/home/siffrein/docker-mei/` — map in [legacy inventory](legacy/going-merry-inventory.md) |
 
 ## Schedules (UTC)
