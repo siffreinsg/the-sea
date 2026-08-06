@@ -19,6 +19,7 @@ services:
       - cleanuparr-config:/userdata/cleanuparr:ro
       - profilarr-config:/userdata/profilarr:ro
       - karakeep-data:/userdata/karakeep:ro
+      - home-assistant-config:/userdata/home-assistant:ro
 
 volumes:
   backrest-data:
@@ -36,3 +37,6 @@ volumes:
   karakeep-data:
     external: true
     name: karakeep_data
+  home-assistant-config:
+    external: true
+    name: home-assistant_config
