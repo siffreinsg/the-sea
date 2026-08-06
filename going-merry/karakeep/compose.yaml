@@ -37,7 +37,7 @@ services:
       - --window-size=1440,900
 
   meilisearch:
-    image: getmeili/meilisearch:v1.41.0
+    image: getmeili/meilisearch:v1.52.0
     container_name: karakeep_meilisearch
     restart: unless-stopped
     env_file: .env
