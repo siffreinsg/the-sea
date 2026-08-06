@@ -9,6 +9,17 @@
 # symmetric coverage means neither node's bridge traffic is trusted by default,
 # not "trusted until something needs fixing."
 #
+# **Not the same rule as TB's, and it must not be.** TB's blanket
+# `172.16.0.0/12 -> 100.64.0.0/10` DROP is direction-blind: it matches a
+# container's *reply* as well as its outbound call. That is a no-op on TB, which
+# publishes on 127.0.0.1, and a total outage on GM, which publishes on
+# 100.64.0.1 — every reply from every published container to a mesh client
+# matches it, and raw/PREROUTING runs before conntrack, so the packet dies
+# before the un-DNAT with nothing counted in nat or filter (2026-08-06).
+# Hence `--syn`: only connection initiation is dropped, replies pass. The UDP
+# rule keeps that half closed — revisit it if a GM container ever serves UDP to
+# a mesh client.
+#
 # Install (once):
 #   sudo ln -sf /opt/the-sea/going-merry/firewall/the-sea-mesh-guard.service /etc/systemd/system/
 #   sudo systemctl daemon-reload && sudo systemctl enable --now the-sea-mesh-guard
@@ -22,7 +33,10 @@ PartOf=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/sh -c 'iptables -t raw -C PREROUTING -s 172.16.0.0/12 -d 100.64.0.0/10 -j DROP 2>/dev/null || iptables -t raw -I PREROUTING -s 172.16.0.0/12 -d 100.64.0.0/10 -j DROP'
+ExecStart=/bin/sh -c 'iptables -t raw -C PREROUTING -s 172.16.0.0/12 -d 100.64.0.0/10 -p tcp --syn -j DROP 2>/dev/null || iptables -t raw -I PREROUTING -s 172.16.0.0/12 -d 100.64.0.0/10 -p tcp --syn -j DROP'
+ExecStart=/bin/sh -c 'iptables -t raw -C PREROUTING -s 172.16.0.0/12 -d 100.64.0.0/10 -p udp -j DROP 2>/dev/null || iptables -t raw -I PREROUTING -s 172.16.0.0/12 -d 100.64.0.0/10 -p udp -j DROP'
+# The old blanket DROP ate replies (see header). Removed here so an upgraded node sheds it.
+ExecStartPost=/bin/sh -c 'iptables -t raw -D PREROUTING -s 172.16.0.0/12 -d 100.64.0.0/10 -j DROP 2>/dev/null; true'
 ExecStartPost=/bin/sh -c 'iptables -D DOCKER-USER -s 172.16.0.0/12 -d 100.64.0.0/10 -j REJECT 2>/dev/null; true'
 
 [Install]

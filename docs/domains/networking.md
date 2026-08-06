@@ -71,6 +71,14 @@ nothing to key on. ([Why it lives in raw/PREROUTING](../ADR/2026-07-25-mesh-guar
 Installed on **both** nodes as of this redesign — previously TB-only, which left GM's
 bridged containers able to reach the full mesh.
 
+**The two units carry different rules on purpose.** GM matches connection initiation only
+(`-p tcp --syn` plus `-p udp`); TB keeps the blanket match. A blanket DROP is
+direction-blind — before conntrack a reply looks exactly like an outbound call — so on a
+node that publishes on `100.64.0.1` it kills every response to a mesh client. Debugging it
+is nasty: the packet dies before the un-DNAT, so nothing counts in `nat` or `filter` and
+the client just sees a SYN-ACK that never arrives. **`iptables -t raw -L` is the first
+thing to check when a GM service answers on its bridge IP but hangs on the mesh IP.**
+
 **The Headscale ACL** (`thriller-bark/headscale/acl.hujson`) is a port-level TB→GM
 allowlist for genuinely mesh-native (host-originated) traffic — Alloy and gm-relay only —
 see `docs/REFERENCE.md` for the exact port table. It does not, and cannot,
