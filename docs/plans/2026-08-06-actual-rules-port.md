@@ -13,26 +13,34 @@ Everything runs through the `actual_api` sidecar
 
 ## Secret
 
-The source budget's encryption password joins `thriller-bark/actualbudget/secrets.env` as
-`ACTUAL_SOURCE_BUDGET_PASSWORD`, passed as the `budget-encryption-password` header on every
-call against it. The sidecar may need it again after a restart, so it is a stored secret,
-not a one-off prompt. `.gitignore` and `.sops.yaml` already cover the file.
+The source budget's encryption password is **header-only** — `src/config/config.js` loads
+just `API_KEY` and `ACTUAL_SERVER_PASSWORD`, so there is nothing to put in `secrets.env`.
+It lives in n8n as an `httpCustomAuth` credential, which is the one generic credential type
+that carries two headers at once (`x-api-key` and `budget-encryption-password`). Calls
+against the target budget keep the existing `httpHeaderAuth` credential.
 
 ## Workflow — manual trigger, run repeatedly until the candidate list is empty
 
 1. `GET /rules` on the source; `GET /categories` and `GET /payees` on **both** budgets.
 2. Rewrite each rule's category and payee IDs **by name**. IDs do not survive across
    budgets, so a copied ID silently points at nothing or, worse, at a different category.
-3. Drop candidates that are already present in the target, or whose category/payee has no
-   counterpart there. Both lists go in the closing report rather than being silently eaten.
-4. For each surviving candidate, one AQL count against the target: how many transactions it
-   would match, and how many of those are currently uncategorized.
+3. Drop candidates whose category or payee has no counterpart in the target; they go in the
+   closing report rather than being silently eaten. No dedup against existing target rules
+   beyond a cheap string similarity note on the approval message — comparing rule objects
+   means normalizing nested arrays, and a duplicate rule in Actual is harmless anyway.
+4. For each surviving candidate, one `run-query` count against the target. Only for
+   conditions that translate to a query filter directly — a general count means
+   reimplementing Actual's rule matcher, which is not worth it. Conditions that don't
+   translate are shown without a count rather than with a guessed one.
 5. **Cap at 10 per run.** `sendAndWait` blocks per item, so an uncapped first run queues
    every remaining rule behind the one waiting at its 45-minute limit.
-6. Telegram `sendAndWait`, `chatApproval: true`, `approverIds` set to the one approver.
-   Each message carries the condition, the action, the two counts from step 4, and any
-   overlapping existing rule.
-7. `POST /rules` on approval only.
+6. Telegram `sendAndWait`, `chatApproval: true`, `approverIds` set to the one approver,
+   `limitWaitTime` in days. The 45-minute default expires while you are still reading
+   candidate 1. **Confirm what the node emits on timeout before wiring the create step** —
+   if an expiry resumes on the normal output, it creates rules nobody approved, which is
+   the one failure this gate exists to prevent.
+7. `POST /rules` on approval only. Strip the source `id` from the body; a spread carries it
+   through. Keep `stage` and `conditionsOp`, both required.
 
 ## Traps
 
