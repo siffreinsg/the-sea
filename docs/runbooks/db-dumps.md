@@ -12,7 +12,7 @@ reinstall.
 | Node | Dumps |
 |---|---|
 | TB | `komodo/` (mongodump), `headscale/` (sqlite `.dump`), `actualbudget/`, `n8n/` (workflow + credential export), `litellm/` (`pg_dumpall` — covers Open-WebUI's pgvector database too), `leantime/` (`mysqldump --all-databases`) |
-| GM | `dawarich/` (`pg_dump`), `your_spotify/` (mongodump) |
+| GM | `dawarich/` (`pg_dump`), `your_spotify/` (mongodump), `home-assistant/` (sqlite `.dump`) |
 
 Output goes to `/var/backups/the-sea/dumps/`, one file per DB, overwritten nightly —
 restic keeps the 7d/4w/6m history. Writes are atomic (`.part` + `mv`), so a failed run
@@ -24,7 +24,7 @@ and Komodo's carries the git token — see [secrets](../domains/secrets.md).
 ## Install (once per node)
 
 ```bash
-sudo apt-get install -y sqlite3            # TB only — host dep for the headscale dump
+sudo apt-get install -y sqlite3            # host dep for the sqlite dumps (headscale on TB, home-assistant on GM)
 sudo ln -sf /opt/the-sea/<node>/backups/the-sea-dumps.service /etc/systemd/system/
 sudo ln -sf /opt/the-sea/<node>/backups/the-sea-dumps.timer   /etc/systemd/system/
 sudo systemctl daemon-reload

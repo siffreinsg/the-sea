@@ -15,7 +15,7 @@ record of the assignment** — keep it current.
 | Node | Critical (Mega) | Bulk (Proton) |
 |---|---|---|
 | TB | Authelia config + db, Actual Budget, n8n exports, LiteLLM Postgres dump, `/userdata/caddy` (certs — belt-and-suspenders, beyond the ACME-recoverable scoping), `/userdata/headscale`, `/userdata/komodo-keys` | Komodo Mongo dump, headscale dump, Open-WebUI data, Leantime MariaDB dump + `/userdata/leantime-userfiles` + `/userdata/leantime-public-userfiles`, the whole `/userdata/backups` dumps dir, `/userdata/headscale`, `/userdata/komodo-keys` |
-| GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, Cleanuparr + Profilarr config |
+| GM | Dawarich (`pg_dump`) | your_spotify (`mongodump`), Grafana data, Cleanuparr + Profilarr config, Home Assistant `config` volume + recorder DB dump |
 
 Both nodes' **bulk** plans include the dumps directory as a *directory* entry
 (`/userdata/backups`), not a file list — so a new `backup.sh` is covered the moment it
@@ -69,7 +69,8 @@ those stacks will refuse to start until they exist; `docs/REFERENCE.md`'s top ta
 the membership list).
 
 **Deploy order matters.** Backrest mounts `external: true` volumes on both nodes (TB:
-headscale, caddy, komodo, authelia, open-webui; GM: observability, cleanuparr, profilarr)
+headscale, caddy, komodo, authelia, open-webui; GM: observability, cleanuparr, profilarr,
+home-assistant)
 and will not start until those stacks have each been deployed once. Deploy the source
 stacks before `backrest-tb`.
 
