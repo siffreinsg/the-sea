@@ -1,6 +1,6 @@
 services:
   victoriametrics:
-    image: victoriametrics/victoria-metrics:v1.148.0-scratch
+    image: victoriametrics/victoria-metrics:v1.149.0-scratch
     container_name: victoriametrics
     restart: unless-stopped
     command:
