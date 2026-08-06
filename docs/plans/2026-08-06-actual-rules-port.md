@@ -53,6 +53,9 @@ against the target budget keep the existing `httpHeaderAuth` credential.
    candidate 1. **Confirm what the node emits on timeout before wiring the create step** —
    if an expiry resumes on the normal output, it creates rules nobody approved, which is
    the one failure this gate exists to prevent.
+
+   Each message carries the conditions, every action including `notes` writes, the counts
+   from step 4, and the 3 most recent matching transactions with their current category.
 7. `POST /rules` on approval only. Strip the source `id` from the body; a spread carries it
    through. Keep `stage` and `conditionsOp`, both required.
 
