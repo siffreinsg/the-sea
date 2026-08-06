@@ -1,6 +1,6 @@
 # Nodes and placement
 
-Four machines, two of them Docker nodes under Komodo. Where a service goes is decided by
+Four machines, three of them Docker nodes under Komodo. Where a service goes is decided by
 the benchmarks below, not by the names.
 
 | Ship | Machine | Role | Runtime |
@@ -8,13 +8,16 @@ the benchmarks below, not by the names.
 | **Thriller Bark** (TB) | Oracle Cloud ARM, 4 vCPU / 24 GB | Control plane + public edge | Docker + Periphery |
 | **Going Merry** (GM) | Omgserv OpenVZ VPS, 8 vCPU / 32 GB | DB / disk / RAM box | Docker + Periphery |
 | **The Thousand Sunny** | Ultra.cc box, no sudo, no Docker | Media + downloads | Ultra.cc `app-*` services |
-| **Baratie** | Raspberry Pi | Home Assistant | HAOS, not Komodo |
+| **Baratie** | Raspberry Pi | Home LAN subnet router + Alloy, zero other stacks | Docker + Periphery |
 
 **Den Den Mushi** is the alerting system, not a machine — every Telegram or Discord bot
 that speaks for this infrastructure. The transponder snail carries messages.
 
-Sunny and Baratie are outside Komodo; this repo versions only helper scripts and docs for
-them. Sunny is [deliberately off the mesh](../ADR/2026-07-25-sunny-stays-off-the-mesh.md).
+Sunny alone is outside Komodo; this repo versions only helper scripts and docs for it. It
+is [deliberately off the mesh](../ADR/2026-07-25-sunny-stays-off-the-mesh.md). Baratie
+joined as a Komodo/Periphery node once Home Assistant moved off it and onto GM — it now
+runs Raspberry Pi OS Lite plus a Tailscale subnet-router advertisement for the home LAN, no
+HA workload of its own.
 
 ## Hardware and benchmarks
 
@@ -58,6 +61,14 @@ Rationale: [placement follows the benchmarks](../ADR/2026-07-22-placement-follow
   Its `ifupdown-pre` / `systemd-networkd-wait-online` failures are benign OpenVZ noise.
 - Container least-privilege is capped here: no AppArmor, no userns-remap. Accepted.
 - **x86_64 while TB is aarch64** — verify multi-arch images before landing on TB.
+
+**Baratie**
+- Not in the benchmark table — it carries no app workload, so the placement rule doesn't
+  apply. Wired Ethernet, static via a Freebox DHCP reservation (see `REFERENCE.md`); WiFi
+  is flaky enough (client-isolation-adjacent drops seen in practice) to avoid depending on
+  it for the subnet-router role.
+- `net.ipv4.ip_forward=1` is required for the Tailscale subnet-router advertisement to
+  actually forward traffic — enabling the advertisement alone is not enough.
 
 ## Where things run
 
