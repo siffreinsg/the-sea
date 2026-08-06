@@ -40,7 +40,7 @@ services:
       timeout: 10s
 
   dawarich_app:
-    image: freikin/dawarich:1.10.3
+    image: freikin/dawarich:1.11.0
     container_name: dawarich_app
     volumes:
       - public:/var/app/public
@@ -108,7 +108,7 @@ services:
           memory: '8G'
 
   dawarich_sidekiq:
-    image: freikin/dawarich:1.10.3
+    image: freikin/dawarich:1.11.0
     container_name: dawarich_sidekiq
     volumes:
       - public:/var/app/public
