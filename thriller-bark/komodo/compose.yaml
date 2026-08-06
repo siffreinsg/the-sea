@@ -16,7 +16,7 @@ services:
       - mongo-config:/data/configdb
 
   core:
-    image: ghcr.io/moghtech/komodo-core:2.2.0
+    image: ghcr.io/moghtech/komodo-core:2.3.1
     container_name: komodo-core
     init: true
     network_mode: host # must reach periphery agents over the mesh
