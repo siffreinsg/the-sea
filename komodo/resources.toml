@@ -64,6 +64,17 @@ pre_deploy.command = "umask 077 && sops -d secrets.env > .env"
 extra_args = ["--force-recreate"]
 
 [[stack]]
+name = "alloy-baratie"
+[stack.config]
+poll_for_updates = true
+server = "baratie"
+git_account = "siffreinsg"
+repo = "siffreinsg/the-sea"
+branch = "main"
+run_directory = "baratie/alloy"
+extra_args = ["--force-recreate"]
+
+[[stack]]
 name = "headscale"
 [stack.config]
 poll_for_updates = true
