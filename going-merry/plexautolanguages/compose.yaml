@@ -1,6 +1,6 @@
 services:
   plexautolanguages:
-    image: journeyover/plex-auto-languages:1.5.4
+    image: journeyover/plex-auto-languages:1.6.0
     container_name: plexautolanguages
     restart: unless-stopped
     env_file: .env
