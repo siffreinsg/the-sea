@@ -8,7 +8,7 @@ the benchmarks below, not by the names.
 | **Thriller Bark** (TB) | Oracle Cloud ARM, 4 vCPU / 24 GB | Control plane + public edge | Docker + Periphery |
 | **Going Merry** (GM) | Omgserv OpenVZ VPS, 8 vCPU / 32 GB | DB / disk / RAM box | Docker + Periphery |
 | **The Thousand Sunny** | Ultra.cc box, no sudo, no Docker | Media + downloads | Ultra.cc `app-*` services |
-| **Baratie** | Raspberry Pi | Home LAN subnet router + Alloy, zero other stacks | Docker + Periphery |
+| **Baratie** | Raspberry Pi 4B, 4 GB | Home LAN subnet router + Alloy, and LAN-only workloads | Docker + Periphery |
 
 **Den Den Mushi** is the alerting system, not a machine — every Telegram or Discord bot
 that speaks for this infrastructure. The transponder snail carries messages.
@@ -41,6 +41,9 @@ Benchmarked 2026-07-22 — sysbench cpu/mem, fio 4k randrw direct, vmstat steal,
 
 **CPU-bound, latency-sensitive, public-edge and sensitive → TB.**
 **Disk-I/O-heavy, DB-backed, RAM-hungry → GM.**
+**Needs to be *on* the home LAN, and light enough for a Pi 4B → Baratie.** Rare, and the
+bar stays high: Baratie is the subnet route for every LAN device, so each stack added is a
+new way to take that route down.
 
 TB's slow disk is hidden by RAM cache for small, warm, single-user working sets. GM's only
 real weakness is per-core CPU, so avoid single-thread-latency-critical work there.
@@ -63,8 +66,9 @@ Rationale: [placement follows the benchmarks](../ADR/2026-07-22-placement-follow
 - **x86_64 while TB is aarch64** — verify multi-arch images before landing on TB.
 
 **Baratie**
-- Not in the benchmark table — it carries no app workload, so the placement rule doesn't
-  apply. Wired Ethernet, static via a Freebox DHCP reservation (see `REFERENCE.md`); WiFi
+- Not in the benchmark table — it wins on LAN adjacency, never on throughput. No
+  accelerator either, so nothing camera- or inference-shaped lands here.
+- Wired Ethernet, static via a Freebox DHCP reservation (see `REFERENCE.md`); WiFi
   is flaky enough (client-isolation-adjacent drops seen in practice) to avoid depending on
   it for the subnet-router role.
 - `net.ipv4.ip_forward=1` is required for the Tailscale subnet-router advertisement to

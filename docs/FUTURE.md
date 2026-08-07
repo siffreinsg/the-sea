@@ -25,6 +25,7 @@ Ideas and deferred questions, not on deck. Anything with a named phase and domai
 - Obsidian web alternative; maybe SilverBullet
 - Habit tracker : maybe Beaverhabits, maybe another one
 - Proton Mail Bridge for n8n automations
+- LAN DNS on Baratie (AdGuard Home or Blocky) — needs a fourth bind-rule exception
 
 ## Automations
 

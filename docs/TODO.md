@@ -9,6 +9,7 @@ its plan in [plans/](plans/) once work starts.
 - [ ] Collect traces from Komodo
 - [ ] Remove noise from Grafana logs, metrics and traces
 - [ ] Repair Grafana going-merry collection
+- [ ] Blackbox LAN probes from Baratie's Alloy — not yet planned
 
 ## AI platform
 
