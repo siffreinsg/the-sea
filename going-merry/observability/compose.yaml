@@ -35,7 +35,7 @@ services:
       - tempo-data:/var/tempo
 
   grafana:
-    image: grafana/grafana:13.1.1-slim
+    image: grafana/grafana:13.1.3-slim
     container_name: grafana
     restart: unless-stopped
     env_file: .env
