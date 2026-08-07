@@ -29,7 +29,7 @@ services:
   # `ai-backends` too, so the short name would be ambiguous. No `ports:` — the only
   # consumer is in this stack, on its default network.
   open-webui-db:
-    image: pgvector/pgvector:0.8.5-pg17
+    image: pgvector/pgvector:0.8.6-pg17
     container_name: open-webui-db
     restart: unless-stopped
     env_file: .env

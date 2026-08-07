@@ -49,7 +49,7 @@ services:
   # The volume keeps the `litellm_postgres-data` name from when this service was called
   # `postgres`. Renaming it would mean a dump and restore for cosmetics.
   litellm-db:
-    image: pgvector/pgvector:0.8.5-pg17
+    image: pgvector/pgvector:0.8.6-pg17
     container_name: litellm-db
     restart: unless-stopped
     # One .env for both services, so this container also sees LITELLM_SALT_KEY and the
