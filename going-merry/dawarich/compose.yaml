@@ -2,7 +2,7 @@
 # full list of environment variables: https://dawarich.app/docs/self-hosting/environment-variables/
 services:
   dawarich_redis:
-    image: redis:7.4.10-alpine
+    image: redis:8.10.0-alpine
     container_name: dawarich_redis
     command: >
       redis-server
