@@ -1,6 +1,6 @@
 services:
   actual_server:
-    image: actualbudget/actual-server:26.8.0-alpine
+    image: actualbudget/actual-server:26.8.1-alpine
     container_name: actual_server
     restart: unless-stopped
     networks:
