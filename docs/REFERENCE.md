@@ -18,7 +18,20 @@ The constants. Everything here is looked up, not reasoned about.
 | age recipient | `age1wce7sqneyq58tux6fnpj2e2tsc05j4jqk8h8dguu0jc6eplfrslqqdw7md` |
 | age private key | password manager + `/etc/sops/age.key` (root, 0600) on each node |
 | Dumps | `/var/backups/the-sea/dumps/` (0700) |
-| GM legacy data | `/home/siffrein/docker-mei/` — map in [legacy inventory](legacy/going-merry-inventory.md) |
+| Actual budget sync IDs | LE MILLION (live) `322d8514-c9fc-4574-8ef3-131dbbe63bd7` · Road to a million (source, **encrypted**) `1eec67e9-8afc-4419-a4d4-9be2007edece` |
+| GM legacy data | `/home/siffrein/docker-mei/` — pre-Komodo tree, dead and deliberately unbacked |
+
+## Retention
+
+| Store | Kept | Set in |
+|---|---|---|
+| VictoriaMetrics — metrics | 90d | VM flag |
+| Loki — logs | 30d | `loki.yaml` |
+| Tempo — traces | 14d | `block_retention` default |
+| LiteLLM — conversations | 180d | `LiteLLM_SpendLogs` table |
+
+The Postgres table outlives the matching trace by 166 days, so it is the conversation
+archive, not Grafana.
 
 ## Schedules (UTC)
 

@@ -4,12 +4,12 @@ Grafana + VictoriaMetrics + Loki on **GM** ([why](../ADR/2026-07-23-observabilit
 one **Alloy** collector per node pushing over the mesh. Reached at
 `grafana.siffreinsigy.me` through TB's Caddy.
 
-- **VictoriaMetrics** — metrics, 90d retention (VM flag).
-- **Loki** — logs, 30d retention (`loki.yaml`), `auth_enabled: false`.
-- **Tempo** — traces, 14d retention (the `block_retention` default). Shorter than logs on
-  purpose: traces are bulkier. Monolithic single binary on the local filesystem, same
-  shape as Loki. **`tempo.yaml` is 3.0-only and a 2.x example will not parse** — the trap
-  and the reference config are in the file's own header.
+- **VictoriaMetrics** — metrics. **Loki** — logs, `auth_enabled: false`. Retentions in
+  [REFERENCE.md](../REFERENCE.md), each set where that table names it.
+- **Tempo** — traces, kept shorter than logs on purpose since traces are bulkier.
+  Monolithic single binary on the local filesystem, same shape as Loki. **`tempo.yaml` is
+  3.0-only and a 2.x example will not parse** — the trap and the reference config are in
+  the file's own header.
 - **Alloy** — scrapes container and host metrics, tails logs. Discovers **all** containers
   via docker.sock with no allowlist, so a new service is collected automatically:
   logs land as `{container="<app>"}`, container metrics via cadvisor, both labelled

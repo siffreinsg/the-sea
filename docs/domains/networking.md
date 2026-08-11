@@ -44,7 +44,12 @@ Inbound: **80/443/22 on TB, 4747 on GM**, nothing else. GM carried a leftover uf
 default-deny is what makes a `0.0.0.0` bind mistake survivable, and on those two ports it
 would not have been.
 
-Two properties worth keeping, both verified by connection rather than by reading rules:
+Both properties below are verified by connection, not by reading rules — and both were
+verified from the LAN. A probe from home hairpins at the router and never reaches the Oracle
+VCN security list, so a refused port proves *something* closes it, not *which layer* does.
+Only an off-network scan separates the two.
+
+
 
 - **Every Docker publish is loopback-, mesh-, or firewall-scoped**, so Docker's usual
   publish-past-the-firewall problem does not apply here. The two `0.0.0.0` exceptions
