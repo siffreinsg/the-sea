@@ -11,4 +11,4 @@ secret, and it is one container instead of four.
 
 **Consequence:** the identity provider is recoverable from the repo alone. Single user,
 SQLite storage, sessions in memory (no redis). Authentik's legacy Postgres cluster on GM
-is preserved but dead — see [the GM inventory](../legacy/going-merry-inventory.md).
+is preserved but dead, under `/home/siffrein/docker-mei/` on GM.
