@@ -29,7 +29,7 @@ flowchart LR
 flowchart LR
   tb[TB stacks] --> alloy_tb[Alloy · TB]
   gm[GM stacks] --> alloy_gm[Alloy · GM]
-  baratie[HA · Baratie] --> alloy_baratie[Alloy · Baratie]
+  baratie[Baratie host] --> alloy_baratie[Alloy · Baratie]
   alloy_tb & alloy_gm & alloy_baratie -->|mesh| obs[Observability · GM]
   backrest[Backrest] -->|reads volumes| tb & gm
   backrest -->|restic| off[Proton · Mega]
