@@ -54,16 +54,6 @@
 	}
 }
 
-:18090 {
-	log {
-		output stdout
-		format json
-	}
-	reverse_proxy 100.64.0.1:8080 {
-		import forwarded-https
-	}
-}
-
 :18091 {
 	reverse_proxy 100.64.0.1:3002 {
 		import forwarded-https

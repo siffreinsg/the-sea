@@ -106,22 +106,6 @@
           "legendFormat": "{{node}}"
         }
       ]
-    },
-    { "type": "row", "title": "SearXNG", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 } },
-    {
-      "type": "timeseries",
-      "title": "Engine reliability, %",
-      "description": "Same signal as the (currently paused) SearXNG alert rules — trend it here to know when to unpause them.",
-      "datasource": { "type": "prometheus", "uid": "P4169E866C3094E38" },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
-      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "fillOpacity": 5, "showPoints": "never" } }, "overrides": [] },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "searxng_engines_reliability_total",
-          "legendFormat": "{{engine_name}}"
-        }
-      ]
     }
   ]
 }

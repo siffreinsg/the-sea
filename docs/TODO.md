@@ -10,12 +10,6 @@
     - [ ] Collect traces from Komodo
     - [ ] Add blackbox LAN probes from Baratie's Alloy
 
-# AI platform
-
-- [ ] Sidekick stack
-    - [ ] Rework web search, SearXNG or otherwise
-    - [ ] Bump the wikidata image pin once the upstream 403-on-init fix ships
-
 # Services
 
 - [ ] Media
