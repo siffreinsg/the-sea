@@ -1,6 +1,6 @@
 services:
   mongo:
-    image: mongo:7.0.39
+    image: mongo:8.3.8
     container_name: komodo-mongo
     labels:
       komodo.skip:
