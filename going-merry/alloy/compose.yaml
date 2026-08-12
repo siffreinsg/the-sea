@@ -4,10 +4,6 @@ services:
     container_name: alloy
     network_mode: host   # scrapes 127.0.0.1 targets; UI pinned to loopback below
     restart: unless-stopped
-    # SEARXNG_OPEN_METRICS_PASSWORD, read by sys.env in config.alloy. SearXNG's /metrics
-    # requires HTTP basic auth and the password has no env override on its side, so this is
-    # the second copy of it — the other is going-merry/searxng/secrets.settings.yml.
-    env_file: .env
     command:
       - run
       - /etc/alloy/config.alloy

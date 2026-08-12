@@ -36,8 +36,8 @@ the Grafana container:
   `dashboards/containers.json` (14282, cadvisor), `dashboards/ai-platform.json`
   (hand-written: LiteLLM spend, tokens, latency, rate-limit headroom, TraceQL cheatsheet),
   `dashboards/resources-<node>.json` (hand-written: RAM/CPU/disk per container or volume),
-  `dashboards/infra-services.json` (hand-written: Caddy, headscale, SearXNG — the three
-  scraped jobs that had metrics but no panel), `dashboards/service-logs.json` (one Loki
+  `dashboards/infra-services.json` (hand-written: Caddy and headscale, the scraped jobs
+  that had metrics but no panel), `dashboards/service-logs.json` (one Loki
   panel behind a `container` template variable, covers every container without its own
   dashboard). **One resources dashboard per node, not a node filter** — legends truncate
   in a bargauge otherwise. TB's copy omits the writable-layer panel (cadvisor doesn't

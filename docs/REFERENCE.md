@@ -94,13 +94,12 @@ same reasoning as Alloy's OTLP receiver ([why](domains/networking.md)) — calle
 | Profilarr | 6868 | 16868 |
 | Cleanuparr | 11011 | 11011 |
 | your_spotify | 8095 | 18095 |
-| SearXNG | 8080 | 18090 |
 | Playwright | 3002 | 18091 |
 | Karakeep | 3050 | 13050 |
 | Home Assistant | 8123 | 18123 |
 
-SearXNG and Playwright have no auth of their own — callers on TB reach them via
-`http://host.docker.internal:18090`/`:18091`, same as before this redesign, just renumbered.
+Playwright has no auth of its own — callers on TB reach it via
+`http://host.docker.internal:18091`.
 
 ## Freebox DHCP reservations
 
@@ -134,9 +133,9 @@ allowed GM→TB.
 | Profilarr | 6868 |
 | Cleanuparr | 11011 |
 | your_spotify | 8095 |
-| SearXNG | 8080 |
 | Playwright | 3002 |
 | Karakeep | 3050 |
+| Home Assistant | 8123 |
 
 ## Restic repositories
 
