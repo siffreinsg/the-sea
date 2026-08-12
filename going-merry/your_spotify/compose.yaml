@@ -1,6 +1,6 @@
 services:
   your_spotify_mongo:
-    image: mongo:6.0.28-jammy
+    image: mongo:7.0.40-jammy
     container_name: your_spotify_mongo
     restart: unless-stopped
     volumes:
